@@ -56,7 +56,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     <aside
       className={cn(
         "h-screen flex flex-col justify-between border-r border-gray-200 bg-gray-50 transition-all duration-350 z-20 shrink-0",
-        isCollapsed ? "w-20" : "w-[260px]",
+        isCollapsed ? "w-20" : "full",
         className
       )}
     >

@@ -24,6 +24,10 @@ export const AvatarComponent: React.FC<AvatarProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [localSrc, setLocalSrc] = useState<string | undefined>(src)
 
+  React.useEffect(() => {
+    setLocalSrc(src)
+  }, [src])
+
   const sizes = {
     sm: "size-10 text-xs",
     md: "size-16 text-sm",

@@ -5,6 +5,7 @@ import { useQueryClient } from "@tanstack/react-query"
 
 import { useAuthStore } from "../store/authStore"
 import { DashboardLayout } from "../components/layout/DashboardLayout"
+import { useProfileDetails } from "../features/profile/hooks/useProfile"
 
 // Lazy load / direct import of features pages (Section 82/96)
 import LoginPage from "../features/auth/pages/LoginPage"
@@ -37,6 +38,7 @@ function ProtectedLayoutWrapper() {
   const location = useLocation()
   const queryClient = useQueryClient()
   const user = useAuthStore((state) => state.user)
+  const { data: profile } = useProfileDetails()
   const clearAuth = useAuthStore((state) => state.clearAuth)
   const [isConfirmLogoutOpen, setIsConfirmLogoutOpen] = useState(false)
 
@@ -49,8 +51,9 @@ function ProtectedLayoutWrapper() {
         onNavSelect={(id) => {
           navigate(`/${id}`)
         }}
-        userDisplayName={user?.name || "Member"}
-        userEmail={user?.email || ""}
+        userDisplayName={profile?.fullName || user?.name || "Member"}
+        userEmail={profile?.email || user?.email || ""}
+        userAvatarUrl={profile?.avatarUrl || undefined}
         onLogout={() => setIsConfirmLogoutOpen(true)}
       >
         <Outlet />
