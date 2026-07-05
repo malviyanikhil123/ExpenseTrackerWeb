@@ -1,10 +1,10 @@
 import axios from "axios"
+import { API_URL } from "@/config/runtime"
 import { useAuthStore } from "../store/authStore"
 
-const baseURL = import.meta.env.VITE_API_URL || "http://localhost:5003"
-
 export const api = axios.create({
-  baseURL,
+  baseURL: API_URL,
+  withCredentials: true,
   headers: {
     "Content-Type": "application/json",
   },
@@ -75,7 +75,7 @@ api.interceptors.response.use(
 
       try {
         // Silent token refresh API call (Section 53/56)
-        const response = await axios.post(`${baseURL}/auth/refresh`, {
+        const response = await axios.post(`${API_URL}/auth/refresh`, {
           refreshToken,
         })
 
