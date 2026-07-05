@@ -55,16 +55,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
   return (
     <aside
       className={cn(
-        "h-screen flex flex-col justify-between border-r border-gray-200 bg-gray-50 transition-all duration-350 z-20 shrink-0",
+        "h-screen flex flex-col justify-between border-r border-sidebar-border bg-sidebar transition-all duration-350 z-20 shrink-0",
         isCollapsed ? "w-20" : "full",
         className
       )}
     >
       {/* Sidebar Top: Branding & Collapse Button */}
       <div className="flex flex-col">
-        <div className="h-[72px] border-b border-gray-200 px-6 flex items-center justify-between shrink-0 bg-white">
+        <div className="h-[72px] border-b border-sidebar-border px-6 flex items-center justify-between shrink-0 bg-sidebar">
           {!isCollapsed && (
-            <span className="text-base font-bold tracking-tight text-gray-900 select-none">
+            <span className="text-base font-bold tracking-tight text-foreground select-none">
               Expense Tracker
             </span>
           )}
@@ -77,7 +77,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <button
               type="button"
               onClick={onToggleCollapse}
-              className="hidden md:flex p-1 rounded-md border border-gray-200 text-gray-400 hover:text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer"
+              className="hidden md:flex p-1 rounded-md border border-sidebar-border text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-muted transition-colors cursor-pointer"
             >
               {isCollapsed ? <ChevronRight className="size-4" /> : <ChevronLeft className="size-4" />}
             </button>
@@ -97,12 +97,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 className={cn(
                   "relative flex items-center gap-3 px-3.5 py-3 text-sm font-normal rounded-[10px] select-none transition-colors group/nav",
                   isActive
-                    ? "bg-primary text-white"
-                    : "text-gray-600 hover:bg-primary/10 hover:text-primary"
+                    ? "bg-primary text-white font-semibold"
+                    : "text-sidebar-foreground/80 hover:bg-primary/10 hover:text-primary"
                 )}
                 title={isCollapsed ? item.title : undefined}
               >
-                <span className={cn(isActive ? "text-white" : "text-gray-400 group-hover/nav:text-primary")}>
+                <span className={cn(
+                  isActive
+                    ? "text-white"
+                    : "text-sidebar-foreground/45 group-hover/nav:text-primary"
+                )}>
                   {item.icon}
                 </span>
                 {!isCollapsed && <span className="font-normal">{item.title}</span>}
@@ -112,7 +116,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   <span
                     className={cn(
                       "ml-auto text-[10px] px-2 py-0.5 rounded-full font-bold",
-                      isActive ? "bg-white/20 text-white" : "bg-gray-200 text-gray-600"
+                      isActive ? "bg-white/20 text-white" : "bg-muted text-muted-foreground"
                     )}
                   >
                     {item.badge}
@@ -121,7 +125,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
                 {/* Tooltip on Collapsed (Section 22) */}
                 {isCollapsed && (
-                  <div className="absolute left-20 ml-2 hidden group-hover/nav:block bg-gray-900 text-white text-xs px-2.5 py-1.5 rounded-[6px] shadow-md whitespace-nowrap z-30 font-medium">
+                  <div className="absolute left-20 ml-2 hidden group-hover/nav:block bg-popover text-popover-foreground text-xs px-2.5 py-1.5 rounded-[6px] shadow-md border border-border whitespace-nowrap z-30 font-medium">
                     {item.title}
                   </div>
                 )}
@@ -132,7 +136,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       </div>
 
       {/* Sidebar Bottom: Logout Action (Section 22) */}
-      <div className="p-4 border-t border-gray-200/60 bg-gray-50/50">
+      <div className="p-4 border-t border-sidebar-border/60 bg-sidebar/50">
         <button
           type="button"
           onClick={onLogout}

@@ -66,7 +66,7 @@ export const CustomDialog: React.FC<DialogProps> = ({
       {/* Responsive Sheet / Modal container (Section 33) */}
       <div
         className={cn(
-          "relative z-10 w-full bg-white border border-border flex flex-col focus:outline-none shadow-modal transition-all duration-200",
+          "relative z-10 w-full bg-card border border-border flex flex-col focus:outline-none shadow-modal transition-all duration-200 text-card-foreground",
           // Mobile: bottom sheet, full width, rounded top
           "rounded-t-[16px] max-h-[85vh] sm:rounded-b-[16px]",
           // Desktop: centered, size constraints, custom border radius (16px)
@@ -80,30 +80,30 @@ export const CustomDialog: React.FC<DialogProps> = ({
         {/* Header */}
         <div className="flex items-start justify-between p-6 pb-4">
           <div className="flex flex-col gap-1 pr-4">
-            <h3 id="dialog-title" className="text-lg font-semibold text-gray-900 leading-none">
+            <h3 id="dialog-title" className="text-lg font-semibold text-foreground leading-none">
               {title}
             </h3>
             {description && (
-              <p className="text-sm text-gray-500 leading-normal mt-1">{description}</p>
+              <p className="text-sm text-muted-foreground leading-normal mt-1">{description}</p>
             )}
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
+            className="p-1.5 rounded-full hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
           >
             <X className="size-4" />
           </button>
         </div>
 
         {/* Content (Scrollable if tall) */}
-        <div className="flex-1 overflow-y-auto px-6 py-2 text-sm text-gray-700 leading-relaxed">
+        <div className="flex-1 overflow-y-auto px-6 py-2 text-sm text-foreground leading-relaxed">
           {children}
         </div>
 
         {/* Footer */}
         {footer && (
-          <div className="border-t border-gray-100 p-6 flex flex-col-reverse sm:flex-row sm:justify-end gap-3 bg-gray-50/50 rounded-b-[16px]">
+          <div className="border-t border-border p-6 flex flex-col-reverse sm:flex-row sm:justify-end gap-3 bg-muted/30 rounded-b-[16px]">
             {footer}
           </div>
         )}
@@ -165,7 +165,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
             <AlertTriangle className="size-5" />
           </div>
         )}
-        <p className="text-sm text-gray-500 leading-normal">{message}</p>
+        <p className="text-sm text-muted-foreground leading-normal">{message}</p>
       </div>
     </CustomDialog>
   )

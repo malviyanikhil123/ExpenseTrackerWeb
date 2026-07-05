@@ -137,8 +137,8 @@ export default function CategoriesPage() {
     return (
       <div className="flex flex-col items-center justify-center p-12 border border-danger/10 bg-danger/5 rounded-[16px] max-w-2xl mx-auto mt-12">
         <AlertCircle className="size-12 text-danger mb-4" />
-        <h2 className="text-xl font-bold text-gray-900 mb-1">Failed to fetch Categories</h2>
-        <p className="text-sm text-gray-500 mb-6">There was an error communicating with the backend API.</p>
+        <h2 className="text-xl font-bold text-foreground mb-1">Failed to fetch Categories</h2>
+        <p className="text-sm text-muted-foreground mb-6">There was an error communicating with the backend API.</p>
         <CustomButton variant="outline" onClick={() => refetch()}>
           Retry
         </CustomButton>
@@ -150,10 +150,10 @@ export default function CategoriesPage() {
     <div className="flex flex-col gap-6 pb-12 select-none">
       
       {/* Header (Section 71) */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-gray-100 pb-5">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-border pb-5">
         <div className="flex flex-col gap-1">
-          <h1 className="text-2xl font-bold tracking-tight text-gray-900">Categories</h1>
-          <p className="text-sm text-gray-500">Manage transaction classifications.</p>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">Categories</h1>
+          <p className="text-sm text-muted-foreground">Manage transaction classifications.</p>
         </div>
         <CustomButton variant="primary" size="md" className="gap-2 w-full sm:w-auto" onClick={handleOpenCreate}>
           <Plus className="size-4" />
@@ -162,16 +162,16 @@ export default function CategoriesPage() {
       </div>
 
       {/* Tabs & Search controls */}
-      <div className="flex flex-col md:flex-row gap-4 justify-between items-stretch md:items-center bg-gray-50/50 p-4 rounded-[16px] border border-gray-200/80">
+      <div className="flex flex-col md:flex-row gap-4 justify-between items-stretch md:items-center bg-card/50 p-4 rounded-[16px] border border-border">
         
         {/* Tab switch group */}
-        <div className="flex bg-gray-100 p-1 rounded-[10px] self-start md:self-auto w-full md:w-auto">
+        <div className="flex bg-muted p-1 rounded-[10px] self-start md:self-auto w-full md:w-auto">
           <button
             type="button"
             onClick={() => setActiveTab("EXPENSE")}
             className={cn(
               "flex-1 md:flex-none px-5 py-2 rounded-[8px] text-xs font-semibold select-none transition-colors cursor-pointer",
-              activeTab === "EXPENSE" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"
+              activeTab === "EXPENSE" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
             )}
           >
             Expense Categories
@@ -181,7 +181,7 @@ export default function CategoriesPage() {
             onClick={() => setActiveTab("INCOME")}
             className={cn(
               "flex-1 md:flex-none px-5 py-2 rounded-[8px] text-xs font-semibold select-none transition-colors cursor-pointer",
-              activeTab === "INCOME" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"
+              activeTab === "INCOME" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
             )}
           >
             Income Categories
@@ -190,13 +190,13 @@ export default function CategoriesPage() {
 
         {/* Search */}
         <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-3 top-2.5 size-4 text-gray-400" />
+          <Search className="absolute left-3 top-2.5 size-4 text-muted-foreground" />
           <input
             type="text"
             placeholder="Search by category name..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="h-9 w-full pl-9 pr-4 bg-white border border-gray-200 rounded-[10px] text-xs outline-none focus:border-primary transition-colors font-sans"
+            className="h-9 w-full pl-9 pr-4 bg-card text-foreground border border-border rounded-[10px] text-xs outline-none focus:border-primary transition-colors font-sans"
           />
         </div>
 
@@ -204,7 +204,7 @@ export default function CategoriesPage() {
 
       {/* Category List / Grid (Section 71) */}
       {filteredCategories.length === 0 ? (
-        <div className="h-64 flex flex-col items-center justify-center text-center text-xs text-gray-400 gap-2 border border-dashed border-gray-200 rounded-[16px]">
+        <div className="h-64 flex flex-col items-center justify-center text-center text-xs text-muted-foreground gap-2 border border-dashed border-border bg-card rounded-[16px]">
           <FolderOpen className="size-10" />
           <span>No categories found in this group.</span>
           <CustomButton variant="outline" size="sm" className="mt-2" onClick={handleOpenCreate}>
@@ -220,7 +220,7 @@ export default function CategoriesPage() {
             return (
               <div
                 key={cat.id}
-                className="bg-white border border-gray-200 rounded-[12px] p-5 shadow-card flex items-center justify-between hover:shadow-md transition-shadow relative"
+                className="bg-card border border-border rounded-[12px] p-5 shadow-card flex items-center justify-between hover:shadow-md transition-shadow relative text-card-foreground"
               >
                 <div className="flex items-center gap-4">
                   <div
@@ -230,8 +230,8 @@ export default function CategoriesPage() {
                     {renderIcon(iconName, cat.color || COLOR_PALETTE[0])}
                   </div>
                   <div className="flex flex-col">
-                    <span className="text-sm font-semibold text-gray-800">{cat.name}</span>
-                    <span className="text-2xs font-medium text-gray-400 uppercase tracking-wider mt-0.5">
+                    <span className="text-sm font-semibold text-foreground">{cat.name}</span>
+                    <span className="text-2xs font-medium text-muted-foreground uppercase tracking-wider mt-0.5">
                       {cat.type}
                     </span>
                   </div>
@@ -241,7 +241,7 @@ export default function CategoriesPage() {
                   trigger={
                     <button
                       type="button"
-                      className="p-1.5 rounded-full hover:bg-gray-50 text-gray-400 hover:text-gray-600 transition-colors cursor-pointer outline-none"
+                      className="p-1.5 rounded-full hover:bg-muted text-muted-foreground hover:text-foreground transition-colors cursor-pointer outline-none"
                     >
                       <MoreVertical className="size-4" />
                     </button>

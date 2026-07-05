@@ -31,7 +31,7 @@
   --gray-900: #111827;
 
   /* Background Colors */
-  --background: #ffffff;
+  --background: #f5f3f6;
   --foreground: var(--gray-900);
 
   /* Card */
@@ -39,7 +39,7 @@
   --card-foreground: var(--gray-900);
 
   /* Sidebar */
-  --sidebar: var(--gray-50);
+  --sidebar: #ffffff;
   --sidebar-foreground: var(--gray-700);
   --sidebar-border: var(--gray-200);
 
@@ -74,6 +74,7 @@
 }
 
 .dark {
+  --gray-850: #151c28;
   --background: var(--gray-900);
   --foreground: var(--gray-50);
 

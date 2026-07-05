@@ -14,15 +14,16 @@ import {
   useUpdatePreferences,
   useChangePassword,
 } from "../hooks/useProfile"
+import { useTheme } from "../../../context/ThemeContext"
 
 export default function ProfilePage() {
   const user = useAuthStore((state) => state.user)
 
   const { data: profile, isLoading, isError, refetch } = useProfileDetails()
 
-  const [name, setName] = useState("")
-  const [email, setEmail] = useState("")
-  const [avatarUrl, setAvatarUrl] = useState("")
+  const [name, setName] = useState(() => profile?.fullName || "")
+  const [email, setEmail] = useState(() => profile?.email || "")
+  const [avatarUrl, setAvatarUrl] = useState(() => profile?.avatarUrl || "")
 
   const [isPasswordOpen, setIsPasswordOpen] = useState(false)
   const [oldPassword, setOldPassword] = useState("")
@@ -30,9 +31,9 @@ export default function ProfilePage() {
   const [confirmPassword, setConfirmPassword] = useState("")
 
   // Preferences interactive state (linked to backend userSettings)
-  const [currency, setCurrency] = useState("USD")
+  const [currency, setCurrency] = useState(() => profile?.currency || localStorage.getItem("currency") || "USD")
   const [language, setLanguage] = useState("EN")
-  const [theme, setTheme] = useState("LIGHT")
+  const { theme, setTheme } = useTheme()
 
   // Sync state once profile is loaded (Section 77)
   useEffect(() => {
@@ -40,8 +41,7 @@ export default function ProfilePage() {
       setName(profile.fullName)
       setEmail(profile.email)
       setAvatarUrl(profile.avatarUrl || "")
-      setCurrency(profile.currency || "USD")
-      setTheme(profile.theme || "LIGHT")
+      setCurrency(profile.currency || localStorage.getItem("currency") || "USD")
     }
   }, [profile])
 
@@ -91,6 +91,7 @@ export default function ProfilePage() {
 
   const handleCurrencyChange = (cur: string) => {
     setCurrency(cur)
+    localStorage.setItem("currency", cur)
     updatePreferencesMutation.mutate({
       currency: cur,
       theme: theme as any,
@@ -130,17 +131,17 @@ export default function ProfilePage() {
     <div className="flex flex-col gap-6 pb-12 font-sans select-none max-w-4xl">
       
       {/* Header */}
-      <div className="flex flex-col gap-1 border-b border-gray-100 pb-5">
-        <h1 className="text-2xl font-bold tracking-tight text-gray-900">Profile Settings</h1>
-        <p className="text-sm text-gray-500">Configure your personal information, security features, and app environment preferences.</p>
+      <div className="flex flex-col gap-1 border-b border-border pb-5">
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">Profile Settings</h1>
+        <p className="text-sm text-muted-foreground">Configure your personal information, security features, and app environment preferences.</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-2">
         
         {/* Left Side: Avatar Card */}
-        <div className="bg-white border border-gray-200 rounded-[16px] p-6 shadow-card flex flex-col items-center justify-center relative overflow-hidden h-fit">
+        <div className="bg-card border border-border rounded-[16px] p-6 shadow-card flex flex-col items-center justify-center relative overflow-hidden h-fit text-card-foreground">
           {/* Banner Graphic background */}
-          <div className="h-20 bg-gradient-to-tr from-[#706677] to-[#565264]/80 rounded-t-[16px] w-full absolute top-0 left-0 border-b border-gray-100/10" />
+          <div className="h-20 bg-gradient-to-tr from-[#706677] to-[#565264]/80 rounded-t-[16px] w-full absolute top-0 left-0 border-b border-border/10" />
           
           <div className="relative mt-8 mb-3 z-10 flex flex-col items-center w-full">
             <AvatarComponent
@@ -164,17 +165,17 @@ export default function ProfilePage() {
             />
             
             <div className="flex flex-col items-center mt-3 text-center">
-              <span className="text-base font-bold text-gray-800 tracking-tight">{user?.name}</span>
-              <span className="text-2xs font-medium text-gray-400 mt-0.5">{user?.email}</span>
+              <span className="text-base font-bold text-foreground tracking-tight">{user?.name}</span>
+              <span className="text-2xs font-medium text-muted-foreground mt-0.5">{user?.email}</span>
               <Badge variant="info" className="mt-2.5 px-2 py-0.5 rounded-full text-3xs font-bold uppercase tracking-wider bg-primary/10 text-primary border-primary/20">
                 Auditor Tier
               </Badge>
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3.5 w-full mt-5 pt-5 border-t border-gray-150 text-xs">
-            <div className="bg-gray-50/50 border border-gray-100 rounded-[10px] p-3 flex flex-col gap-0.5 select-none">
-              <span className="text-gray-400 font-semibold uppercase tracking-wider text-[9px] flex items-center gap-1">
+          <div className="grid grid-cols-2 gap-3.5 w-full mt-5 pt-5 border-t border-border text-xs">
+            <div className="bg-muted/50 border border-border rounded-[10px] p-3 flex flex-col gap-0.5 select-none">
+              <span className="text-muted-foreground font-semibold uppercase tracking-wider text-[9px] flex items-center gap-1">
                 <Activity className="size-3" />
                 Auth Status
               </span>
@@ -183,12 +184,12 @@ export default function ProfilePage() {
                 Active
               </span>
             </div>
-            <div className="bg-gray-50/50 border border-gray-100 rounded-[10px] p-3 flex flex-col gap-0.5 select-none">
-              <span className="text-gray-400 font-semibold uppercase tracking-wider text-[9px] flex items-center gap-1">
+            <div className="bg-muted/50 border border-border rounded-[10px] p-3 flex flex-col gap-0.5 select-none">
+              <span className="text-muted-foreground font-semibold uppercase tracking-wider text-[9px] flex items-center gap-1">
                 <Calendar className="size-3" />
                 Registered
               </span>
-              <span className="font-bold text-gray-800 text-[11px] mt-0.5">
+              <span className="font-bold text-foreground text-[11px] mt-0.5">
                 {profile?.createdAt ? new Date(profile.createdAt).toLocaleDateString("en-US", { month: "short", year: "numeric" }) : "Jul 2026"}
               </span>
             </div>
@@ -199,9 +200,9 @@ export default function ProfilePage() {
         <div className="md:col-span-2 flex flex-col gap-6">
           
           {/* Personal Information */}
-          <div className="bg-white border border-gray-200 rounded-[16px] p-6 shadow-card flex flex-col gap-5">
-            <h3 className="text-sm font-semibold text-gray-900 border-b border-gray-50 pb-2.5 flex items-center gap-2">
-              <User className="size-4 text-gray-400" />
+          <div className="bg-card border border-border rounded-[16px] p-6 shadow-card flex flex-col gap-5 text-card-foreground">
+            <h3 className="text-sm font-semibold text-foreground border-b border-border pb-2.5 flex items-center gap-2">
+              <User className="size-4 text-muted-foreground" />
               Personal Information
             </h3>
             
@@ -222,7 +223,7 @@ export default function ProfilePage() {
               />
             </div>
 
-            <div className="flex justify-end border-t border-gray-50 pt-4 mt-1">
+            <div className="flex justify-end border-t border-border pt-4 mt-1">
               <CustomButton
                 variant="primary"
                 size="sm"
@@ -235,17 +236,17 @@ export default function ProfilePage() {
           </div>
 
           {/* Security / Password / Credentials */}
-          <div className="bg-white border border-gray-200 rounded-[16px] p-6 shadow-card flex flex-col gap-5">
-            <h3 className="text-sm font-semibold text-gray-900 border-b border-gray-50 pb-2.5 flex items-center gap-2">
-              <Lock className="size-4 text-gray-400" />
+          <div className="bg-card border border-border rounded-[16px] p-6 shadow-card flex flex-col gap-5 text-card-foreground">
+            <h3 className="text-sm font-semibold text-foreground border-b border-border pb-2.5 flex items-center gap-2">
+              <Lock className="size-4 text-muted-foreground" />
               Security & Credentials
             </h3>
 
-            <div className="flex flex-col divide-y divide-gray-100 text-xs">
+            <div className="flex flex-col divide-y divide-border text-xs">
               <div className="flex items-center justify-between py-3.5 first:pt-0">
                 <div className="flex flex-col gap-0.5">
-                  <span className="font-semibold text-gray-800">Account Password</span>
-                  <span className="text-gray-400">Regularly update credentials to protect transaction ledger logs.</span>
+                  <span className="font-semibold text-foreground">Account Password</span>
+                  <span className="text-muted-foreground">Regularly update credentials to protect transaction ledger logs.</span>
                 </div>
                 <CustomButton variant="outline" size="sm" className="border-gray-200 shrink-0" onClick={() => setIsPasswordOpen(true)}>
                   Change Password
@@ -255,10 +256,10 @@ export default function ProfilePage() {
               <div className="flex items-center justify-between py-3.5 last:pb-0">
                 <div className="flex flex-col gap-0.5">
                   <div className="flex items-center gap-2">
-                    <span className="font-semibold text-gray-800">Two-Factor Authentication (2FA)</span>
-                    <Badge variant="default" className="text-[9px] font-bold px-1.5 py-0.2 bg-gray-100 text-gray-500 border-gray-200">Roadmap</Badge>
+                    <span className="font-semibold text-foreground">Two-Factor Authentication (2FA)</span>
+                    <Badge variant="default" className="text-[9px] font-bold px-1.5 py-0.2 bg-muted text-muted-foreground border-border">Roadmap</Badge>
                   </div>
-                  <span className="text-gray-400">Secure authorization checks using phone codes or authenticator apps.</span>
+                  <span className="text-muted-foreground">Secure authorization checks using phone codes or authenticator apps.</span>
                 </div>
                 <CustomButton variant="outline" size="sm" className="border-gray-200 shrink-0 opacity-60 cursor-not-allowed" disabled>
                   Enable MFA
@@ -268,22 +269,22 @@ export default function ProfilePage() {
           </div>
 
           {/* Application Preferences (segmented tab control for premium interactive feel) */}
-          <div className="bg-white border border-gray-200 rounded-[16px] p-6 shadow-card flex flex-col gap-5">
-            <h3 className="text-sm font-semibold text-gray-900 border-b border-gray-50 pb-2.5 flex items-center gap-2">
-              <Globe className="size-4 text-gray-400" />
+          <div className="bg-card border border-border rounded-[16px] p-6 shadow-card flex flex-col gap-5 text-card-foreground">
+            <h3 className="text-sm font-semibold text-foreground border-b border-border pb-2.5 flex items-center gap-2">
+              <Globe className="size-4 text-muted-foreground" />
               Local Preferences
             </h3>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 text-xs font-sans">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 text-xs font-sans">
               
               {/* Currency */}
               <div className="flex flex-col gap-2">
-                <span className="font-semibold text-gray-500 flex items-center gap-1.5 select-none">
+                <span className="font-semibold text-muted-foreground flex items-center gap-1.5 select-none">
                   <Coins className="size-3.5" />
                   Primary Currency
                 </span>
-                <div className="flex bg-gray-100 p-1 rounded-[10px] w-full">
-                  {["USD", "EUR", "INR"].map((cur) => (
+                <div className="flex bg-muted p-1 rounded-[10px] w-full">
+                  {["USD", "INR"].map((cur) => (
                     <button
                       key={cur}
                       type="button"
@@ -291,23 +292,23 @@ export default function ProfilePage() {
                       className={cn(
                         "flex-1 py-1.5 rounded-[8px] text-[10px] font-bold transition-all cursor-pointer select-none",
                         currency === cur
-                          ? "bg-white text-gray-900 shadow-sm"
-                          : "text-gray-500 hover:text-gray-700 hover:bg-gray-50/40"
+                          ? "bg-background text-foreground shadow-sm"
+                          : "text-muted-foreground hover:text-foreground hover:bg-muted/40"
                       )}
                     >
-                      {cur === "USD" ? "USD ($)" : cur === "EUR" ? "EUR (€)" : "INR (₹)"}
+                      {cur === "USD" ? "USD ($)" : "INR (₹)"}
                     </button>
                   ))}
                 </div>
               </div>
 
               {/* Language */}
-              <div className="flex flex-col gap-2">
-                <span className="font-semibold text-gray-500 flex items-center gap-1.5 select-none">
+              {/* <div className="flex flex-col gap-2">
+                <span className="font-semibold text-muted-foreground flex items-center gap-1.5 select-none">
                   <Globe className="size-3.5" />
                   Language
                 </span>
-                <div className="flex bg-gray-100 p-1 rounded-[10px] w-full">
+                <div className="flex bg-muted p-1 rounded-[10px] w-full">
                   {["EN", "ES", "HI"].map((lang) => (
                     <button
                       key={lang}
@@ -320,23 +321,23 @@ export default function ProfilePage() {
                       className={cn(
                         "flex-1 py-1.5 rounded-[8px] text-[10px] font-bold transition-all cursor-pointer select-none",
                         language === lang
-                          ? "bg-white text-gray-900 shadow-sm"
-                          : "text-gray-500 hover:text-gray-700 hover:bg-gray-50/40"
+                          ? "bg-background text-foreground shadow-sm"
+                          : "text-muted-foreground hover:text-foreground hover:bg-muted/40"
                       )}
                     >
                       {lang === "EN" ? "EN" : lang === "ES" ? "ES" : "HI"}
                     </button>
                   ))}
                 </div>
-              </div>
+              </div> */}
 
               {/* Theme */}
               <div className="flex flex-col gap-2">
-                <span className="font-semibold text-gray-500 flex items-center gap-1.5 select-none">
+                <span className="font-semibold text-muted-foreground flex items-center gap-1.5 select-none">
                   <Moon className="size-3.5" />
                   Interface Theme
                 </span>
-                <div className="flex bg-gray-100 p-1 rounded-[10px] w-full">
+                <div className="flex bg-muted p-1 rounded-[10px] w-full">
                   {["LIGHT", "DARK", "SYSTEM"].map((th) => (
                     <button
                       key={th}
@@ -345,8 +346,8 @@ export default function ProfilePage() {
                       className={cn(
                         "flex-1 py-1.5 rounded-[8px] text-[10px] font-bold transition-all cursor-pointer select-none",
                         theme === th
-                          ? "bg-white text-gray-900 shadow-sm"
-                          : "text-gray-500 hover:text-gray-700 hover:bg-gray-50/40"
+                          ? "bg-background text-foreground shadow-sm"
+                          : "text-muted-foreground hover:text-foreground hover:bg-muted/40"
                       )}
                     >
                       {th.charAt(0) + th.slice(1).toLowerCase()}

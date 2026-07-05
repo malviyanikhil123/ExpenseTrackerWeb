@@ -49,7 +49,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   }, [])
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-white text-gray-900 font-sans">
+    <div className="flex h-screen w-screen overflow-hidden bg-background text-foreground font-sans">
       
       {/* 1. Sidebar - Fixed on Desktop & Tablet (Section 21) */}
       <div className="hidden md:block select-none shrink-0 h-full">
@@ -88,32 +88,32 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
       <div className="flex-1 flex flex-col min-w-0 h-full relative">
         
         {/* Sticky Header (Section 23) */}
-        <header className="h-[72px] border-b border-gray-200 bg-white sticky top-0 z-10 px-4 md:px-6 flex items-center justify-between shrink-0">
+        <header className="h-[72px] border-b border-border bg-card text-card-foreground sticky top-0 z-10 px-4 md:px-6 flex items-center justify-between shrink-0">
           
           <div className="flex items-center gap-3">
             {/* Mobile Hamburger toggle */}
             <button
               type="button"
               onClick={() => setIsMobileMenuOpen(true)}
-              className="md:hidden p-2 rounded-md hover:bg-gray-100 text-gray-500 hover:text-gray-900 transition-colors"
+              className="md:hidden p-2 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
             >
               <Menu className="size-5.5" />
             </button>
 
             {/* Breadcrumb - Desktop only (Section 24) */}
             {breadcrumbs.length > 0 && (
-              <nav className="hidden sm:flex items-center gap-1.5 text-sm font-normal text-gray-500">
+              <nav className="hidden sm:flex items-center gap-1.5 text-sm font-normal text-muted-foreground">
                 {breadcrumbs.map((crumb, idx) => {
                   const isLast = idx === breadcrumbs.length - 1
                   return (
                     <React.Fragment key={idx}>
-                      {idx > 0 && <ChevronRight className="size-3.5 text-gray-300 select-none" />}
+                      {idx > 0 && <ChevronRight className="size-3.5 text-muted-foreground/40 select-none" />}
                       {isLast ? (
-                        <span className="font-semibold text-gray-900 leading-none select-none">
+                        <span className="font-semibold text-foreground leading-none select-none">
                           {crumb.label}
                         </span>
                       ) : (
-                        <span className="hover:text-gray-800 transition-colors select-none leading-none">
+                        <span className="hover:text-foreground transition-colors select-none leading-none">
                           {crumb.label}
                         </span>
                       )}
@@ -128,10 +128,10 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
           <div className="flex items-center gap-3">
             <button
               type="button"
-              className="p-2 rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-700 transition-colors relative"
+              className="p-2 rounded-full hover:bg-muted text-muted-foreground hover:text-foreground transition-colors relative"
             >
               <Bell className="size-5" />
-              <span className="absolute top-1 right-1.5 size-2 rounded-full bg-danger ring-2 ring-white" />
+              <span className="absolute top-1 right-1.5 size-2 rounded-full bg-danger ring-2 ring-card" />
             </button>
 
             {/* Profile Dropdown Toggle (Section 23 / 35) */}
@@ -139,7 +139,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
               <button
                 type="button"
                 onClick={handleProfileClick}
-                className="flex items-center gap-2 pl-1 pr-2 py-1 rounded-full hover:bg-gray-50 transition-colors outline-none"
+                className="flex items-center gap-3 pl-1 pr-2 py-1 rounded-full hover:bg-muted transition-colors outline-none"
               >
                 <AvatarComponent
                   src={userAvatarUrl}
@@ -147,38 +147,38 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
                   size="sm"
                   className="size-8 cursor-pointer"
                 />
-                <span className="hidden sm:inline text-sm font-semibold text-gray-800">
+                <span className="hidden sm:inline text-sm font-semibold text-card-foreground/90">
                   {userDisplayName}
                 </span>
               </button>
 
               {isProfileMenuOpen && (
-                <div className="absolute right-0 mt-2 w-56 bg-white border border-gray-200 rounded-[16px] shadow-dropdown py-2 z-30">
-                  <div className="px-4 py-2 border-b border-gray-100 flex flex-col">
-                    <span className="text-sm font-semibold text-gray-800">{userDisplayName}</span>
-                    <span className="text-xs text-gray-400 truncate">{userEmail}</span>
+                <div className="absolute right-0 mt-2 w-56 bg-card border border-border rounded-[16px] shadow-dropdown py-2 z-30">
+                  <div className="px-4 py-2 border-b border-border flex flex-col">
+                    <span className="text-sm font-semibold text-foreground">{userDisplayName}</span>
+                    <span className="text-xs text-muted-foreground truncate">{userEmail}</span>
                   </div>
                   
                   <div className="py-1">
                     <button
-                      type="button"
+                       type="button"
                       onClick={() => onNavSelect("profile")}
-                      className="w-full h-10 px-4 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2.5"
+                      className="w-full h-10 px-4 text-left text-sm text-foreground/90 hover:bg-muted flex items-center gap-2.5"
                     >
-                      <User className="size-4 text-gray-400" />
+                      <User className="size-4 text-muted-foreground" />
                       Profile
                     </button>
                     <button
                       type="button"
                       onClick={() => onNavSelect("profile")}
-                      className="w-full h-10 px-4 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2.5"
+                      className="w-full h-10 px-4 text-left text-sm text-foreground/90 hover:bg-muted flex items-center gap-2.5"
                     >
-                      <Settings className="size-4 text-gray-400" />
+                      <Settings className="size-4 text-muted-foreground" />
                       Change Password
                     </button>
                   </div>
 
-                  <div className="border-t border-gray-100 pt-1 mt-1">
+                  <div className="border-t border-border pt-1 mt-1">
                     <button
                       type="button"
                       onClick={onLogout}
@@ -195,7 +195,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
         </header>
 
         {/* independent page content container scrollable */}
-        <main className="flex-1 overflow-y-auto bg-white p-4 md:p-6 lg:p-8">
+        <main className="flex-1 overflow-y-auto bg-background p-4 md:p-6 lg:p-8">
           {children}
         </main>
       </div>

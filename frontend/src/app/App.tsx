@@ -6,6 +6,8 @@ import { useQueryClient } from "@tanstack/react-query"
 import { useAuthStore } from "../store/authStore"
 import { DashboardLayout } from "../components/layout/DashboardLayout"
 import { useProfileDetails } from "../features/profile/hooks/useProfile"
+import { useApplyTheme } from "../hooks/useApplyTheme"
+import { useTheme } from "../context/ThemeContext"
 
 // Lazy load / direct import of features pages (Section 82/96)
 import LoginPage from "../features/auth/pages/LoginPage"
@@ -78,6 +80,15 @@ function ProtectedLayoutWrapper() {
 }
 
 export default function App() {
+  useApplyTheme()
+  const { theme } = useTheme()
+
+  const isDark =
+    theme === "DARK" ||
+    (theme === "SYSTEM" &&
+      window.matchMedia("(prefers-color-scheme: dark)").matches)
+  const toastTheme = isDark ? "dark" : "light"
+
   return (
     <>
       <Routes>
@@ -107,7 +118,7 @@ export default function App() {
         <Route path="*" element={<NotFound />} />
       </Routes>
 
-      <Toaster position="top-right" duration={3000} richColors />
+      <Toaster position="top-right" duration={3000} richColors theme={toastTheme} />
     </>
   )
 }

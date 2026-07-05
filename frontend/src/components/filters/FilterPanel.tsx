@@ -64,12 +64,12 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
               <div className="fixed inset-0 z-10" onClick={() => setIsDropdownOpen(false)} />
               
               {/* Dropdown panel (Section 28) */}
-              <div className="absolute left-0 mt-2 w-72 bg-white border border-gray-200 rounded-[16px] shadow-dropdown p-5 z-20 flex flex-col gap-4">
-                <h4 className="text-sm font-semibold text-gray-900 border-b border-gray-100 pb-2">
+              <div className="absolute left-0 mt-2 w-72 bg-card border border-border rounded-[16px] shadow-dropdown p-5 z-20 flex flex-col gap-4 text-card-foreground">
+                <h4 className="text-sm font-semibold text-foreground border-b border-border pb-2">
                   Filters
                 </h4>
                 <div className="flex flex-col gap-3">{children}</div>
-                <div className="border-t border-gray-100 pt-3 flex justify-between gap-3">
+                <div className="border-t border-border pt-3 flex justify-between gap-3">
                   <CustomButton variant="ghost" size="sm" onClick={handleReset} className="text-xs">
                     Reset
                   </CustomButton>
@@ -118,7 +118,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
       {/* Filter Chips List (Section 28) */}
       {activeFilters.length > 0 && (
         <div className="flex flex-wrap gap-2 items-center">
-          <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider mr-1">
+          <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mr-1">
             Active Filters:
           </span>
           {activeFilters.map((chip) => (
@@ -150,18 +150,18 @@ export interface SortDropdownProps {
 
 export const SortDropdown: React.FC<SortDropdownProps> = ({ value, onChange }) => {
   return (
-    <div className="flex items-center gap-2">
-      <SlidersHorizontal className="size-4 text-gray-400 hidden sm:block" />
+    <div className="flex items-center gap-2 text-foreground">
+      <SlidersHorizontal className="size-4 text-muted-foreground hidden sm:block" />
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="h-10 pl-3 pr-8 py-2 text-sm bg-white border border-gray-200 rounded-[10px] outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-offset-1 focus:ring-primary/20"
+        className="h-10 pl-3 pr-8 py-2 text-sm bg-background text-foreground border border-border rounded-[10px] outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-offset-1 focus:ring-primary/20"
       >
-        <option value="newest">Newest First</option>
-        <option value="oldest">Oldest First</option>
-        <option value="highest_amount">Highest Amount</option>
-        <option value="lowest_amount">Lowest Amount</option>
-        <option value="alphabetical">Alphabetical</option>
+        <option value="newest" className="bg-popover text-popover-foreground">Newest First</option>
+        <option value="oldest" className="bg-popover text-popover-foreground">Oldest First</option>
+        <option value="highest_amount" className="bg-popover text-popover-foreground">Highest Amount</option>
+        <option value="lowest_amount" className="bg-popover text-popover-foreground">Lowest Amount</option>
+        <option value="alphabetical" className="bg-popover text-popover-foreground">Alphabetical</option>
       </select>
     </div>
   )
