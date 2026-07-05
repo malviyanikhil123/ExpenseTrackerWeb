@@ -1,15 +1,52 @@
+import { eq } from "drizzle-orm";
+
 import { db } from "../index";
 
 import seedCategoryGroups from "./category-groups.seed";
 import seedCategoryIcons from "./category-icons.seed";
 import { defaultCategoriesSeed } from "./default-categories.seed";
 
+import { hashPassword } from "../../lib/password";
+import { users } from "../schema/users";
 import { categoryGroups } from "../schema/categoryGroups";
 import { categoryIcons } from "../schema/categoryIcons";
 import { categories } from "../schema/categories";
 
+const SEED_USER_EMAIL = "seed@expensetracker.local";
+const SEED_USER_PASSWORD = "Password123!";
+
+function getDefaultCategories() {
+    return Object.entries(defaultCategoriesSeed).flatMap(([type, categoryList]) =>
+        categoryList.map((category) => ({
+            ...category,
+            type: type as "INCOME" | "EXPENSE",
+        }))
+    );
+}
+
 async function seed() {
     console.log("🌱 Starting database seeding...");
+
+    const hashedPassword = await hashPassword(SEED_USER_PASSWORD);
+
+    await db.insert(users)
+        .values({
+            fullName: "Seed User",
+            email: SEED_USER_EMAIL,
+            password: hashedPassword,
+            provider: "LOCAL",
+            isEmailVerified: true,
+        })
+        .onConflictDoNothing();
+
+    const [seedUser] = await db.select()
+        .from(users)
+        .where(eq(users.email, SEED_USER_EMAIL))
+        .limit(1);
+
+    if (!seedUser) {
+        throw new Error("Unable to create or load the seed user.");
+    }
 
     // Seed Category Groups
     const groupsSeedData = await seedCategoryGroups();
@@ -53,6 +90,46 @@ async function seed() {
         .onConflictDoNothing();
 
     console.log("✅ Category Icons Seeded");
+
+    const createdIcons = await db.select({
+        iconId: categoryIcons.id,
+        iconKey: categoryIcons.iconKey,
+        groupName: categoryGroups.name,
+    })
+        .from(categoryIcons)
+        .leftJoin(categoryGroups, eq(categoryIcons.groupId, categoryGroups.id));
+
+    const iconByKey = new Map(createdIcons.map((icon) => [icon.iconKey, icon.iconId]));
+    const fallbackIconByGroup = new Map<string, string>();
+
+    for (const icon of createdIcons) {
+        if (icon.groupName && !fallbackIconByGroup.has(icon.groupName)) {
+            fallbackIconByGroup.set(icon.groupName, icon.iconId);
+        }
+    }
+
+    const defaultCategories = getDefaultCategories();
+    const categoriesToInsert = defaultCategories.map((category: any) => {
+        const categoryIconId = iconByKey.get(category.icon) ?? fallbackIconByGroup.get(category.group);
+
+        if (!categoryIconId) {
+            throw new Error(`Missing category icon for ${category.name} (${category.group}).`);
+        }
+
+        return {
+            userId: seedUser.id,
+            categoryIconId,
+            name: category.name,
+            type: category.type,
+            color: category.color,
+        };
+    });
+
+    await db.insert(categories)
+        .values(categoriesToInsert)
+        .onConflictDoNothing();
+
+    console.log("✅ Default Categories Seeded");
 
     console.log("🎉 Database seeding completed.");
 
