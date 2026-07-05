@@ -40,7 +40,22 @@ export class TransactionsService {
             );
         }
 
-        return transactionsRepository.create(userId, data);
+        const transaction =
+            await transactionsRepository.create(userId, data);
+
+        // Adjust account balance: INCOME +, EXPENSE -
+        const delta =
+            data.type === "INCOME"
+                ? data.amount
+                : -data.amount;
+
+        await accountsRepository.adjustBalance(
+            userId,
+            data.accountId,
+            delta,
+        );
+
+        return transaction;
     }
 
     async findAll(
@@ -114,20 +129,59 @@ export class TransactionsService {
             );
         }
 
-        return transactionsRepository.update(
+        // Reverse old transaction's effect on old account
+        const oldDelta =
+            transaction.type === "INCOME"
+                ? -Number(transaction.amount)
+                : Number(transaction.amount);
+
+        await accountsRepository.adjustBalance(
             userId,
-            transactionId,
-            data,
+            transaction.accountId,
+            oldDelta,
         );
+
+        const updated =
+            await transactionsRepository.update(
+                userId,
+                transactionId,
+                data,
+            );
+
+        // Apply new transaction's effect on new account
+        const newAmount =
+            data.amount ?? Number(transaction.amount);
+        const newDelta =
+            type === "INCOME" ? newAmount : -newAmount;
+
+        await accountsRepository.adjustBalance(
+            userId,
+            accountId,
+            newDelta,
+        );
+
+        return updated;
     }
 
     async delete(
         userId: string,
         transactionId: string,
     ) {
-        await this.findById(
+        const transaction = await this.findById(
             userId,
             transactionId,
+        );
+
+        // Reverse the transaction's effect on the account
+        const reverseDelta =
+            transaction.type === "INCOME"
+                ? -Number(transaction.amount)
+                : Number(transaction.amount);
+
+        await accountsRepository.adjustBalance(
+            userId,
+            transaction.accountId,
+            reverseDelta,
         );
 
         return transactionsRepository.softDelete(

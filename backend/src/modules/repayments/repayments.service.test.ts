@@ -20,6 +20,12 @@ vi.mock("../debts/debts.repository", () => ({
     },
 }));
 
+vi.mock("../accounts/accounts.repository", () => ({
+    accountsRepository: {
+        adjustBalance: vi.fn(),
+    },
+}));
+
 import { repaymentsRepository } from "./repayments.repository";
 import { debtsRepository } from "../debts/debts.repository";
 
@@ -37,6 +43,8 @@ describe("RepaymentsService", () => {
         it("should create a repayment when within pending amount", async () => {
             vi.mocked(debtsRepository.findById).mockResolvedValue({
                 id: "debt-1",
+                accountId: "acc-1",
+                type: "BORROW",
                 totalAmount: "1000.00",
             } as any);
             vi.mocked(repaymentsRepository.getTotalRepaid).mockResolvedValue(500);
@@ -65,6 +73,8 @@ describe("RepaymentsService", () => {
         it("should mark debt as COMPLETED when fully repaid", async () => {
             vi.mocked(debtsRepository.findById).mockResolvedValue({
                 id: "debt-1",
+                accountId: "acc-1",
+                type: "BORROW",
                 totalAmount: "1000.00",
             } as any);
             vi.mocked(repaymentsRepository.getTotalRepaid).mockResolvedValue(700);
@@ -107,6 +117,8 @@ describe("RepaymentsService", () => {
         it("should throw 400 if repayment exceeds pending amount", async () => {
             vi.mocked(debtsRepository.findById).mockResolvedValue({
                 id: "debt-1",
+                accountId: "acc-1",
+                type: "BORROW",
                 totalAmount: "1000.00",
             } as any);
             vi.mocked(repaymentsRepository.getTotalRepaid).mockResolvedValue(900);
@@ -192,6 +204,8 @@ describe("RepaymentsService", () => {
             } as any);
             vi.mocked(debtsRepository.findById).mockResolvedValue({
                 id: "debt-1",
+                accountId: "acc-1",
+                type: "LENT",
                 totalAmount: "1000.00",
             } as any);
             vi.mocked(repaymentsRepository.getTotalRepaid).mockResolvedValue(500);
@@ -215,6 +229,8 @@ describe("RepaymentsService", () => {
             } as any);
             vi.mocked(debtsRepository.findById).mockResolvedValue({
                 id: "debt-1",
+                accountId: "acc-1",
+                type: "LENT",
                 totalAmount: "500.00",
             } as any);
             vi.mocked(repaymentsRepository.getTotalRepaid).mockResolvedValue(400);
@@ -236,9 +252,11 @@ describe("RepaymentsService", () => {
             } as any);
             // First call: for findById access check, second call: for post-delete status
             vi.mocked(debtsRepository.findById)
-                .mockResolvedValueOnce({ id: "debt-1" } as any)
+                .mockResolvedValueOnce({ id: "debt-1", accountId: "acc-1", type: "LENT" } as any)
                 .mockResolvedValueOnce({
                     id: "debt-1",
+                    accountId: "acc-1",
+                    type: "LENT",
                     totalAmount: "1000.00",
                 } as any);
             vi.mocked(repaymentsRepository.delete).mockResolvedValue({

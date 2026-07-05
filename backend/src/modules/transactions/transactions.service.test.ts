@@ -15,6 +15,7 @@ vi.mock("./transactions.repository", () => ({
 vi.mock("../accounts/accounts.repository", () => ({
     accountsRepository: {
         findById: vi.fn(),
+        adjustBalance: vi.fn(),
     },
 }));
 
@@ -142,6 +143,7 @@ describe("TransactionsService", () => {
                 accountId: "acc-1",
                 categoryId: "cat-1",
                 type: "EXPENSE",
+                amount: "50.00",
             } as any);
             vi.mocked(accountsRepository.findById).mockResolvedValue({
                 id: "acc-1",
@@ -189,6 +191,9 @@ describe("TransactionsService", () => {
         it("should soft delete a transaction", async () => {
             vi.mocked(transactionsRepository.findById).mockResolvedValue({
                 id: "txn-1",
+                accountId: "acc-1",
+                type: "EXPENSE",
+                amount: "50.00",
             } as any);
             vi.mocked(transactionsRepository.softDelete).mockResolvedValue({
                 id: "txn-1",

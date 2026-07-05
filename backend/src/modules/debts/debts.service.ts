@@ -23,7 +23,21 @@ export class DebtsService {
       throw new ApiError(404, "Account not found.");
     }
 
-    return debtsRepository.create(userId, data);
+    const debt = await debtsRepository.create(userId, data);
+
+    // LENT: money leaves (-), BORROW: money arrives (+)
+    const delta =
+      data.type === "BORROW"
+        ? data.totalAmount
+        : -data.totalAmount;
+
+    await accountsRepository.adjustBalance(
+      userId,
+      data.accountId,
+      delta,
+    );
+
+    return debt;
   }
 
   async findAll(
@@ -78,11 +92,38 @@ export class DebtsService {
       throw new ApiError(404, "Account not found.");
     }
 
-    return debtsRepository.update(
+    // Reverse old debt's effect on old account
+    const oldDelta =
+      debt.type === "BORROW"
+        ? -Number(debt.totalAmount)
+        : Number(debt.totalAmount);
+
+    await accountsRepository.adjustBalance(
+      userId,
+      debt.accountId,
+      oldDelta,
+    );
+
+    const updated = await debtsRepository.update(
       userId,
       debtId,
       data,
     );
+
+    // Apply new debt's effect on new account
+    const newType = data.type ?? debt.type;
+    const newAmount =
+      data.totalAmount ?? Number(debt.totalAmount);
+    const newDelta =
+      newType === "BORROW" ? newAmount : -newAmount;
+
+    await accountsRepository.adjustBalance(
+      userId,
+      accountId,
+      newDelta,
+    );
+
+    return updated;
   }
 
   async delete(
@@ -100,6 +141,20 @@ export class DebtsService {
         "Completed debt cannot be deleted.",
       );
     }
+
+    // Reverse original debt creation effect
+    // LENT creation was -, so reverse is +
+    // BORROW creation was +, so reverse is -
+    const reverseDelta =
+      debt.type === "BORROW"
+        ? -Number(debt.totalAmount)
+        : Number(debt.totalAmount);
+
+    await accountsRepository.adjustBalance(
+      userId,
+      debt.accountId,
+      reverseDelta,
+    );
 
     return debtsRepository.softDelete(
       userId,

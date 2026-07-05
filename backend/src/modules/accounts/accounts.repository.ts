@@ -1,4 +1,4 @@
-import { and, asc, eq, isNull, ne } from "drizzle-orm";
+import { and, asc, eq, isNull, ne, sql } from "drizzle-orm";
 
 import { db } from "../../db";
 import { accounts } from "../../db/schema/accounts";
@@ -170,6 +170,31 @@ export class AccountsRepository {
 
         return account ?? null;
     }
+    async adjustBalance(
+        userId: string,
+        accountId: string,
+        delta: number,
+    ) {
+        if (delta === 0) return;
+
+        const [account] = await db
+            .update(accounts)
+            .set({
+                openingBalance: sql`(${accounts.openingBalance}::numeric + ${delta.toFixed(2)}::numeric)::numeric(12,2)`,
+                updatedAt: new Date(),
+            })
+            .where(
+                and(
+                    eq(accounts.id, accountId),
+                    eq(accounts.userId, userId),
+                    isNull(accounts.deletedAt),
+                ),
+            )
+            .returning();
+
+        return account ?? null;
+    }
+
     async getTotalBalance(userId: string) {
         const rows = await db
             .select({ openingBalance: accounts.openingBalance })

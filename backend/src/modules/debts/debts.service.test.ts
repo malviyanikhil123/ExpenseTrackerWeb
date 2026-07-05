@@ -15,6 +15,7 @@ vi.mock("./debts.repository", () => ({
 vi.mock("../accounts/accounts.repository", () => ({
     accountsRepository: {
         findById: vi.fn(),
+        adjustBalance: vi.fn(),
     },
 }));
 
@@ -93,6 +94,8 @@ describe("DebtsService", () => {
             vi.mocked(debtsRepository.findById).mockResolvedValue({
                 id: "debt-1",
                 accountId: "acc-1",
+                type: "LENT",
+                totalAmount: "500.00",
                 status: "PENDING",
             } as any);
             vi.mocked(accountsRepository.findById).mockResolvedValue({
@@ -141,6 +144,9 @@ describe("DebtsService", () => {
         it("should soft delete a pending debt", async () => {
             vi.mocked(debtsRepository.findById).mockResolvedValue({
                 id: "debt-1",
+                accountId: "acc-1",
+                type: "LENT",
+                totalAmount: "500.00",
                 status: "PENDING",
             } as any);
             vi.mocked(debtsRepository.softDelete).mockResolvedValue({
