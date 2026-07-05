@@ -122,8 +122,19 @@ export default function DashboardPage() {
 
   const accMutation = useMutation({
     mutationFn: (newAcc: any) => api.post("/accounts", newAcc),
-    onSuccess: () => {
+    onSuccess: async (response) => {
       toast.success("Account created successfully!")
+      const createdAccount = response.data?.data
+      if (createdAccount) {
+        queryClient.setQueriesData({ queryKey: ["accounts"] }, (current: any) => {
+          if (!Array.isArray(current)) {
+            return current
+          }
+
+          return [...current, createdAccount]
+        })
+      }
+      await queryClient.refetchQueries({ queryKey: ["accounts"] })
       queryClient.invalidateQueries({ queryKey: ["dashboard"] })
       setIsAccountDialogOpen(false)
       setAccName("")

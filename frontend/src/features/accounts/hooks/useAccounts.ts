@@ -15,10 +15,17 @@ export function useCreateAccount() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: accountsApi.create,
-    onSuccess: () => {
+    onSuccess: async (createdAccount) => {
       toast.success("Account created successfully!")
-      queryClient.invalidateQueries({ queryKey: ["accounts"] })
-      queryClient.invalidateQueries({ queryKey: ["dashboard"] })
+      queryClient.setQueriesData({ queryKey: ["accounts"] }, (current: any) => {
+        if (!Array.isArray(current)) {
+          return current
+        }
+
+        return [...current, createdAccount]
+      })
+      await queryClient.refetchQueries({ queryKey: ["accounts"] })
+      await queryClient.refetchQueries({ queryKey: ["dashboard"] })
     },
     onError: (err: any) => {
       toast.error(err.response?.data?.message || "Failed to create account")
@@ -30,10 +37,10 @@ export function useUpdateAccount() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: any }) => accountsApi.update(id, data),
-    onSuccess: () => {
+    onSuccess: async () => {
       toast.success("Account updated successfully!")
-      queryClient.invalidateQueries({ queryKey: ["accounts"] })
-      queryClient.invalidateQueries({ queryKey: ["dashboard"] })
+      await queryClient.refetchQueries({ queryKey: ["accounts"] })
+      await queryClient.refetchQueries({ queryKey: ["dashboard"] })
     },
     onError: (err: any) => {
       toast.error(err.response?.data?.message || "Failed to update account")
@@ -45,10 +52,10 @@ export function useDeleteAccount() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: accountsApi.delete,
-    onSuccess: () => {
+    onSuccess: async () => {
       toast.success("Account deleted.")
-      queryClient.invalidateQueries({ queryKey: ["accounts"] })
-      queryClient.invalidateQueries({ queryKey: ["dashboard"] })
+      await queryClient.refetchQueries({ queryKey: ["accounts"] })
+      await queryClient.refetchQueries({ queryKey: ["dashboard"] })
     },
     onError: (err: any) => {
       toast.error(err.response?.data?.message || "Failed to delete account")
