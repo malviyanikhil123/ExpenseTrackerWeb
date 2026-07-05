@@ -48,6 +48,19 @@ export class CategoriesController {
         });
     }
 
+    async findIcons(
+        request: FastifyRequest,
+        reply: FastifyReply,
+    ) {
+        const icons = await categoriesService.findIcons();
+
+        return reply.send({
+            success: true,
+            message: "Category icons fetched successfully.",
+            data: icons,
+        });
+    }
+
     async findById(
         request: FastifyRequest,
         reply: FastifyReply,

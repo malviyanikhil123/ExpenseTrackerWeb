@@ -93,6 +93,10 @@ export class CategoriesService {
             categoryId,
         );
     }
+
+    async findIcons() {
+        return categoriesRepository.findIcons();
+    }
 }
 
 export const categoriesService = new CategoriesService();

@@ -151,6 +151,13 @@ export class CategoriesRepository {
 
         return category ?? null;
     }
+
+    async findIcons() {
+        return db
+            .select()
+            .from(categoryIcons)
+            .orderBy(asc(categoryIcons.displayName));
+    }
 }
 
 export const categoriesRepository = new CategoriesRepository();

@@ -18,6 +18,11 @@ export async function categoriesRoutes(
     );
 
     fastify.get(
+        "/icons",
+        categoriesController.findIcons.bind(categoriesController),
+    );
+
+    fastify.get(
         "/:id",
         categoriesController.findById.bind(categoriesController),
     );
