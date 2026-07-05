@@ -62,7 +62,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     >
       {/* Sidebar Top: Branding & Collapse Button */}
       <div className="flex flex-col">
-        <div className="h-[72px] border-b border-gray-200 px-6 flex items-center justify-between shrink-0 bg-white">
+        <div className="h-[72px] border-b border-gray-200 px-6 flex items-center justify-between shrink-0 bg-white gap-[25px]">
           {!isCollapsed && (
             <span className="text-base font-bold tracking-tight text-gray-900 select-none">
               Expense Tracker
