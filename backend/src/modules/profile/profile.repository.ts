@@ -50,7 +50,7 @@ export class ProfileRepository {
                 }),
 
                 ...(data.avatarUrl !== undefined && {
-                    avatarUrl: data.avatarUrl,
+                    avatar: data.avatarUrl,
                 }),
 
                 updatedAt: new Date(),

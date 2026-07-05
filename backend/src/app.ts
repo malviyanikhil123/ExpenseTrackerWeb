@@ -8,11 +8,14 @@ import { registerRoutes } from "./routes";
 export async function buildApp() {
     const app = Fastify({
         logger: true,
+        bodyLimit: 10 * 1024 * 1024, // 10MB payload limit for base64 image strings
     });
 
     await app.register(cors, {
         origin: true,
         credentials: true,
+        methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+        allowedHeaders: ["Content-Type", "Authorization"],
     });
 
     await app.register(fastifyJwt, {

@@ -11,7 +11,10 @@ export const updateProfileSchema = z.object({
     avatarUrl: z
         .string()
         .trim()
-        .url("Invalid avatar URL.")
+        .refine(
+            (val) => !val || val.startsWith("http://") || val.startsWith("https://") || val.startsWith("data:image/"),
+            "Invalid avatar URL."
+        )
         .optional(),
 });
 
