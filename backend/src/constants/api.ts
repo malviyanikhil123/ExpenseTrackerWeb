@@ -1,0 +1,1 @@
+export const PI_PREFIX = "/api/v1";
