@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate, Outlet, useNavigate, useLocation } from "react-router-dom"
 import { Toaster, toast } from "sonner"
 import { useState } from "react"
+import { useQueryClient } from "@tanstack/react-query"
 
 import { useAuthStore } from "../store/authStore"
 import { DashboardLayout } from "../components/layout/DashboardLayout"
@@ -34,6 +35,7 @@ import { ConfirmDialog } from "../components/dialogs/CustomDialog"
 function ProtectedLayoutWrapper() {
   const navigate = useNavigate()
   const location = useLocation()
+  const queryClient = useQueryClient()
   const user = useAuthStore((state) => state.user)
   const clearAuth = useAuthStore((state) => state.clearAuth)
   const [isConfirmLogoutOpen, setIsConfirmLogoutOpen] = useState(false)
@@ -59,6 +61,7 @@ function ProtectedLayoutWrapper() {
         onClose={() => setIsConfirmLogoutOpen(false)}
         onConfirm={() => {
           clearAuth()
+          queryClient.clear()
           setIsConfirmLogoutOpen(false)
           toast.success("Successfully logged out!")
         }}

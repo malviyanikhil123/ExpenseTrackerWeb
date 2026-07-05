@@ -5,6 +5,7 @@ import { z } from "zod"
 import { useNavigate, Link } from "react-router-dom"
 import { toast } from "sonner"
 import { Eye, EyeOff } from "lucide-react"
+import { useQueryClient } from "@tanstack/react-query"
 
 import { useAuthStore } from "../../../store/authStore"
 import { api } from "../../../lib/api"
@@ -21,6 +22,7 @@ type LoginFormInputs = z.infer<typeof loginSchema>
 export default function LoginPage() {
   const navigate = useNavigate()
   const setAuth = useAuthStore((state) => state.setAuth)
+  const queryClient = useQueryClient()
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
 
@@ -40,6 +42,13 @@ export default function LoginPage() {
       const { user, accessToken, refreshToken } = response.data
 
       setAuth(user, accessToken, refreshToken)
+      
+      // Invalidate caches per the Cache Invalidation Matrix
+      queryClient.invalidateQueries({ queryKey: ["profile"] })
+      queryClient.invalidateQueries({ queryKey: ["dashboard"] })
+      queryClient.invalidateQueries({ queryKey: ["accounts"] })
+      queryClient.invalidateQueries({ queryKey: ["categories"] })
+
       toast.success(`Welcome back, ${user.name}!`)
       navigate("/dashboard")
     } catch (error: any) {

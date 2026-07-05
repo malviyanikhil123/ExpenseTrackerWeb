@@ -66,38 +66,42 @@ export const AvatarComponent: React.FC<AvatarProps> = ({
   }
 
   return (
-    <div className={cn("relative flex items-center gap-4", className)}>
+    <div className={cn(
+      "relative flex gap-4",
+      editable ? "flex-col items-center text-center w-full" : "items-center",
+      className
+    )}>
       <div
         onClick={handleBrowse}
         className={cn(
-          "relative rounded-full overflow-hidden border border-gray-200 bg-gray-50 flex items-center justify-center font-semibold text-gray-600 shrink-0",
+          "relative rounded-full overflow-hidden border border-gray-200 bg-white flex items-center justify-center font-semibold text-gray-600 shrink-0",
           sizes[size],
-          editable && "cursor-pointer group hover:opacity-90"
+          editable ? "cursor-pointer group hover:opacity-90 shadow-md p-1 bg-white border-2 border-gray-100" : "bg-gray-50"
         )}
       >
         {localSrc ? (
-          <img src={localSrc} alt="Avatar" className="size-full object-cover" />
+          <img src={localSrc} alt="Avatar" className="size-full object-cover rounded-full" />
         ) : initials ? (
-          <span>{getInitials(initials)}</span>
+          <span className="select-none">{getInitials(initials)}</span>
         ) : (
           <User className="size-1/2 text-gray-400" />
         )}
 
         {editable && (
-          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity rounded-full">
             <Camera className="size-6 text-white" />
           </div>
         )}
       </div>
 
       {editable && (
-        <div className="flex flex-col gap-1.5">
-          <span className="text-sm font-medium text-gray-700">Profile Picture</span>
-          <div className="flex gap-2">
+        <div className="flex flex-col gap-1 items-center justify-center">
+          <span className="text-sm font-semibold text-gray-800 tracking-tight">Profile Picture</span>
+          <div className="flex items-center gap-2 justify-center mt-0.5">
             <button
               type="button"
               onClick={handleBrowse}
-              className="text-xs font-semibold text-primary hover:underline"
+              className="text-xs font-semibold text-primary hover:underline cursor-pointer"
             >
               Upload Photo
             </button>
@@ -107,7 +111,7 @@ export const AvatarComponent: React.FC<AvatarProps> = ({
                 <button
                   type="button"
                   onClick={handleRemove}
-                  className="text-xs font-semibold text-danger hover:underline flex items-center gap-1"
+                  className="text-xs font-semibold text-danger hover:underline flex items-center gap-1 cursor-pointer"
                 >
                   <Trash2 className="size-3" />
                   Remove

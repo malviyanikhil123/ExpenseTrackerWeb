@@ -1,22 +1,27 @@
-import { useState } from "react"
-import { useMutation } from "@tanstack/react-query"
+import { useState, useEffect } from "react"
 import { User, Mail, Lock, ShieldCheck, AlertCircle, Info, Globe, Coins, Moon, Activity, Calendar } from "lucide-react"
 import { toast } from "sonner"
 
-import { api } from "../../../lib/api"
 import { useAuthStore } from "../../../store/authStore"
 import { CustomButton } from "../../../components/buttons/CustomButton"
 import { CustomInput } from "../../../components/inputs/CustomInput"
 import { CustomDialog } from "../../../components/dialogs/CustomDialog"
 import { AvatarComponent } from "../../../components/ui/AvatarComponent"
 import { Badge } from "../../../components/feedback/FeedbackStates"
+import {
+  useProfileDetails,
+  useUpdateProfile,
+  useUpdatePreferences,
+  useChangePassword,
+} from "../hooks/useProfile"
 
 export default function ProfilePage() {
   const user = useAuthStore((state) => state.user)
-  const setAuth = useAuthStore((state) => state.setAuth)
 
-  const [name, setName] = useState(user?.name || "")
-  const [email, setEmail] = useState(user?.email || "")
+  const { data: profile, isLoading, isError, refetch } = useProfileDetails()
+
+  const [name, setName] = useState("")
+  const [email, setEmail] = useState("")
   const [avatarUrl, setAvatarUrl] = useState("")
 
   const [isPasswordOpen, setIsPasswordOpen] = useState(false)
@@ -24,38 +29,25 @@ export default function ProfilePage() {
   const [newPassword, setNewPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
 
-  // Preferences interactive state (PRD wow-factor local state)
+  // Preferences interactive state (linked to backend userSettings)
   const [currency, setCurrency] = useState("USD")
   const [language, setLanguage] = useState("EN")
   const [theme, setTheme] = useState("LIGHT")
 
-  const updateProfileMutation = useMutation({
-    mutationFn: (data: { name: string; email: string }) => api.patch("/profile", data),
-    onSuccess: (res) => {
-      toast.success("Profile updated successfully!")
-      const updatedUser = res.data.data
-      const accessToken = useAuthStore.getState().accessToken
-      const refreshToken = useAuthStore.getState().refreshToken
-      setAuth(updatedUser, accessToken || "", refreshToken || "")
-    },
-    onError: (err: any) => {
-      toast.error(err.response?.data?.message || "Failed to update profile")
-    },
-  })
+  // Sync state once profile is loaded (Section 77)
+  useEffect(() => {
+    if (profile) {
+      setName(profile.fullName)
+      setEmail(profile.email)
+      setAvatarUrl(profile.avatarUrl || "")
+      setCurrency(profile.currency || "USD")
+      setTheme(profile.theme || "LIGHT")
+    }
+  }, [profile])
 
-  const changePasswordMutation = useMutation({
-    mutationFn: (data: any) => api.post("/profile/change-password", data),
-    onSuccess: () => {
-      toast.success("Password changed successfully!")
-      setIsPasswordOpen(false)
-      setOldPassword("")
-      setNewPassword("")
-      setConfirmPassword("")
-    },
-    onError: (err: any) => {
-      toast.error(err.response?.data?.message || "Failed to change password")
-    },
-  })
+  const updateProfileMutation = useUpdateProfile()
+  const updatePreferencesMutation = useUpdatePreferences()
+  const changePasswordMutation = useChangePassword()
 
   const handleSaveInfo = () => {
     if (!name.trim() || !email.trim()) {
@@ -63,8 +55,8 @@ export default function ProfilePage() {
       return
     }
     updateProfileMutation.mutate({
-      name: name.trim(),
-      email: email.trim(),
+      fullName: name.trim(),
+      avatarUrl: avatarUrl || undefined,
     })
   }
 
@@ -81,10 +73,53 @@ export default function ProfilePage() {
       toast.error("New password must be at least 8 characters.")
       return
     }
-    changePasswordMutation.mutate({
-      oldPassword,
-      newPassword,
+    changePasswordMutation.mutate(
+      {
+        currentPassword: oldPassword,
+        newPassword,
+      },
+      {
+        onSuccess: () => {
+          setIsPasswordOpen(false)
+          setOldPassword("")
+          setNewPassword("")
+          setConfirmPassword("")
+        },
+      }
+    )
+  }
+
+  const handleCurrencyChange = (cur: string) => {
+    setCurrency(cur)
+    updatePreferencesMutation.mutate({
+      currency: cur,
+      theme: theme as any,
     })
+  }
+
+  const handleThemeChange = (th: "LIGHT" | "DARK" | "SYSTEM") => {
+    setTheme(th)
+    updatePreferencesMutation.mutate({
+      currency,
+      theme: th,
+    })
+  }
+
+  if (isLoading) {
+    return <ProfileSkeleton />
+  }
+
+  if (isError) {
+    return (
+      <div className="flex flex-col items-center justify-center p-12 border border-danger/10 bg-danger/5 rounded-[16px] max-w-2xl mx-auto mt-12">
+        <AlertCircle className="size-12 text-danger mb-4" />
+        <h2 className="text-xl font-bold text-gray-900 mb-1">Failed to fetch profile settings</h2>
+        <p className="text-sm text-gray-500 mb-6">There was an error communicating with the database service.</p>
+        <CustomButton variant="outline" onClick={() => refetch()}>
+          Retry Request
+        </CustomButton>
+      </div>
+    )
   }
 
   function cn(...classes: any[]) {
@@ -107,27 +142,26 @@ export default function ProfilePage() {
           {/* Banner Graphic background */}
           <div className="h-20 bg-gradient-to-tr from-[#706677] to-[#565264]/80 rounded-t-[16px] w-full absolute top-0 left-0 border-b border-gray-100/10" />
           
-          <div className="relative mt-8 mb-3 z-10 flex flex-col items-center">
-            <div className="bg-white p-1 rounded-full shadow-md">
-              <AvatarComponent
-                src={avatarUrl || undefined}
-                initials={user?.name || "Member"}
-                size="lg"
-                editable={true}
-                onUpload={(file) => {
-                  const reader = new FileReader()
-                  reader.onloadend = () => {
-                    setAvatarUrl(reader.result as string)
-                  }
-                  reader.readAsDataURL(file)
-                  toast.success("Avatar image loaded locally!")
-                }}
-                onRemove={() => {
-                  setAvatarUrl("")
-                  toast.success("Avatar image cleared.")
-                }}
-              />
-            </div>
+          <div className="relative mt-8 mb-3 z-10 flex flex-col items-center w-full">
+            <AvatarComponent
+              src={avatarUrl || undefined}
+              initials={user?.name || "Member"}
+              size="lg"
+              editable={true}
+              onUpload={(file) => {
+                const reader = new FileReader()
+                reader.onloadend = () => {
+                  const loadedUrl = reader.result as string
+                  setAvatarUrl(loadedUrl)
+                  updateProfileMutation.mutate({ avatarUrl: loadedUrl })
+                }
+                reader.readAsDataURL(file)
+              }}
+              onRemove={() => {
+                setAvatarUrl("")
+                updateProfileMutation.mutate({ avatarUrl: "" })
+              }}
+            />
             
             <div className="flex flex-col items-center mt-3 text-center">
               <span className="text-base font-bold text-gray-800 tracking-tight">{user?.name}</span>
@@ -155,7 +189,7 @@ export default function ProfilePage() {
                 Registered
               </span>
               <span className="font-bold text-gray-800 text-[11px] mt-0.5">
-                {user?.createdAt ? new Date(user.createdAt).toLocaleDateString("en-US", { month: "short", year: "numeric" }) : "Jul 2026"}
+                {profile?.createdAt ? new Date(profile.createdAt).toLocaleDateString("en-US", { month: "short", year: "numeric" }) : "Jul 2026"}
               </span>
             </div>
           </div>
@@ -181,9 +215,10 @@ export default function ProfilePage() {
               <CustomInput
                 label="Email Address"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                disabled={true}
                 placeholder="john.doe@example.com"
                 type="email"
+                helperText="Email address is linked to authentication credentials and cannot be modified."
               />
             </div>
 
@@ -252,10 +287,7 @@ export default function ProfilePage() {
                     <button
                       key={cur}
                       type="button"
-                      onClick={() => {
-                        setCurrency(cur)
-                        toast.success(`Currency preferences updated to ${cur}`)
-                      }}
+                      onClick={() => handleCurrencyChange(cur)}
                       className={cn(
                         "flex-1 py-1.5 rounded-[8px] text-[10px] font-bold transition-all cursor-pointer select-none",
                         currency === cur
@@ -283,7 +315,7 @@ export default function ProfilePage() {
                       onClick={() => {
                         setLanguage(lang)
                         const nameMap: Record<string, string> = { EN: "English", ES: "Spanish", HI: "Hindi" }
-                        toast.success(`App translation language set to ${nameMap[lang]}`)
+                        toast.success(`Language changed locally to ${nameMap[lang]}`)
                       }}
                       className={cn(
                         "flex-1 py-1.5 rounded-[8px] text-[10px] font-bold transition-all cursor-pointer select-none",
@@ -309,10 +341,7 @@ export default function ProfilePage() {
                     <button
                       key={th}
                       type="button"
-                      onClick={() => {
-                        setTheme(th)
-                        toast.success(`${th.charAt(0) + th.slice(1).toLowerCase()} Theme active`)
-                      }}
+                      onClick={() => handleThemeChange(th as any)}
                       className={cn(
                         "flex-1 py-1.5 rounded-[8px] text-[10px] font-bold transition-all cursor-pointer select-none",
                         theme === th
@@ -385,6 +414,23 @@ export default function ProfilePage() {
         </div>
       </CustomDialog>
 
+    </div>
+  )
+}
+
+function ProfileSkeleton() {
+  return (
+    <div className="flex flex-col gap-6 pb-12 animate-pulse font-sans">
+      <div className="flex justify-between items-center border-b border-gray-100 pb-5">
+        <div className="h-8 w-1/4 bg-gray-200 rounded-[6px]" />
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-2">
+        <div className="bg-white border border-gray-200 rounded-[16px] h-80" />
+        <div className="md:col-span-2 flex flex-col gap-6">
+          <div className="bg-white border border-gray-200 rounded-[16px] h-60" />
+          <div className="bg-white border border-gray-200 rounded-[16px] h-40" />
+        </div>
+      </div>
     </div>
   )
 }
