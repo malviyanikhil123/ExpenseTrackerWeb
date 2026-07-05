@@ -25,8 +25,8 @@ export interface Repayment {
 }
 
 export const debtsApi = {
-  getAll: async (type?: "LENT" | "BORROW"): Promise<Debt[]> => {
-    const res = await api.get("/debts", { params: { type } })
+  getAll: async (params?: { type?: "LENT" | "BORROW"; status?: "PENDING" | "COMPLETED" }): Promise<Debt[]> => {
+    const res = await api.get("/debts", { params })
     return res.data.data
   },
 

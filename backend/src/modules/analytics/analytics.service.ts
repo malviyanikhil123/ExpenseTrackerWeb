@@ -11,17 +11,11 @@ export class AnalyticsService {
     ) {
         const [
             incomeVsExpense,
-            incomeByCategory,
-            expenseByCategory,
+            categoryBreakdown,
             monthlyTrend,
-            accountSummary,
-            debtSummary,
+            accountBreakdown,
         ] = await Promise.all([
             transactionsRepository.getIncomeVsExpense(
-                userId,
-                query,
-            ),
-            transactionsRepository.getIncomeByCategory(
                 userId,
                 query,
             ),
@@ -33,21 +27,24 @@ export class AnalyticsService {
                 userId,
                 query,
             ),
-            accountsRepository.getAccountSummary(
-                userId,
-            ),
-            debtsRepository.getDebtSummary(
+            accountsRepository.getAccountBreakdown(
                 userId,
             ),
         ]);
 
+        const income = incomeVsExpense.income;
+        const expense = incomeVsExpense.expense;
+        const balance = income - expense;
+        const savings = income > 0 ? ((income - expense) / income) * 100 : 0;
+
         return {
-            incomeVsExpense,
-            incomeByCategory,
-            expenseByCategory,
+            income,
+            expense,
+            balance,
+            savings,
             monthlyTrend,
-            accountSummary,
-            debtSummary,
+            categoryBreakdown,
+            accountBreakdown,
         };
     }
 }

@@ -18,10 +18,13 @@ import { CustomInput, CurrencyInput } from "../../../components/inputs/CustomInp
 import { CustomDialog } from "../../../components/dialogs/CustomDialog"
 import { Badge } from "../../../components/feedback/FeedbackStates"
 import { DropdownMenu } from "../../../components/ui/dropdown-menu"
+import { useCurrency } from "../../../hooks/useCurrency"
+import { CustomSelect } from "../../../components/inputs/CustomSelect"
 
 export default function DebtsPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [activeTab, setActiveTab] = useState<"BORROW" | "LENT">("BORROW")
+  const { format: formatMoney } = useCurrency()
 
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [isEditOpen, setIsEditOpen] = useState(false)
@@ -42,7 +45,12 @@ export default function DebtsPage() {
   const [repayAmount, setRepayAmount] = useState("")
   const [repayNotes, setRepayNotes] = useState("")
 
-  const { data: debts = [], isLoading, isError, refetch } = useDebtsList(activeTab)
+  const [filterStatus, setFilterStatus] = useState<"PENDING" | "COMPLETED" | "">("PENDING")
+
+  const { data: debts = [], isLoading, isError, refetch } = useDebtsList({
+    type: activeTab,
+    status: filterStatus || undefined,
+  })
   const { data: accounts = [] } = useAccountsList()
 
   const createMutation = useCreateDebt()
@@ -153,7 +161,7 @@ export default function DebtsPage() {
 
     const remainingVal = Number(selectedDebt?.remainingAmount || 0)
     if (Number(repayAmount) > remainingVal) {
-      toast.error(`Repayment cannot exceed remaining debt balance ($${remainingVal.toFixed(2)})`)
+      toast.error(`Repayment cannot exceed remaining debt balance (${formatMoney(remainingVal)})`)
       return
     }
 
@@ -201,10 +209,10 @@ export default function DebtsPage() {
     <div className="flex flex-col gap-6 pb-12 select-none">
       
       {/* Header (Section 74) */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-gray-100 pb-5">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-border pb-5">
         <div className="flex flex-col gap-1">
-          <h1 className="text-2xl font-bold tracking-tight text-gray-900">Debts & Borrowings</h1>
-          <p className="text-sm text-gray-500">Track money you owe others or payments others owe you.</p>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">Debts & Borrowings</h1>
+          <p className="text-sm text-muted-foreground">Track money you owe others or payments others owe you.</p>
         </div>
         <CustomButton variant="primary" size="md" className="gap-2 w-full sm:w-auto" onClick={handleOpenCreate}>
           <Plus className="size-4" />
@@ -213,16 +221,16 @@ export default function DebtsPage() {
       </div>
 
       {/* Toolbar filters */}
-      <div className="flex flex-col md:flex-row gap-4 justify-between items-stretch md:items-center bg-gray-50/50 p-4 rounded-[16px] border border-gray-200/80">
+      <div className="flex flex-col md:flex-row gap-4 justify-between items-stretch md:items-center bg-card/50 p-4 rounded-[16px] border border-border">
         
         {/* Tab switcher */}
-        <div className="flex bg-gray-100 p-1 rounded-[10px] self-start md:self-auto w-full md:w-auto">
+        <div className="flex bg-muted p-1 rounded-[10px] self-start md:self-auto w-full md:w-auto">
           <button
             type="button"
             onClick={() => setActiveTab("BORROW")}
             className={cn(
               "flex-1 md:flex-none px-5 py-2 rounded-[8px] text-xs font-semibold select-none transition-colors cursor-pointer",
-              activeTab === "BORROW" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"
+              activeTab === "BORROW" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
             )}
           >
             Borrowed (I owe them)
@@ -232,30 +240,45 @@ export default function DebtsPage() {
             onClick={() => setActiveTab("LENT")}
             className={cn(
               "flex-1 md:flex-none px-5 py-2 rounded-[8px] text-xs font-semibold select-none transition-colors cursor-pointer",
-              activeTab === "LENT" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"
+              activeTab === "LENT" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
             )}
           >
             Lent (They owe me)
           </button>
         </div>
 
-        {/* Search */}
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-3 top-2.5 size-4 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Search by person name..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="h-9 w-full pl-9 pr-4 bg-white border border-gray-200 rounded-[10px] text-xs outline-none focus:border-primary transition-colors font-sans"
-          />
+        {/* Search & Status Filter */}
+        <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center w-full md:w-auto md:flex-1 justify-end">
+          <div className="relative w-full sm:max-w-xs">
+            <Search className="absolute left-3 top-2.5 size-4 text-muted-foreground" />
+            <input
+              type="text"
+              placeholder="Search by person name..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="h-9 w-full pl-9 pr-4 bg-card text-foreground border border-border rounded-[10px] text-xs outline-none focus:border-primary transition-colors font-sans"
+            />
+          </div>
+
+          <div className="w-full sm:w-44 select-none">
+            <CustomSelect
+              value={filterStatus}
+              onChange={(val) => setFilterStatus(val as any)}
+              options={[
+                { value: "", label: "All Statuses" },
+                { value: "PENDING", label: "Pending Outstanding" },
+                { value: "COMPLETED", label: "Settled / Paid" },
+              ]}
+              placeholder="Filter by status"
+            />
+          </div>
         </div>
 
       </div>
 
       {/* Cards Grid */}
       {filteredDebts.length === 0 ? (
-        <div className="h-64 flex flex-col items-center justify-center text-center text-xs text-gray-400 gap-2 border border-dashed border-gray-200 rounded-[16px]">
+        <div className="h-64 flex flex-col items-center justify-center text-center text-xs text-muted-foreground gap-2 border border-dashed border-border bg-card rounded-[16px]">
           <User className="size-10" />
           <span>No debt entries found.</span>
           <CustomButton variant="outline" size="sm" className="mt-2" onClick={handleOpenCreate}>
@@ -268,8 +291,8 @@ export default function DebtsPage() {
             <div
               key={debt.id}
               className={cn(
-                "bg-white border rounded-[16px] p-6 shadow-card hover:shadow-md transition-shadow flex flex-col justify-between gap-4",
-                debt.status === "COMPLETED" ? "border-gray-100 bg-gray-50/20" : "border-gray-200"
+                "bg-card border rounded-[16px] p-6 shadow-card hover:shadow-md transition-shadow flex flex-col justify-between gap-4 text-card-foreground",
+                debt.status === "COMPLETED" ? "border-border/60 bg-muted/20" : "border-border"
               )}
             >
               <div className="flex items-start justify-between">
@@ -320,13 +343,13 @@ export default function DebtsPage() {
                 <div className="flex flex-col gap-0.5">
                   <span className="text-2xs font-medium text-gray-400 uppercase tracking-wide">Remaining</span>
                   <span className="text-base font-bold text-gray-900">
-                    ${Number(debt.remainingAmount).toFixed(2)}
+                    {formatMoney(debt.remainingAmount)}
                   </span>
                 </div>
                 <div className="flex flex-col gap-0.5">
                   <span className="text-2xs font-medium text-gray-400 uppercase tracking-wide">Original</span>
                   <span className="text-xs font-semibold text-gray-500">
-                    ${Number(debt.totalAmount).toFixed(2)}
+                    {formatMoney(debt.totalAmount)}
                   </span>
                 </div>
               </div>
@@ -384,28 +407,20 @@ export default function DebtsPage() {
             onChange={(e) => setDebtAmount(e.target.value)}
           />
 
-          <div className="flex flex-col gap-1.5">
-            <span className="font-semibold text-gray-600 select-none">Link Bank Account</span>
-            <select
-              value={debtAccountId}
-              onChange={(e) => setDebtAccountId(e.target.value)}
-              className="h-10 w-full px-3.5 border border-gray-200 rounded-[10px] bg-white outline-none focus:border-primary transition-colors"
-            >
-              {accounts.filter(a => !a.isArchived).map((a) => (
-                <option key={a.id} value={a.id}>
-                  {a.name}
-                </option>
-              ))}
-            </select>
-          </div>
+          <CustomSelect
+            label="Link Bank Account"
+            value={debtAccountId}
+            onChange={setDebtAccountId}
+            options={accounts.filter(a => !a.isArchived).map((a) => ({ value: a.id, label: a.name }))}
+          />
 
           <div className="flex flex-col gap-1.5">
-            <span className="font-semibold text-gray-600 select-none">Due Date (Optional)</span>
+            <span className="font-semibold text-muted-foreground select-none">Due Date (Optional)</span>
             <input
               type="date"
               value={debtDueDate}
               onChange={(e) => setDebtDueDate(e.target.value)}
-              className="h-10 px-3.5 border border-gray-200 rounded-[10px] bg-white outline-none focus:border-primary transition-colors"
+              className="h-10 px-3.5 border border-border rounded-[10px] bg-background text-foreground outline-none focus:border-primary transition-colors"
             />
           </div>
 
@@ -452,13 +467,13 @@ export default function DebtsPage() {
             onChange={(e) => setDebtAmount(e.target.value)}
           />
 
-          <div className="flex flex-col gap-1.5">
-            <span className="font-semibold text-gray-600 select-none">Due Date (Optional)</span>
+          <div className="flex flex-col gap-1.5 text-foreground">
+            <span className="font-semibold text-muted-foreground select-none">Due Date (Optional)</span>
             <input
               type="date"
               value={debtDueDate}
               onChange={(e) => setDebtDueDate(e.target.value)}
-              className="h-10 px-3.5 border border-gray-200 rounded-[10px] bg-white outline-none focus:border-primary transition-colors"
+              className="h-10 px-3.5 border border-border rounded-[10px] bg-background text-foreground outline-none focus:border-primary transition-colors"
             />
           </div>
 
@@ -498,13 +513,13 @@ export default function DebtsPage() {
             <div className="flex flex-col gap-0.5">
               <span className="text-2xs text-gray-400 font-semibold uppercase tracking-wider">Remaining Balance</span>
               <span className="text-xl font-bold text-gray-900">
-                ${Number(selectedDebt?.remainingAmount || 0).toFixed(2)}
+                {formatMoney(selectedDebt?.remainingAmount || 0)}
               </span>
             </div>
             <div className="flex flex-col gap-0.5">
               <span className="text-2xs text-gray-400 font-semibold uppercase tracking-wider">Original Total</span>
               <span className="text-base font-bold text-gray-500">
-                ${Number(selectedDebt?.totalAmount || 0).toFixed(2)}
+                {formatMoney(selectedDebt?.totalAmount || 0)}
               </span>
             </div>
           </div>
@@ -525,7 +540,7 @@ export default function DebtsPage() {
               {repayments.map((repay) => (
                 <div key={repay.id} className="bg-white border border-gray-100 rounded-[10px] p-3 flex justify-between items-center shadow-2xs">
                   <div className="flex flex-col">
-                    <span className="font-semibold text-gray-800">${Number(repay.amount).toFixed(2)}</span>
+                    <span className="font-semibold text-gray-800">{formatMoney(repay.amount)}</span>
                     <span className="text-2xs text-gray-400 mt-0.5">
                       {format(new Date(repay.repaymentDate), "dd MMM yyyy")}
                     </span>
@@ -559,7 +574,7 @@ export default function DebtsPage() {
         <div className="flex flex-col gap-4 py-2 text-xs font-sans">
           <div className="p-3.5 bg-primary/5 border border-primary/10 rounded-[10px] text-gray-600 flex justify-between select-none">
             <span>Outstanding Limit:</span>
-            <span className="font-bold">${Number(selectedDebt?.remainingAmount || 0).toFixed(2)}</span>
+            <span className="font-bold">{formatMoney(selectedDebt?.remainingAmount || 0)}</span>
           </div>
 
           <CurrencyInput

@@ -29,6 +29,8 @@ import { CustomButton } from "../../../components/buttons/CustomButton"
 import { Badge } from "../../../components/feedback/FeedbackStates"
 import { CustomDialog } from "../../../components/dialogs/CustomDialog"
 import { CustomInput, CurrencyInput } from "../../../components/inputs/CustomInput"
+import { useCurrency } from "../../../hooks/useCurrency"
+import { CustomSelect } from "../../../components/inputs/CustomSelect"
 
 interface DashboardData {
   totalBalance: number
@@ -45,6 +47,7 @@ export default function DashboardPage() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const user = useAuthStore((state) => state.user)
+  const { format: formatMoney } = useCurrency()
 
   const [period, setPeriod] = useState<"MONTH" | "WEEK" | "YEAR">("MONTH")
   const [isTxDialogOpen, setIsTxDialogOpen] = useState(false)
@@ -193,7 +196,7 @@ export default function DashboardPage() {
       title: "Total Balance",
       amount: dashboardData.totalBalance,
       icon: <DollarSign className="size-5 text-secondary" />,
-      color: "text-gray-900",
+      color: "text-foreground",
       action: () => navigate("/accounts"),
     },
     {
@@ -209,7 +212,7 @@ export default function DashboardPage() {
       title: "Expenses",
       amount: dashboardData.totalExpense,
       icon: <ArrowUpRight className="size-5 text-danger" />,
-      color: "text-gray-900",
+      color: "text-foreground",
       action: () => navigate("/transactions", { state: { filterType: "EXPENSE" } }),
     },
     {
@@ -217,7 +220,7 @@ export default function DashboardPage() {
       title: "Pending Debts",
       amount: dashboardData.pendingLent - dashboardData.pendingBorrow,
       icon: <Users className="size-5 text-warning" />,
-      color: "text-gray-900",
+      color: "text-foreground",
       action: () => navigate("/debts"),
     },
   ]
@@ -236,11 +239,11 @@ export default function DashboardPage() {
 
   return (
     <div className="flex flex-col gap-8 pb-12">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-gray-100 pb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-border pb-6">
         <div className="flex flex-col gap-1">
-          <h1 className="text-2xl font-bold tracking-tight text-gray-900">Dashboard</h1>
-          <p className="text-sm text-gray-500">
-            Welcome back, <span className="font-semibold text-gray-800">{user?.name}</span> •{" "}
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">Dashboard</h1>
+          <p className="text-sm text-muted-foreground">
+            Welcome back, <span className="font-semibold text-foreground">{user?.name}</span> •{" "}
             {format(new Date(), "eeee, d MMMM yyyy")}
           </p>
         </div>
@@ -257,21 +260,21 @@ export default function DashboardPage() {
           <div
             key={card.id}
             onClick={card.action}
-            className="bg-white border border-gray-250 border-gray-200/80 rounded-[16px] p-6 shadow-card hover:shadow-md transition-shadow cursor-pointer flex flex-col gap-3"
+            className="bg-card border border-border rounded-[16px] p-6 shadow-card hover:shadow-md transition-shadow cursor-pointer flex flex-col gap-3 text-card-foreground"
           >
             <div className="flex justify-between items-center">
-              <span className="text-sm font-semibold text-gray-500 uppercase tracking-wider">{card.title}</span>
-              <div className="p-2 rounded-full bg-gray-50 border border-gray-100">{card.icon}</div>
+              <span className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">{card.title}</span>
+              <div className="p-2 rounded-full bg-muted border border-border">{card.icon}</div>
             </div>
             <span className={`text-3xl font-bold ${card.color}`}>
-              ${Math.abs(card.amount).toFixed(2)}
+              {formatMoney(Math.abs(card.amount))}
             </span>
           </div>
         ))}
       </div>
 
-      <div className="bg-gray-50/50 p-6 rounded-[16px] border border-gray-200/80 flex flex-col gap-4">
-        <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Quick Actions</span>
+      <div className="bg-card/50 p-6 rounded-[16px] border border-border flex flex-col gap-4">
+        <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Quick Actions</span>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <CustomButton variant="primary" className="w-full gap-2" onClick={handleOpenTx}>
             <Plus className="size-4" />
@@ -289,14 +292,14 @@ export default function DashboardPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div className="bg-white border border-gray-200 rounded-[16px] p-6 shadow-card flex flex-col gap-4">
-          <div className="flex items-center gap-2 border-b border-gray-100 pb-3">
+        <div className="bg-card border border-border rounded-[16px] p-6 shadow-card flex flex-col gap-4 text-card-foreground">
+          <div className="flex items-center gap-2 border-b border-border pb-3">
             <BarChart4 className="size-5 text-secondary" />
-            <h3 className="text-base font-semibold text-gray-900">Cash Flow (Income vs Expenses)</h3>
+            <h3 className="text-base font-semibold text-foreground">Cash Flow (Income vs Expenses)</h3>
           </div>
           <div className="h-[250px] w-full mt-2">
             {dashboardData.totalIncome === 0 && dashboardData.totalExpense === 0 ? (
-              <div className="size-full flex flex-col items-center justify-center text-center text-gray-400 text-xs gap-1.5">
+              <div className="size-full flex flex-col items-center justify-center text-center text-muted-foreground text-xs gap-1.5">
                 <FolderOpen className="size-8" />
                 <span>No cash flow records found in period.</span>
               </div>
@@ -318,14 +321,14 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        <div className="bg-white border border-gray-200 rounded-[16px] p-6 shadow-card flex flex-col gap-4">
-          <div className="flex items-center gap-2 border-b border-gray-100 pb-3">
+        <div className="bg-card border border-border rounded-[16px] p-6 shadow-card flex flex-col gap-4 text-card-foreground">
+          <div className="flex items-center gap-2 border-b border-border pb-3">
             <PieIcon className="size-5 text-secondary" />
-            <h3 className="text-base font-semibold text-gray-900">Expense Allocations</h3>
+            <h3 className="text-base font-semibold text-foreground">Expense Allocations</h3>
           </div>
           <div className="h-[250px] w-full flex items-center justify-center mt-2">
             {dashboardData.totalExpense === 0 ? (
-              <div className="size-full flex flex-col items-center justify-center text-center text-gray-400 text-xs gap-1.5">
+              <div className="size-full flex flex-col items-center justify-center text-center text-muted-foreground text-xs gap-1.5">
                 <FolderOpen className="size-8" />
                 <span>No expense records to analyze.</span>
               </div>
@@ -353,7 +356,7 @@ export default function DashboardPage() {
                 </div>
                 <div className="flex flex-col gap-2">
                   {pieData.map((d, i) => (
-                    <div key={i} className="flex items-center gap-2 text-xs text-gray-600">
+                    <div key={i} className="flex items-center gap-2 text-xs text-muted-foreground">
                       <div className="size-3 rounded-full" style={{ backgroundColor: d.color }} />
                       <span className="font-medium">{d.name} ({d.value}%)</span>
                     </div>
@@ -364,11 +367,10 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
-
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div className="bg-white border border-gray-200 rounded-[16px] p-6 shadow-card flex flex-col justify-between gap-4">
-          <div className="flex items-center justify-between border-b border-gray-100 pb-3">
-            <h3 className="text-base font-semibold text-gray-900">Recent Transactions</h3>
+        <div className="bg-card border border-border rounded-[16px] p-6 shadow-card flex flex-col justify-between gap-4 text-card-foreground">
+          <div className="flex items-center justify-between border-b border-border pb-3">
+            <h3 className="text-base font-semibold text-foreground">Recent Transactions</h3>
             <button
               type="button"
               onClick={() => navigate("/transactions")}
@@ -380,25 +382,25 @@ export default function DashboardPage() {
 
           <div className="flex-1">
             {dashboardData.recentTransactions.length === 0 ? (
-              <div className="h-40 flex flex-col items-center justify-center text-center text-xs text-gray-400 gap-1.5">
+              <div className="h-40 flex flex-col items-center justify-center text-center text-xs text-muted-foreground gap-1.5">
                 <FolderOpen className="size-8" />
                 <span>No transactions recorded.</span>
               </div>
             ) : (
-              <div className="flex flex-col divide-y divide-gray-50">
+              <div className="flex flex-col divide-y divide-border">
                 {dashboardData.recentTransactions.slice(0, 5).map((tx) => (
                   <div key={tx.id} className="flex items-center justify-between py-3.5 first:pt-0 last:pb-0">
                     <div className="flex flex-col">
-                      <span className="text-sm font-semibold text-gray-800">{tx.note || "Transaction"}</span>
-                      <span className="text-xs text-gray-400 mt-0.5">
+                      <span className="text-sm font-semibold text-foreground">{tx.note || "Transaction"}</span>
+                      <span className="text-xs text-muted-foreground mt-0.5">
                         {format(new Date(tx.transactionDate), "d MMM yyyy")}
                       </span>
                     </div>
                     <span className={cn(
                       "text-sm font-bold",
-                      tx.type === "INCOME" ? "text-success" : "text-gray-900"
+                      tx.type === "INCOME" ? "text-success" : "text-foreground"
                     )}>
-                      {tx.type === "INCOME" ? "+" : "-"}${Number(tx.amount).toFixed(2)}
+                      {tx.type === "INCOME" ? "+" : "-"}{formatMoney(tx.amount)}
                     </span>
                   </div>
                 ))}
@@ -407,9 +409,9 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        <div className="bg-white border border-gray-200 rounded-[16px] p-6 shadow-card flex flex-col justify-between gap-4">
-          <div className="flex items-center justify-between border-b border-gray-100 pb-3">
-            <h3 className="text-base font-semibold text-gray-900">Outstanding Debts</h3>
+        <div className="bg-card border border-border rounded-[16px] p-6 shadow-card flex flex-col justify-between gap-4 text-card-foreground">
+          <div className="flex items-center justify-between border-b border-border pb-3">
+            <h3 className="text-base font-semibold text-foreground">Outstanding Debts</h3>
             <button
               type="button"
               onClick={() => navigate("/debts")}
@@ -421,17 +423,17 @@ export default function DashboardPage() {
 
           <div className="flex-1">
             {dashboardData.recentDebts.length === 0 ? (
-              <div className="h-40 flex flex-col items-center justify-center text-center text-xs text-gray-400 gap-1.5">
+              <div className="h-40 flex flex-col items-center justify-center text-center text-xs text-muted-foreground gap-1.5">
                 <Users className="size-8" />
                 <span>No outstanding debts.</span>
               </div>
             ) : (
-              <div className="flex flex-col divide-y divide-gray-50">
+              <div className="flex flex-col divide-y divide-border">
                 {dashboardData.recentDebts.slice(0, 5).map((debt) => (
                   <div key={debt.id} className="flex items-center justify-between py-3.5 first:pt-0 last:pb-0">
                     <div className="flex flex-col">
-                      <span className="text-sm font-semibold text-gray-800">{debt.partyName}</span>
-                      <span className="text-xs text-gray-400 mt-0.5">
+                      <span className="text-sm font-semibold text-foreground">{debt.partyName}</span>
+                      <span className="text-xs text-muted-foreground mt-0.5">
                         Due: {format(new Date(debt.debtDate), "d MMM yyyy")}
                       </span>
                     </div>
@@ -440,7 +442,7 @@ export default function DashboardPage() {
                         "text-sm font-bold",
                         debt.type === "LENT" ? "text-success" : "text-danger"
                       )}>
-                        {debt.type === "LENT" ? "Lent:" : "Borrow:"} ${Number(debt.totalAmount).toFixed(2)}
+                        {debt.type === "LENT" ? "Lent: " : "Borrow: "}{formatMoney(debt.totalAmount)}
                       </span>
                       <Badge variant="warning">{debt.status}</Badge>
                     </div>
@@ -498,8 +500,8 @@ export default function DashboardPage() {
             value={txAmount}
             onChange={(e) => setTxAmount(e.target.value)}
           />
-          <div className="flex flex-col gap-2">
-            <span className="text-sm font-medium text-gray-700 select-none">Transaction Type</span>
+          <div className="flex flex-col gap-2 text-foreground">
+            <span className="text-sm font-medium text-foreground select-none">Transaction Type</span>
             <div className="grid grid-cols-2 gap-3">
               <button
                 type="button"
@@ -508,7 +510,7 @@ export default function DashboardPage() {
                   "h-10 px-4 rounded-[10px] text-sm border font-medium select-none transition-colors",
                   txType === "EXPENSE"
                     ? "bg-primary text-white border-primary"
-                    : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
+                    : "bg-card text-muted-foreground border-border hover:bg-muted"
                 )}
               >
                 Expense
@@ -520,7 +522,7 @@ export default function DashboardPage() {
                   "h-10 px-4 rounded-[10px] text-sm border font-medium select-none transition-colors",
                   txType === "INCOME"
                     ? "bg-primary text-white border-primary"
-                    : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
+                    : "bg-card text-muted-foreground border-border hover:bg-muted"
                 )}
               >
                 Income
@@ -528,38 +530,22 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div className="flex flex-col gap-1.5">
-              <span className="font-semibold text-gray-600 select-none">Bank Account</span>
-              <select
-                value={txAccountId}
-                onChange={(e) => setTxAccountId(e.target.value)}
-                className="h-10 px-3.5 border border-gray-200 rounded-[10px] bg-white outline-none focus:border-primary transition-colors text-xs"
-              >
-                <option value="">Select Account</option>
-                {accounts.filter(a => !a.isArchived).map((a) => (
-                  <option key={a.id} value={a.id}>
-                    {a.name}
-                  </option>
-                ))}
-              </select>
-            </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-foreground">
+            <CustomSelect
+              label="Bank Account"
+              placeholder="Select Account"
+              value={txAccountId}
+              onChange={setTxAccountId}
+              options={accounts.filter(a => !a.isArchived).map((a) => ({ value: a.id, label: a.name }))}
+            />
 
-            <div className="flex flex-col gap-1.5">
-              <span className="font-semibold text-gray-600 select-none">Category</span>
-              <select
-                value={txCategoryId}
-                onChange={(e) => setTxCategoryId(e.target.value)}
-                className="h-10 px-3.5 border border-gray-200 rounded-[10px] bg-white outline-none focus:border-primary transition-colors text-xs"
-              >
-                <option value="">Select Category</option>
-                {categories.filter(c => c.type === txType).map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <CustomSelect
+              label="Category"
+              placeholder="Select Category"
+              value={txCategoryId}
+              onChange={setTxCategoryId}
+              options={categories.filter(c => c.type === txType).map((c) => ({ value: c.id, label: c.name }))}
+            />
           </div>
         </div>
       </CustomDialog>
@@ -651,25 +637,16 @@ export default function DashboardPage() {
             value={debtAmount}
             onChange={(e) => setDebtAmount(e.target.value)}
           />
-          
-          <div className="flex flex-col gap-1.5">
-            <span className="font-semibold text-gray-600 select-none">Link Bank Account</span>
-            <select
-              value={debtAccountId}
-              onChange={(e) => setDebtAccountId(e.target.value)}
-              className="h-10 px-3.5 border border-gray-200 rounded-[10px] bg-white outline-none focus:border-primary transition-colors text-xs"
-            >
-              <option value="">Select Account</option>
-              {accounts.filter(a => !a.isArchived).map((a) => (
-                <option key={a.id} value={a.id}>
-                  {a.name}
-                </option>
-              ))}
-            </select>
-          </div>
+          <CustomSelect
+            label="Link Bank Account"
+            placeholder="Select Account"
+            value={debtAccountId}
+            onChange={setDebtAccountId}
+            options={accounts.filter(a => !a.isArchived).map((a) => ({ value: a.id, label: a.name }))}
+          />
 
-          <div className="flex flex-col gap-2">
-            <span className="text-sm font-medium text-gray-750 select-none">Debt Type</span>
+          <div className="flex flex-col gap-2 text-foreground">
+            <span className="text-sm font-medium text-foreground select-none">Debt Type</span>
             <div className="grid grid-cols-2 gap-3">
               <button
                 type="button"
@@ -678,7 +655,7 @@ export default function DashboardPage() {
                   "h-10 px-4 rounded-[10px] text-sm border font-medium select-none transition-colors",
                   debtType === "LENT"
                     ? "bg-primary text-white border-primary"
-                    : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
+                    : "bg-card text-muted-foreground border-border hover:bg-muted"
                 )}
               >
                 Lent (They owe me)
@@ -690,7 +667,7 @@ export default function DashboardPage() {
                   "h-10 px-4 rounded-[10px] text-sm border font-medium select-none transition-colors",
                   debtType === "BORROW"
                     ? "bg-primary text-white border-primary"
-                    : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
+                    : "bg-card text-muted-foreground border-border hover:bg-muted"
                 )}
               >
                 Borrow (I owe them)

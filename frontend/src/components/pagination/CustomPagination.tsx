@@ -32,28 +32,28 @@ export const CustomPagination: React.FC<PaginationProps> = ({
   }
 
   return (
-    <div className="w-full flex flex-col sm:flex-row items-center justify-between gap-4 mt-6 border-t border-gray-100 pt-4">
+    <div className="w-full flex flex-col sm:flex-row items-center justify-between gap-4 mt-6 border-t border-border pt-4">
       {/* Page Size & Stats (Left) */}
-      <div className="flex flex-wrap items-center gap-3 text-sm text-gray-500">
+      <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
         {onPageSizeChange && (
           <div className="flex items-center gap-1.5">
             <span>Show</span>
             <select
               value={pageSize}
               onChange={(e) => onPageSizeChange(Number(e.target.value))}
-              className="h-8 pl-2 pr-6 py-1 bg-white border border-gray-200 rounded-[6px] text-xs outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary/20"
+              className="h-8 pl-2 pr-6 py-1 bg-background text-foreground border border-border rounded-[6px] text-xs outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary/20"
             >
-              <option value="10">10</option>
-              <option value="20">20</option>
-              <option value="50">50</option>
-              <option value="100">100</option>
+              <option value="10" className="bg-popover text-popover-foreground">10</option>
+              <option value="20" className="bg-popover text-popover-foreground">20</option>
+              <option value="50" className="bg-popover text-popover-foreground">50</option>
+              <option value="100" className="bg-popover text-popover-foreground">100</option>
             </select>
           </div>
         )}
         <span>
-          Showing <span className="font-semibold text-gray-800">{rangeStart}</span> to{" "}
-          <span className="font-semibold text-gray-800">{rangeEnd}</span> of{" "}
-          <span className="font-semibold text-gray-800">{totalItems}</span> entries
+          Showing <span className="font-semibold text-foreground">{rangeStart}</span> to{" "}
+          <span className="font-semibold text-foreground">{rangeEnd}</span> of{" "}
+          <span className="font-semibold text-foreground">{totalItems}</span> entries
         </span>
       </div>
 

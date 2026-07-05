@@ -18,6 +18,7 @@ import {
 
 import { useAnalyticsReport } from "../hooks/useAnalytics"
 import { CustomButton } from "../../../components/buttons/CustomButton"
+import { useCurrency } from "../../../hooks/useCurrency"
 
 const COLOR_SCHEME = [
   "#706677",
@@ -31,6 +32,7 @@ const COLOR_SCHEME = [
 export default function AnalyticsPage() {
   const [filterStartDate, setFilterStartDate] = useState("")
   const [filterEndDate, setFilterEndDate] = useState("")
+  const { format: formatMoney } = useCurrency()
   
   const queryParams = {
     startDate: filterStartDate ? new Date(filterStartDate).toISOString() : undefined,
@@ -83,13 +85,13 @@ export default function AnalyticsPage() {
       title: "Net Balance",
       amount: report.balance,
       icon: <Wallet className="size-5 text-secondary" />,
-      color: "text-gray-900",
+      color: "text-foreground",
     },
     {
       title: "Savings Ratio",
       amount: report.savings,
       icon: <PiggyBank className="size-5 text-primary" />,
-      color: "text-gray-900",
+      color: "text-foreground",
       isPercent: true,
     },
   ]
@@ -134,10 +136,10 @@ export default function AnalyticsPage() {
     <div className="flex flex-col gap-6 pb-12 select-none">
       
       {/* Header (Section 76) */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-gray-100 pb-5">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-border pb-5">
         <div className="flex flex-col gap-1">
-          <h1 className="text-2xl font-bold tracking-tight text-gray-900">Analytics</h1>
-          <p className="text-sm text-gray-500">Examine monthly cash flows, visual savings trends, and allocations.</p>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">Analytics</h1>
+          <p className="text-sm text-muted-foreground">Examine monthly cash flows, visual savings trends, and allocations.</p>
         </div>
 
         {/* Date Filter Panel */}
@@ -146,14 +148,14 @@ export default function AnalyticsPage() {
             type="date"
             value={filterStartDate}
             onChange={(e) => setFilterStartDate(e.target.value)}
-            className="h-9 px-3 border border-gray-200 rounded-[10px] text-xs outline-none focus:border-primary bg-white transition-colors font-sans"
+            className="h-9 px-3 border border-border rounded-[10px] text-xs outline-none focus:border-primary bg-card text-foreground transition-colors font-sans"
           />
-          <span className="text-xs text-gray-400 self-center hidden sm:inline">to</span>
+          <span className="text-xs text-muted-foreground self-center hidden sm:inline">to</span>
           <input
             type="date"
             value={filterEndDate}
             onChange={(e) => setFilterEndDate(e.target.value)}
-            className="h-9 px-3 border border-gray-200 rounded-[10px] text-xs outline-none focus:border-primary bg-white transition-colors font-sans"
+            className="h-9 px-3 border border-border rounded-[10px] text-xs outline-none focus:border-primary bg-card text-foreground transition-colors font-sans"
           />
           {(filterStartDate || filterEndDate) && (
             <button
@@ -169,23 +171,23 @@ export default function AnalyticsPage() {
       {/* Summary metrics cards (Section 76) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         {cards.map((card, i) => (
-          <div key={i} className="bg-white border border-gray-200 rounded-[16px] p-6 shadow-card flex flex-col gap-3">
+          <div key={i} className="bg-card border border-border rounded-[16px] p-6 shadow-card flex flex-col gap-3 text-card-foreground">
             <div className="flex justify-between items-center">
-              <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">{card.title}</span>
-              <div className="p-2 rounded-full bg-gray-50 border border-gray-100">{card.icon}</div>
+              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{card.title}</span>
+              <div className="p-2 rounded-full bg-muted border border-border">{card.icon}</div>
             </div>
-            <span className={`text-2xl font-bold ${card.color}`}>
-              {card.isPercent ? `${card.amount.toFixed(0)}%` : `$${Number(card.amount).toFixed(2)}`}
+             <span className={`text-2xl font-bold ${card.color}`}>
+              {card.isPercent ? `${card.amount.toFixed(0)}%` : formatMoney(card.amount)}
             </span>
           </div>
         ))}
       </div>
 
       {!hasData ? (
-        <div className="h-96 flex flex-col items-center justify-center text-center text-xs text-gray-400 gap-2 border border-dashed border-gray-200 rounded-[16px] p-8">
+        <div className="h-96 flex flex-col items-center justify-center text-center text-xs text-muted-foreground gap-2 border border-dashed border-border bg-card rounded-[16px] p-8">
           <FolderOpen className="size-12" />
-          <h4 className="font-semibold text-gray-800 text-sm">No analytics details recorded</h4>
-          <p className="max-w-md mt-1 leading-normal text-gray-400">
+          <h4 className="font-semibold text-foreground text-sm">No analytics details recorded</h4>
+          <p className="max-w-md mt-1 leading-normal text-muted-foreground">
             Log transactions, category budgets, or savings records first to compile analytical charts.
           </p>
         </div>
@@ -193,10 +195,10 @@ export default function AnalyticsPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-4">
           
           {/* Cashflow Monthly Trend (Line/Area Chart) */}
-          <div className="bg-white border border-gray-200 rounded-[16px] p-6 shadow-card flex flex-col gap-4">
-            <div className="flex items-center gap-2 border-b border-gray-100 pb-3">
+          <div className="bg-card border border-border rounded-[16px] p-6 shadow-card flex flex-col gap-4 text-card-foreground">
+            <div className="flex items-center gap-2 border-b border-border pb-3">
               <LineIcon className="size-5 text-secondary" />
-              <h3 className="text-sm font-semibold text-gray-900">Monthly Cash Flow Trend</h3>
+              <h3 className="text-sm font-semibold text-foreground">Monthly Cash Flow Trend</h3>
             </div>
             <div className="h-[260px] w-full">
               <ResponsiveContainer width="100%" height="100%">
@@ -224,10 +226,10 @@ export default function AnalyticsPage() {
           </div>
 
           {/* Categories allocation donut (Pie chart) */}
-          <div className="bg-white border border-gray-200 rounded-[16px] p-6 shadow-card flex flex-col gap-4">
-            <div className="flex items-center gap-2 border-b border-gray-100 pb-3">
+          <div className="bg-card border border-border rounded-[16px] p-6 shadow-card flex flex-col gap-4 text-card-foreground">
+            <div className="flex items-center gap-2 border-b border-border pb-3">
               <PieIcon className="size-5 text-secondary" />
-              <h3 className="text-sm font-semibold text-gray-900">Expenses Category allocation</h3>
+              <h3 className="text-sm font-semibold text-foreground">Expenses Category allocation</h3>
             </div>
             <div className="h-[260px] w-full flex items-center justify-center">
               <div className="flex items-center justify-between w-full px-4">
@@ -251,11 +253,11 @@ export default function AnalyticsPage() {
                     </PieChart>
                   </ResponsiveContainer>
                 </div>
-                <div className="flex flex-col gap-2">
+                 <div className="flex flex-col gap-2">
                   {categoryPieData.map((d, i) => (
-                    <div key={i} className="flex items-center gap-2 text-xs text-gray-600">
+                    <div key={i} className="flex items-center gap-2 text-xs text-muted-foreground">
                       <div className="size-3 rounded-full" style={{ backgroundColor: d.color }} />
-                      <span className="font-semibold">{d.name} (${d.value.toFixed(0)})</span>
+                      <span className="font-semibold">{d.name} ({formatMoney(d.value)})</span>
                     </div>
                   ))}
                 </div>
@@ -264,10 +266,10 @@ export default function AnalyticsPage() {
           </div>
 
           {/* Account balance allocation (Bar Chart) */}
-          <div className="bg-white border border-gray-200 rounded-[16px] p-6 shadow-card flex flex-col gap-4">
-            <div className="flex items-center gap-2 border-b border-gray-100 pb-3">
+          <div className="bg-card border border-border rounded-[16px] p-6 shadow-card flex flex-col gap-4 text-card-foreground">
+            <div className="flex items-center gap-2 border-b border-border pb-3">
               <BarChart3 className="size-5 text-secondary" />
-              <h3 className="text-sm font-semibold text-gray-900">Account Balance Allocation</h3>
+              <h3 className="text-sm font-semibold text-foreground">Account Balance Allocation</h3>
             </div>
             <div className="h-[260px] w-full">
               <ResponsiveContainer width="100%" height="100%">

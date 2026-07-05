@@ -7,6 +7,7 @@ import {
     RegisterInput,
 } from "./auth.schema";
 import { hashPassword, verifyPassword } from "../../lib/password";
+import { seedDefaultCategoriesForUser } from "../../db/seeds/categories-seeder";
 
 
 
@@ -26,6 +27,9 @@ export class AuthService {
             ...data,
             password: hashedPassword,
         });
+
+        // Seed default categories for the newly registered user
+        await seedDefaultCategoriesForUser(user.id);
 
         const accessToken = await this.fastify.jwt.sign({
             sub: user.id,

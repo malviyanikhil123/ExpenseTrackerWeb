@@ -65,17 +65,35 @@ export class ProfileRepository {
         userId: string,
         data: UpdatePreferencesInput,
     ) {
-        const [settings] = await db
-            .update(userSettings)
-            .set({
-                currency: data.currency,
-                theme: data.theme,
-                updatedAt: new Date(),
-            })
+        const existing = await db
+            .select()
+            .from(userSettings)
             .where(eq(userSettings.userId, userId))
-            .returning();
+            .limit(1);
 
-        return settings;
+        if (existing.length > 0) {
+            const [settings] = await db
+                .update(userSettings)
+                .set({
+                    currency: data.currency,
+                    theme: data.theme,
+                    updatedAt: new Date(),
+                })
+                .where(eq(userSettings.userId, userId))
+                .returning();
+            return settings;
+        } else {
+            const [settings] = await db
+                .insert(userSettings)
+                .values({
+                    userId,
+                    currency: data.currency,
+                    theme: data.theme,
+                    updatedAt: new Date(),
+                })
+                .returning();
+            return settings;
+        }
     }
 
     async findUserWithPassword(

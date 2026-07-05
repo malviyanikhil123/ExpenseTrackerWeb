@@ -29,10 +29,18 @@ export class AccountsService {
         userId: string,
         query: AccountQueryInput,
     ) {
-        return accountsRepository.findAll(
+        const accounts = await accountsRepository.findAll(
             userId,
             query.archived,
         );
+
+        console.log("[accounts:list]", {
+            userId,
+            archived: query.archived ?? false,
+            count: accounts.length,
+        });
+
+        return accounts;
     }
 
     async findById(

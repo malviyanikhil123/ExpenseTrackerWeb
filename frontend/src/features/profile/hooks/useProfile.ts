@@ -20,6 +20,7 @@ export function useUpdateProfile() {
     mutationFn: profileApi.updateProfile,
     onSuccess: (updatedProfile) => {
       toast.success("Profile updated successfully!")
+      queryClient.setQueryData(["profile"], updatedProfile)
       queryClient.invalidateQueries({ queryKey: ["profile"] })
       
       const accessToken = useAuthStore.getState().accessToken
@@ -47,6 +48,7 @@ export function useUpdatePreferences() {
     mutationFn: profileApi.updatePreferences,
     onSuccess: (updatedProfile) => {
       toast.success(`Preferences saved to database: ${updatedProfile.currency} / ${updatedProfile.theme}`)
+      queryClient.setQueryData(["profile"], updatedProfile)
       queryClient.invalidateQueries({ queryKey: ["profile"] })
     },
     onError: (err: any) => {

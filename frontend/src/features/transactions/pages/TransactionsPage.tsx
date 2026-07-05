@@ -24,17 +24,21 @@ import {
   useUpdateTransaction,
   useDeleteTransaction,
 } from "../hooks/useTransactions"
-import { useCategoriesList } from "../../categories/hooks/useCategories"
+import { useCategoriesList, useCategoryIcons } from "../../categories/hooks/useCategories"
+import * as Icons from "lucide-react"
 import { useAccountsList } from "../../accounts/hooks/useAccounts"
 
 import { CustomButton } from "../../../components/buttons/CustomButton"
 import { CustomInput, CurrencyInput } from "../../../components/inputs/CustomInput"
 import { CustomDialog } from "../../../components/dialogs/CustomDialog"
+import { useCurrency } from "../../../hooks/useCurrency"
 import { Badge } from "../../../components/feedback/FeedbackStates"
 import { CustomPagination } from "../../../components/pagination/CustomPagination"
+import { CustomSelect } from "../../../components/inputs/CustomSelect"
 
 export default function TransactionsPage() {
   const location = useLocation()
+  const { format: formatMoney } = useCurrency()
   const initialTypeFilter = location.state?.filterType || undefined
 
   const [searchQuery, setSearchQuery] = useState("")
@@ -66,6 +70,13 @@ export default function TransactionsPage() {
   // Dropdown list hooks
   const { data: categories = [] } = useCategoriesList()
   const { data: accounts = [] } = useAccountsList()
+  const { data: icons = [] } = useCategoryIcons()
+
+  const renderCategoryIcon = (iconName: string, color?: string) => {
+    const IconComp = (Icons as any)[iconName]
+    if (!IconComp) return <Icons.FolderOpen className="size-4" style={{ color }} />
+    return <IconComp className="size-4" style={{ color }} />
+  }
   
   const queryFilters = {
     type: filterType,
@@ -210,10 +221,10 @@ export default function TransactionsPage() {
     <div className="flex flex-col gap-6 pb-12 select-none">
       
       {/* Header (Section 73) */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-gray-100 pb-5">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-border pb-5">
         <div className="flex flex-col gap-1">
-          <h1 className="text-2xl font-bold tracking-tight text-gray-900">Transactions</h1>
-          <p className="text-sm text-gray-500">Record payments, manage expenses, and view cash flow receipts.</p>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">Transactions</h1>
+          <p className="text-sm text-muted-foreground">Record payments, manage expenses, and view cash flow receipts.</p>
         </div>
         <CustomButton variant="primary" size="md" className="gap-2 w-full sm:w-auto" onClick={handleOpenCreate}>
           <Plus className="size-4" />
@@ -223,9 +234,9 @@ export default function TransactionsPage() {
 
       {/* Toolbar controls */}
       <div className="flex flex-col gap-4">
-        <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between bg-gray-50/50 p-4 rounded-[16px] border border-gray-200/80">
+        <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between bg-card/50 p-4 rounded-[16px] border border-border">
           <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-2.5 size-4 text-gray-400" />
+            <Search className="absolute left-3 top-2.5 size-4 text-muted-foreground" />
             <input
               type="text"
               placeholder="Search description note..."
@@ -234,7 +245,7 @@ export default function TransactionsPage() {
                 setSearchQuery(e.target.value)
                 setCurrentPage(1)
               }}
-              className="h-9 w-full pl-9 pr-4 bg-white border border-gray-200 rounded-[10px] text-xs outline-none focus:border-primary transition-colors font-sans"
+              className="h-9 w-full pl-9 pr-4 bg-card text-foreground border border-border rounded-[10px] text-xs outline-none focus:border-primary transition-colors font-sans"
             />
           </div>
 
@@ -242,10 +253,10 @@ export default function TransactionsPage() {
             <CustomButton
               variant="outline"
               size="sm"
-              className="gap-2 border-gray-200"
+              className="gap-2 border-border"
               onClick={() => setIsFilterPanelOpen(true)}
             >
-              <SlidersHorizontal className="size-3.5 text-gray-500" />
+              <SlidersHorizontal className="size-3.5 text-muted-foreground" />
               Filters
               {(filterType || filterAccountId || filterCategoryId || filterStartDate || filterEndDate) && (
                 <div className="size-2 rounded-full bg-primary" />
@@ -294,7 +305,7 @@ export default function TransactionsPage() {
 
       {/* Ledger Table (Desktop) / Cards (Mobile) */}
       {paginatedTransactions.length === 0 ? (
-        <div className="h-64 flex flex-col items-center justify-center text-center text-xs text-gray-400 gap-2 border border-dashed border-gray-200 rounded-[16px]">
+        <div className="h-64 flex flex-col items-center justify-center text-center text-xs text-muted-foreground gap-2 border border-dashed border-border bg-card rounded-[16px]">
           <FolderOpen className="size-10" />
           <span>No transactions fit the current filter query.</span>
           <CustomButton variant="outline" size="sm" className="mt-2" onClick={handleOpenCreate}>
@@ -305,10 +316,10 @@ export default function TransactionsPage() {
         <div className="flex flex-col gap-5">
           
           {/* Desktop Table View */}
-          <div className="hidden md:block bg-white border border-gray-200 rounded-[16px] overflow-hidden shadow-card">
+          <div className="hidden md:block bg-card border border-border rounded-[16px] overflow-hidden shadow-card text-card-foreground">
             <table className="w-full border-collapse text-left text-xs font-sans">
               <thead>
-                <tr className="bg-gray-50 border-b border-gray-100 text-gray-500 font-semibold select-none">
+                <tr className="bg-muted/50 border-b border-border text-muted-foreground font-semibold select-none">
                   <th className="py-4 px-6">Date</th>
                   <th className="py-4 px-6">Description</th>
                   <th className="py-4 px-6">Category</th>
@@ -318,13 +329,13 @@ export default function TransactionsPage() {
                   <th className="py-4 px-6 text-center">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-50 text-gray-700">
+              <tbody className="divide-y divide-border text-foreground">
                 {paginatedTransactions.map((tx) => (
-                  <tr key={tx.id} className="hover:bg-gray-50/50 transition-colors">
-                    <td className="py-3.5 px-6 font-medium text-gray-400">
+                  <tr key={tx.id} className="hover:bg-muted/50 transition-colors">
+                    <td className="py-3.5 px-6 font-medium text-muted-foreground">
                       {format(new Date(tx.transactionDate), "dd MMM yyyy")}
                     </td>
-                    <td className="py-3.5 px-6 font-semibold text-gray-900">{tx.note || "Transaction"}</td>
+                    <td className="py-3.5 px-6 font-semibold text-foreground">{tx.note || "Transaction"}</td>
                     <td className="py-3.5 px-6">{getCategoryName(tx.categoryId)}</td>
                     <td className="py-3.5 px-6">{getAccountName(tx.accountId)}</td>
                     <td className="py-3.5 px-6">
@@ -340,8 +351,8 @@ export default function TransactionsPage() {
                         {tx.type}
                       </span>
                     </td>
-                    <td className="py-3.5 px-6 text-right font-bold text-gray-900">
-                      ${Number(tx.amount).toFixed(2)}
+                    <td className="py-3.5 px-6 text-right font-bold text-foreground">
+                      {formatMoney(tx.amount)}
                     </td>
                     <td className="py-3.5 px-6">
                       <div className="flex justify-center items-center gap-1.5">
@@ -372,24 +383,24 @@ export default function TransactionsPage() {
             {paginatedTransactions.map((tx) => (
               <div
                 key={tx.id}
-                className="bg-white border border-gray-200 rounded-[12px] p-5 shadow-card flex flex-col gap-3"
+                className="bg-card border border-border rounded-[12px] p-5 shadow-card flex flex-col gap-3 text-card-foreground"
               >
                 <div className="flex justify-between items-start">
                   <div className="flex flex-col">
-                    <span className="text-sm font-semibold text-gray-800">{tx.note || "Transaction"}</span>
-                    <span className="text-2xs font-semibold text-gray-400 uppercase tracking-wide mt-0.5">
+                    <span className="text-sm font-semibold text-foreground">{tx.note || "Transaction"}</span>
+                    <span className="text-2xs font-semibold text-muted-foreground uppercase tracking-wide mt-0.5">
                       {getCategoryName(tx.categoryId)} • {getAccountName(tx.accountId)}
                     </span>
                   </div>
                   <span className={cn(
                     "text-sm font-bold",
-                    tx.type === "INCOME" ? "text-success" : "text-gray-900"
+                    tx.type === "INCOME" ? "text-success" : "text-foreground"
                   )}>
-                    {tx.type === "INCOME" ? "+" : "-"}${Number(tx.amount).toFixed(2)}
+                    {tx.type === "INCOME" ? "+" : "-"}{formatMoney(tx.amount)}
                   </span>
                 </div>
 
-                <div className="flex justify-between items-center border-t border-gray-50 pt-3 text-2xs text-gray-400">
+                <div className="flex justify-between items-center border-t border-border pt-3 text-2xs text-muted-foreground">
                   <span className="flex items-center gap-1">
                     <Calendar className="size-3.5" />
                     {format(new Date(tx.transactionDate), "d MMM yyyy")}
@@ -447,70 +458,64 @@ export default function TransactionsPage() {
           </>
         }
       >
-        <div className="flex flex-col gap-4 py-2 text-xs font-sans">
+        <div className="flex flex-col gap-4 py-2 text-xs font-sans text-foreground">
           
-          <div className="flex flex-col gap-1.5">
-            <span className="text-gray-500 font-semibold select-none">Flow Type</span>
-            <select
-              value={filterType || ""}
-              onChange={(e) => setFilterType(e.target.value ? (e.target.value as any) : undefined)}
-              className="h-10 w-full px-3.5 border border-gray-200 rounded-[10px] bg-white outline-none focus:border-primary transition-colors"
-            >
-              <option value="">All Transactions</option>
-              <option value="INCOME">Income Deposits</option>
-              <option value="EXPENSE">Expense Purchases</option>
-            </select>
-          </div>
+          <CustomSelect
+            label="Flow Type"
+            value={filterType || ""}
+            onChange={(val) => setFilterType(val ? (val as any) : undefined)}
+            options={[
+              { value: "", label: "All Transactions" },
+              { value: "INCOME", label: "Income Deposits" },
+              { value: "EXPENSE", label: "Expense Purchases" },
+            ]}
+          />
 
-          <div className="flex flex-col gap-1.5">
-            <span className="text-gray-500 font-semibold select-none">Target Account</span>
-            <select
-              value={filterAccountId}
-              onChange={(e) => setFilterAccountId(e.target.value)}
-              className="h-10 w-full px-3.5 border border-gray-200 rounded-[10px] bg-white outline-none focus:border-primary transition-colors"
-            >
-              <option value="">All Accounts</option>
-              {accounts.map((a) => (
-                <option key={a.id} value={a.id}>
-                  {a.name}
-                </option>
-              ))}
-            </select>
-          </div>
+          <CustomSelect
+            label="Target Account"
+            value={filterAccountId}
+            onChange={setFilterAccountId}
+            options={[
+              { value: "", label: "All Accounts" },
+              ...accounts.map((a) => ({ value: a.id, label: a.name })),
+            ]}
+          />
 
-          <div className="flex flex-col gap-1.5">
-            <span className="text-gray-500 font-semibold select-none">Category classification</span>
-            <select
-              value={filterCategoryId}
-              onChange={(e) => setFilterCategoryId(e.target.value)}
-              className="h-10 w-full px-3.5 border border-gray-200 rounded-[10px] bg-white outline-none focus:border-primary transition-colors"
-            >
-              <option value="">All Categories</option>
-              {categories.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name} ({c.type})
-                </option>
-              ))}
-            </select>
-          </div>
+          <CustomSelect
+            label="Category classification"
+            value={filterCategoryId}
+            onChange={setFilterCategoryId}
+            options={[
+              { value: "", label: "All Categories" },
+              ...categories.map((c) => {
+                const iconObj = icons.find((i) => i.id === c.categoryIconId)
+                const iconKey = iconObj?.iconKey || "FolderOpen"
+                return {
+                  value: c.id,
+                  label: `${c.name} (${c.type})`,
+                  icon: renderCategoryIcon(iconKey, c.color || "#64748b")
+                }
+              }),
+            ]}
+          />
 
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1.5">
-              <span className="text-gray-500 font-semibold select-none">Start Date</span>
+              <span className="text-muted-foreground font-semibold select-none">Start Date</span>
               <input
                 type="date"
                 value={filterStartDate}
                 onChange={(e) => setFilterStartDate(e.target.value)}
-                className="h-10 px-3.5 border border-gray-200 rounded-[10px] outline-none focus:border-primary bg-white transition-colors"
+                className="h-10 px-3.5 border border-border rounded-[10px] outline-none focus:border-primary bg-background text-foreground transition-colors"
               />
             </div>
             <div className="flex flex-col gap-1.5">
-              <span className="text-gray-500 font-semibold select-none">End Date</span>
+              <span className="text-muted-foreground font-semibold select-none">End Date</span>
               <input
                 type="date"
                 value={filterEndDate}
                 onChange={(e) => setFilterEndDate(e.target.value)}
-                className="h-10 px-3.5 border border-gray-200 rounded-[10px] outline-none focus:border-primary bg-white transition-colors"
+                className="h-10 px-3.5 border border-border rounded-[10px] outline-none focus:border-primary bg-background text-foreground transition-colors"
               />
             </div>
           </div>
@@ -574,36 +579,28 @@ export default function TransactionsPage() {
             onChange={(e) => setTxAmount(e.target.value)}
           />
 
-          <div className="grid grid-cols-2 gap-3">
-            <div className="flex flex-col gap-1.5">
-              <span className="font-semibold text-gray-600 select-none">Bank Account</span>
-              <select
-                value={txAccountId}
-                onChange={(e) => setTxAccountId(e.target.value)}
-                className="h-10 px-3.5 border border-gray-200 rounded-[10px] bg-white outline-none focus:border-primary transition-colors"
-              >
-                {accounts.filter(a => !a.isArchived).map((a) => (
-                  <option key={a.id} value={a.id}>
-                    {a.name}
-                  </option>
-                ))}
-              </select>
-            </div>
+          <div className="grid grid-cols-2 gap-3 text-foreground">
+            <CustomSelect
+              label="Bank Account"
+              value={txAccountId}
+              onChange={setTxAccountId}
+              options={accounts.filter(a => !a.isArchived).map((a) => ({ value: a.id, label: a.name }))}
+            />
 
-            <div className="flex flex-col gap-1.5">
-              <span className="font-semibold text-gray-600 select-none">Category type</span>
-              <select
-                value={txCategoryId}
-                onChange={(e) => setTxCategoryId(e.target.value)}
-                className="h-10 px-3.5 border border-gray-200 rounded-[10px] bg-white outline-none focus:border-primary transition-colors"
-              >
-                {categories.filter(c => c.type === txType).map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <CustomSelect
+              label="Category type"
+              value={txCategoryId}
+              onChange={setTxCategoryId}
+              options={categories.filter(c => c.type === txType).map((c) => {
+                const iconObj = icons.find((i) => i.id === c.categoryIconId)
+                const iconKey = iconObj?.iconKey || "FolderOpen"
+                return {
+                  value: c.id,
+                  label: c.name,
+                  icon: renderCategoryIcon(iconKey, c.color || "#64748b")
+                }
+              })}
+            />
           </div>
 
           <div className="flex flex-col gap-1.5">
@@ -682,36 +679,28 @@ export default function TransactionsPage() {
             onChange={(e) => setTxAmount(e.target.value)}
           />
 
-          <div className="grid grid-cols-2 gap-3">
-            <div className="flex flex-col gap-1.5">
-              <span className="font-semibold text-gray-600 select-none">Bank Account</span>
-              <select
-                value={txAccountId}
-                onChange={(e) => setTxAccountId(e.target.value)}
-                className="h-10 px-3.5 border border-gray-200 rounded-[10px] bg-white outline-none focus:border-primary transition-colors"
-              >
-                {accounts.filter(a => !a.isArchived || a.id === selectedTx?.accountId).map((a) => (
-                  <option key={a.id} value={a.id}>
-                    {a.name}
-                  </option>
-                ))}
-              </select>
-            </div>
+          <div className="grid grid-cols-2 gap-3 text-foreground">
+            <CustomSelect
+              label="Bank Account"
+              value={txAccountId}
+              onChange={setTxAccountId}
+              options={accounts.filter(a => !a.isArchived || a.id === selectedTx?.accountId).map((a) => ({ value: a.id, label: a.name }))}
+            />
 
-            <div className="flex flex-col gap-1.5">
-              <span className="font-semibold text-gray-600 select-none">Category type</span>
-              <select
-                value={txCategoryId}
-                onChange={(e) => setTxCategoryId(e.target.value)}
-                className="h-10 px-3.5 border border-gray-200 rounded-[10px] bg-white outline-none focus:border-primary transition-colors"
-              >
-                {categories.filter(c => c.type === txType).map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <CustomSelect
+              label="Category type"
+              value={txCategoryId}
+              onChange={setTxCategoryId}
+              options={categories.filter(c => c.type === txType).map((c) => {
+                const iconObj = icons.find((i) => i.id === c.categoryIconId)
+                const iconKey = iconObj?.iconKey || "FolderOpen"
+                return {
+                  value: c.id,
+                  label: c.name,
+                  icon: renderCategoryIcon(iconKey, c.color || "#64748b")
+                }
+              })}
+            />
           </div>
 
           <div className="flex flex-col gap-1.5">

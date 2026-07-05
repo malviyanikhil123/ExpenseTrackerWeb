@@ -38,14 +38,14 @@ export const DropdownMenu: React.FC<DropdownMenuProps> = ({ trigger, items }) =>
       })}
 
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-[190px] bg-white/95 backdrop-blur-md border border-gray-200/80 rounded-[12px] shadow-dropdown z-50 p-1.5 font-sans text-xs animate-dropdown origin-top-right">
+        <div className="absolute right-0 mt-2 w-[190px] bg-popover/95 backdrop-blur-md border border-border rounded-[12px] shadow-dropdown z-50 p-1.5 font-sans text-xs animate-dropdown origin-top-right text-popover-foreground">
           {items.map((item, idx) => {
             const isPreviousItemNormal = idx > 0 && !items[idx - 1].isDestructive
             const shouldShowDivider = item.isDestructive && isPreviousItemNormal
 
             return (
               <React.Fragment key={idx}>
-                {shouldShowDivider && <div className="h-px bg-gray-100 my-1 mx-1" />}
+                {shouldShowDivider && <div className="h-px bg-border my-1 mx-1" />}
                 <button
                   type="button"
                   onClick={(e) => {
@@ -56,14 +56,14 @@ export const DropdownMenu: React.FC<DropdownMenuProps> = ({ trigger, items }) =>
                   className={`w-full flex items-center gap-2.5 px-3 py-2.5 text-left rounded-[8px] transition-all duration-150 select-none cursor-pointer group ${
                     item.isDestructive
                       ? "text-danger hover:bg-danger/8 hover:text-danger font-medium"
-                      : "text-gray-600 hover:bg-gray-50 hover:text-gray-900 font-medium"
+                      : "text-popover-foreground/80 hover:bg-muted hover:text-popover-foreground font-medium"
                   }`}
                 >
                   {item.icon && (
                     <span className={`transition-colors duration-150 shrink-0 ${
                       item.isDestructive 
                         ? "text-danger/70 group-hover:text-danger" 
-                        : "text-gray-400 group-hover:text-gray-700"
+                        : "text-muted-foreground group-hover:text-popover-foreground"
                     }`}>
                       {item.icon}
                     </span>

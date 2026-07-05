@@ -13,6 +13,8 @@ import { CustomInput, CurrencyInput } from "../../../components/inputs/CustomInp
 import { CustomDialog } from "../../../components/dialogs/CustomDialog"
 import { DropdownMenu } from "../../../components/ui/dropdown-menu"
 import { Badge } from "../../../components/feedback/FeedbackStates"
+import { useCurrency } from "../../../hooks/useCurrency"
+import { CustomSelect } from "../../../components/inputs/CustomSelect"
 
 const COLOR_PALETTE = [
   "#706677",
@@ -35,6 +37,7 @@ const ACCOUNT_TYPES = [
 
 export default function AccountsPage() {
   const [showArchived, setShowArchived] = useState(false)
+  const { format: formatMoney } = useCurrency()
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [isEditOpen, setIsEditOpen] = useState(false)
   const [isDeleteOpen, setIsDeleteOpen] = useState(false)
@@ -168,8 +171,8 @@ export default function AccountsPage() {
     return (
       <div className="flex flex-col items-center justify-center p-12 border border-danger/10 bg-danger/5 rounded-[16px] max-w-2xl mx-auto mt-12">
         <AlertCircle className="size-12 text-danger mb-4" />
-        <h2 className="text-xl font-bold text-gray-900 mb-1">Failed to fetch accounts</h2>
-        <p className="text-sm text-gray-500 mb-6">There was an error communicating with the database.</p>
+        <h2 className="text-xl font-bold text-foreground mb-1">Failed to fetch accounts</h2>
+        <p className="text-sm text-muted-foreground mb-6">There was an error communicating with the database.</p>
         <CustomButton variant="outline" onClick={() => refetch()}>
           Retry
         </CustomButton>
@@ -181,10 +184,10 @@ export default function AccountsPage() {
     <div className="flex flex-col gap-6 pb-12 select-none">
       
       {/* Header (Section 72) */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-gray-100 pb-5">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-border pb-5">
         <div className="flex flex-col gap-1">
-          <h1 className="text-2xl font-bold tracking-tight text-gray-900">Accounts</h1>
-          <p className="text-sm text-gray-500">Manage bank checking accounts, credit cards, or cash wallets.</p>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">Accounts</h1>
+          <p className="text-sm text-muted-foreground">Manage bank checking accounts, credit cards, or cash wallets.</p>
         </div>
         <CustomButton variant="primary" size="md" className="gap-2 w-full sm:w-auto" onClick={handleOpenCreate}>
           <Plus className="size-4" />
@@ -194,12 +197,12 @@ export default function AccountsPage() {
 
       {/* Show archived toggle */}
       <div className="flex justify-end items-center">
-        <label className="flex items-center gap-2 text-xs font-semibold text-gray-500 cursor-pointer">
+        <label className="flex items-center gap-2 text-xs font-semibold text-muted-foreground cursor-pointer">
           <input
             type="checkbox"
             checked={showArchived}
             onChange={(e) => setShowArchived(e.target.checked)}
-            className="rounded border-gray-300 focus:ring-primary size-4"
+            className="rounded border-border focus:ring-primary size-4"
           />
           Show Archived Accounts
         </label>
@@ -207,7 +210,7 @@ export default function AccountsPage() {
 
       {/* Account Cards list (Section 72) */}
       {accounts.length === 0 ? (
-        <div className="h-64 flex flex-col items-center justify-center text-center text-xs text-gray-400 gap-2 border border-dashed border-gray-200 rounded-[16px]">
+        <div className="h-64 flex flex-col items-center justify-center text-center text-xs text-muted-foreground gap-2 border border-dashed border-border bg-card rounded-[16px]">
           <Landmark className="size-10" />
           <span>No accounts found. Create your first account to track balances.</span>
           <CustomButton variant="outline" size="sm" className="mt-2" onClick={handleOpenCreate}>
@@ -220,21 +223,21 @@ export default function AccountsPage() {
             <div
               key={acc.id}
               className={cn(
-                "bg-white border rounded-[16px] p-6 shadow-card hover:shadow-md transition-shadow relative flex flex-col justify-between gap-4",
-                acc.isArchived ? "opacity-60 border-gray-100" : "border-gray-200"
+                "bg-card border rounded-[16px] p-6 shadow-card hover:shadow-md transition-shadow relative flex flex-col justify-between gap-4 text-card-foreground",
+                acc.isArchived ? "opacity-60 border-border/60" : "border-border"
               )}
             >
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-4">
                   <div
-                    className="size-11 rounded-[12px] flex items-center justify-center border border-gray-100"
+                    className="size-11 rounded-[12px] flex items-center justify-center border border-border"
                     style={{ backgroundColor: `${acc.color || COLOR_PALETTE[0]}08` }}
                   >
                     {getAccountIcon(acc.type, acc.color)}
                   </div>
                   <div className="flex flex-col">
-                    <span className="text-sm font-semibold text-gray-800 tracking-tight">{acc.name}</span>
-                    <span className="text-2xs font-medium text-gray-400 mt-0.5 uppercase tracking-wide">
+                    <span className="text-sm font-semibold text-foreground tracking-tight">{acc.name}</span>
+                    <span className="text-2xs font-medium text-muted-foreground mt-0.5 uppercase tracking-wide">
                       {acc.type.replace("_", " ")}
                     </span>
                   </div>
@@ -248,7 +251,7 @@ export default function AccountsPage() {
                     trigger={
                       <button
                         type="button"
-                        className="p-1.5 rounded-full hover:bg-gray-50 text-gray-400 hover:text-gray-600 transition-colors cursor-pointer outline-none"
+                        className="p-1.5 rounded-full hover:bg-muted text-muted-foreground hover:text-foreground transition-colors cursor-pointer outline-none"
                       >
                         <MoreVertical className="size-4" />
                       </button>
@@ -284,13 +287,13 @@ export default function AccountsPage() {
                 </div>
               </div>
 
-              <div className="flex flex-col gap-1 border-t border-gray-50 pt-4">
-                <span className="text-2xs font-medium text-gray-400 uppercase tracking-wider">Current Balance</span>
-                <span className="text-2xl font-bold text-gray-900">
-                  ${Number(acc.openingBalance || 0).toFixed(2)}
+              <div className="flex flex-col gap-1 border-t border-border pt-4">
+                <span className="text-2xs font-medium text-muted-foreground uppercase tracking-wider">Current Balance</span>
+                <span className="text-2xl font-bold text-foreground">
+                  {formatMoney(acc.openingBalance || 0)}
                 </span>
                 {acc.description && (
-                  <p className="text-2xs text-gray-500 mt-1 leading-normal line-clamp-1">{acc.description}</p>
+                  <p className="text-2xs text-muted-foreground mt-1 leading-normal line-clamp-1">{acc.description}</p>
                 )}
               </div>
             </div>
@@ -323,20 +326,12 @@ export default function AccountsPage() {
             onChange={(e) => setAccName(e.target.value)}
           />
 
-          <div className="flex flex-col gap-1.5">
-            <span className="text-xs font-semibold text-gray-600 select-none">Account Type</span>
-            <select
-              value={accType}
-              onChange={(e) => setAccType(e.target.value)}
-              className="h-10 w-full px-3.5 border border-gray-200 rounded-[10px] text-xs outline-none focus:border-primary bg-white transition-colors"
-            >
-              {ACCOUNT_TYPES.map((type) => (
-                <option key={type.value} value={type.value}>
-                  {type.label}
-                </option>
-              ))}
-            </select>
-          </div>
+          <CustomSelect
+            label="Account Type"
+            value={accType}
+            onChange={(val) => setAccType(val as any)}
+            options={ACCOUNT_TYPES}
+          />
 
           <CurrencyInput
             label="Opening Balance"
@@ -407,20 +402,12 @@ export default function AccountsPage() {
             onChange={(e) => setAccName(e.target.value)}
           />
 
-          <div className="flex flex-col gap-1.5">
-            <span className="text-xs font-semibold text-gray-600 select-none">Account Type</span>
-            <select
-              value={accType}
-              onChange={(e) => setAccType(e.target.value)}
-              className="h-10 w-full px-3.5 border border-gray-200 rounded-[10px] text-xs outline-none focus:border-primary bg-white transition-colors"
-            >
-              {ACCOUNT_TYPES.map((type) => (
-                <option key={type.value} value={type.value}>
-                  {type.label}
-                </option>
-              ))}
-            </select>
-          </div>
+          <CustomSelect
+            label="Account Type"
+            value={accType}
+            onChange={(val) => setAccType(val as any)}
+            options={ACCOUNT_TYPES}
+          />
 
           <CustomInput
             label="Description (Optional)"
