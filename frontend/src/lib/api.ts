@@ -1,9 +1,9 @@
 import axios from "axios"
-import { API_URL } from "@/config/runtime"
+import { getApiUrl } from "@/config/runtime"
 import { useAuthStore } from "../store/authStore"
 
 export const api = axios.create({
-  baseURL: API_URL,
+  baseURL: getApiUrl(),
   withCredentials: true,
   headers: {
     "Content-Type": "application/json",
@@ -75,7 +75,7 @@ api.interceptors.response.use(
 
       try {
         // Silent token refresh API call (Section 53/56)
-        const response = await axios.post(`${API_URL}/auth/refresh`, {
+        const response = await axios.post(`${getApiUrl()}/auth/refresh`, {
           refreshToken,
         })
 
