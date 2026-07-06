@@ -25,14 +25,29 @@ export default function LoginPage() {
   const queryClient = useQueryClient()
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [rememberMe, setRememberMe] = useState(false)
 
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors },
   } = useForm<LoginFormInputs>({
     resolver: zodResolver(loginSchema),
     mode: "onBlur",
+  })
+
+  // Load saved credentials on mount (Section 26/remember me)
+  useState(() => {
+    const savedEmail = localStorage.getItem("remembered_email")
+    const savedPassword = localStorage.getItem("remembered_password")
+    if (savedEmail && savedPassword) {
+      setTimeout(() => {
+        setValue("email", savedEmail)
+        setValue("password", savedPassword)
+        setRememberMe(true)
+      }, 0)
+    }
   })
 
   const onSubmit = async (data: LoginFormInputs) => {
@@ -43,6 +58,16 @@ export default function LoginPage() {
 
       setAuth(user, accessToken, refreshToken)
       
+      // Persist password if Remember Me is checked
+      if (rememberMe) {
+        localStorage.setItem("remembered_email", data.email)
+        localStorage.setItem("remembered_password", data.password)
+      } else {
+        localStorage.removeItem("remembered_email")
+        localStorage.removeItem("remembered_password")
+        localStorage.removeItem("remembered_password_hash")
+      }
+
       // Invalidate caches per the Cache Invalidation Matrix
       queryClient.invalidateQueries({ queryKey: ["profile"] })
       queryClient.invalidateQueries({ queryKey: ["dashboard"] })
@@ -103,7 +128,19 @@ export default function LoginPage() {
             </button>
           </div>
 
-          <CustomButton variant="primary" type="submit" className="w-full mt-2" isLoading={isLoading}>
+          <div className="flex items-center justify-between select-none -mt-1">
+            <label className="flex items-center gap-2 text-xs font-semibold text-muted-foreground cursor-pointer">
+              <input
+                type="checkbox"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                className="rounded border-border focus:ring-primary size-4"
+              />
+              Remember Me
+            </label>
+          </div>
+
+          <CustomButton variant="primary" type="submit" className="w-full mt-1" isLoading={isLoading}>
             Login
           </CustomButton>
         </form>
