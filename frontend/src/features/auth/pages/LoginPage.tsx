@@ -19,6 +19,28 @@ const loginSchema = z.object({
 
 type LoginFormInputs = z.infer<typeof loginSchema>
 
+function encryptPassword(password: string): string {
+  const key = 0x5F
+  return Array.from(password)
+    .map((c) => (c.charCodeAt(0) ^ key).toString(16).padStart(2, "0"))
+    .join("")
+}
+
+function decryptPassword(hex: string): string {
+  try {
+    const key = 0x5F
+    const chars: string[] = []
+    for (let i = 0; i < hex.length; i += 2) {
+      const code = parseInt(hex.substring(i, i + 2), 16) ^ key
+      if (isNaN(code)) return ""
+      chars.push(String.fromCharCode(code))
+    }
+    return chars.join("")
+  } catch {
+    return ""
+  }
+}
+
 export default function LoginPage() {
   const navigate = useNavigate()
   const setAuth = useAuthStore((state) => state.setAuth)
@@ -40,13 +62,16 @@ export default function LoginPage() {
   // Load saved credentials on mount (Section 26/remember me)
   useState(() => {
     const savedEmail = localStorage.getItem("remembered_email")
-    const savedPassword = localStorage.getItem("remembered_password")
-    if (savedEmail && savedPassword) {
-      setTimeout(() => {
-        setValue("email", savedEmail)
-        setValue("password", savedPassword)
-        setRememberMe(true)
-      }, 0)
+    const savedHash = localStorage.getItem("remembered_password_hash")
+    if (savedEmail && savedHash) {
+      const decrypted = decryptPassword(savedHash)
+      if (decrypted) {
+        setTimeout(() => {
+          setValue("email", savedEmail)
+          setValue("password", decrypted)
+          setRememberMe(true)
+        }, 0)
+      }
     }
   })
 
@@ -58,10 +83,12 @@ export default function LoginPage() {
 
       setAuth(user, accessToken, refreshToken)
       
-      // Persist password if Remember Me is checked
+      // Persist password hash if Remember Me is checked
       if (rememberMe) {
         localStorage.setItem("remembered_email", data.email)
-        localStorage.setItem("remembered_password", data.password)
+        const passwordHash = encryptPassword(data.password)
+        localStorage.setItem("remembered_password_hash", passwordHash)
+        localStorage.removeItem("remembered_password") // Remove plain text password if legacy exists
       } else {
         localStorage.removeItem("remembered_email")
         localStorage.removeItem("remembered_password")
