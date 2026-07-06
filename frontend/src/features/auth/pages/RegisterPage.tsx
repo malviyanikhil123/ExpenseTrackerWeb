@@ -75,15 +75,15 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4 sm:p-6 lg:p-8 font-sans">
-      <div className="w-full max-w-[420px] bg-white border border-gray-200 rounded-[16px] p-8 shadow-card flex flex-col gap-6">
+    <div className="min-h-screen bg-background flex items-center justify-center p-4 sm:p-6 lg:p-8 font-sans">
+      <div className="w-full max-w-[420px] bg-card border border-border rounded-[16px] p-8 shadow-card flex flex-col gap-6 text-card-foreground">
         
         <div className="flex flex-col gap-1.5 text-center sm:text-left select-none">
           <div className="size-10 rounded-[10px] bg-primary flex items-center justify-center text-white font-bold text-lg mb-2 shadow-sm mx-auto sm:mx-0">
             ET
           </div>
-          <h1 className="text-2xl font-bold tracking-tight text-gray-900 leading-none">Create Account</h1>
-          <p className="text-sm text-gray-500 mt-1 leading-normal">
+          <h1 className="text-2xl font-bold tracking-tight text-foreground leading-none">Create Account</h1>
+          <p className="text-sm text-muted-foreground mt-1 leading-normal">
             Track income, categorize purchases, and check debts.
           </p>
         </div>

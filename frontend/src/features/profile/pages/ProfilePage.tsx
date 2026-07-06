@@ -275,62 +275,8 @@ export default function ProfilePage() {
               Local Preferences
             </h3>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 text-xs font-sans">
+            <div className="grid grid-cols-1 gap-6 text-xs font-sans">
               
-              {/* Currency */}
-              <div className="flex flex-col gap-2">
-                <span className="font-semibold text-muted-foreground flex items-center gap-1.5 select-none">
-                  <Coins className="size-3.5" />
-                  Primary Currency
-                </span>
-                <div className="flex bg-muted p-1 rounded-[10px] w-full">
-                  {["USD", "INR"].map((cur) => (
-                    <button
-                      key={cur}
-                      type="button"
-                      onClick={() => handleCurrencyChange(cur)}
-                      className={cn(
-                        "flex-1 py-1.5 rounded-[8px] text-[10px] font-bold transition-all cursor-pointer select-none",
-                        currency === cur
-                          ? "bg-background text-foreground shadow-sm"
-                          : "text-muted-foreground hover:text-foreground hover:bg-muted/40"
-                      )}
-                    >
-                      {cur === "USD" ? "USD ($)" : "INR (₹)"}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Language */}
-              {/* <div className="flex flex-col gap-2">
-                <span className="font-semibold text-muted-foreground flex items-center gap-1.5 select-none">
-                  <Globe className="size-3.5" />
-                  Language
-                </span>
-                <div className="flex bg-muted p-1 rounded-[10px] w-full">
-                  {["EN", "ES", "HI"].map((lang) => (
-                    <button
-                      key={lang}
-                      type="button"
-                      onClick={() => {
-                        setLanguage(lang)
-                        const nameMap: Record<string, string> = { EN: "English", ES: "Spanish", HI: "Hindi" }
-                        toast.success(`Language changed locally to ${nameMap[lang]}`)
-                      }}
-                      className={cn(
-                        "flex-1 py-1.5 rounded-[8px] text-[10px] font-bold transition-all cursor-pointer select-none",
-                        language === lang
-                          ? "bg-background text-foreground shadow-sm"
-                          : "text-muted-foreground hover:text-foreground hover:bg-muted/40"
-                      )}
-                    >
-                      {lang === "EN" ? "EN" : lang === "ES" ? "ES" : "HI"}
-                    </button>
-                  ))}
-                </div>
-              </div> */}
-
               {/* Theme */}
               <div className="flex flex-col gap-2">
                 <span className="font-semibold text-muted-foreground flex items-center gap-1.5 select-none">

@@ -64,7 +64,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       <div className="flex flex-col">
         <div className="h-[72px] border-b border-sidebar-border px-6 flex items-center justify-between shrink-0 bg-sidebar">
           {!isCollapsed && (
-            <span className="text-base font-bold tracking-tight text-foreground select-none">
+            <span className="text-base font-bold tracking-tight text-sidebar-foreground select-none">
               Expense Tracker
             </span>
           )}
@@ -77,7 +77,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <button
               type="button"
               onClick={onToggleCollapse}
-              className="hidden md:flex p-1 rounded-md border border-sidebar-border text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-muted transition-colors cursor-pointer"
+              className="hidden md:flex p-1 rounded-md border border-sidebar-border text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-white/10 transition-colors cursor-pointer"
             >
               {isCollapsed ? <ChevronRight className="size-4" /> : <ChevronLeft className="size-4" />}
             </button>
@@ -98,14 +98,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   "relative flex items-center gap-3 px-3.5 py-3 text-sm font-normal rounded-[10px] select-none transition-colors group/nav",
                   isActive
                     ? "bg-primary text-white font-semibold"
-                    : "text-sidebar-foreground/80 hover:bg-primary/10 hover:text-primary"
+                    : "text-sidebar-foreground/80 hover:bg-white/10 hover:text-white"
                 )}
                 title={isCollapsed ? item.title : undefined}
               >
                 <span className={cn(
                   isActive
                     ? "text-white"
-                    : "text-sidebar-foreground/45 group-hover/nav:text-primary"
+                    : "text-sidebar-foreground/45 group-hover/nav:text-white"
                 )}>
                   {item.icon}
                 </span>
@@ -116,7 +116,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   <span
                     className={cn(
                       "ml-auto text-[10px] px-2 py-0.5 rounded-full font-bold",
-                      isActive ? "bg-white/20 text-white" : "bg-muted text-muted-foreground"
+                      isActive ? "bg-white/20 text-white" : "bg-white/10 text-sidebar-foreground/80"
                     )}
                   >
                     {item.badge}
@@ -141,7 +141,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           type="button"
           onClick={onLogout}
           className={cn(
-            "relative w-full flex items-center gap-3 px-3.5 py-3 text-sm font-normal text-danger hover:bg-danger/5 rounded-[10px] select-none transition-colors group/logout"
+            "relative w-full flex items-center gap-3 px-3.5 py-3 text-sm font-normal text-danger hover:bg-danger/10 rounded-[10px] select-none transition-colors group/logout"
           )}
           title={isCollapsed ? "Logout" : undefined}
         >

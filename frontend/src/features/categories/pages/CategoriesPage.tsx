@@ -311,7 +311,7 @@ export default function CategoriesPage() {
 
           <div className="flex flex-col gap-2">
             <span className="text-xs font-semibold text-gray-600 select-none">Icon Representation</span>
-            <div className="grid grid-cols-6 gap-2 max-h-[140px] overflow-y-auto border border-gray-100 rounded-[10px] p-2 bg-gray-50/50">
+            <div className="grid grid-cols-6 gap-2 max-h-[140px] overflow-y-auto border border-border rounded-[10px] p-2 bg-muted/30">
               {icons
                 .filter((icon) => icon.type === activeTab)
                 .map((icon) => (
@@ -320,11 +320,11 @@ export default function CategoriesPage() {
                     type="button"
                     onClick={() => setSelectedIconId(icon.id)}
                     className={cn(
-                      "aspect-square rounded-[8px] border flex items-center justify-center bg-white cursor-pointer hover:bg-gray-50 transition-colors",
-                      selectedIconId === icon.id ? "border-primary bg-primary/5" : "border-gray-200"
+                      "aspect-square rounded-[8px] border flex items-center justify-center bg-card text-foreground cursor-pointer hover:bg-muted transition-colors",
+                      selectedIconId === icon.id ? "border-primary bg-primary/5" : "border-border"
                     )}
                   >
-                    {renderIcon(icon.iconKey, selectedIconId === icon.id ? catColor : "#64748b")}
+                    {renderIcon(icon.iconKey, selectedIconId === icon.id ? catColor : "#94a3b8")}
                   </button>
                 ))}
             </div>
@@ -377,7 +377,7 @@ export default function CategoriesPage() {
 
           <div className="flex flex-col gap-2">
             <span className="text-xs font-semibold text-gray-600 select-none">Icon Representation</span>
-            <div className="grid grid-cols-6 gap-2 max-h-[140px] overflow-y-auto border border-gray-100 rounded-[10px] p-2 bg-gray-50/50">
+            <div className="grid grid-cols-6 gap-2 max-h-[140px] overflow-y-auto border border-border rounded-[10px] p-2 bg-muted/30">
               {icons
                 .filter((icon) => icon.type === (selectedCategory?.type || activeTab))
                 .map((icon) => (
@@ -386,11 +386,11 @@ export default function CategoriesPage() {
                     type="button"
                     onClick={() => setSelectedIconId(icon.id)}
                     className={cn(
-                      "aspect-square rounded-[8px] border flex items-center justify-center bg-white cursor-pointer hover:bg-gray-50 transition-colors",
-                      selectedIconId === icon.id ? "border-primary bg-primary/5" : "border-gray-200"
+                      "aspect-square rounded-[8px] border flex items-center justify-center bg-card text-foreground cursor-pointer hover:bg-muted transition-colors",
+                      selectedIconId === icon.id ? "border-primary bg-primary/5" : "border-border"
                     )}
                   >
-                    {renderIcon(icon.iconKey, selectedIconId === icon.id ? catColor : "#64748b")}
+                    {renderIcon(icon.iconKey, selectedIconId === icon.id ? catColor : "#94a3b8")}
                   </button>
                 ))}
             </div>

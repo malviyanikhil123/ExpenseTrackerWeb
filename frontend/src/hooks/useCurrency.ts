@@ -1,12 +1,9 @@
-import { useProfileDetails } from "../features/profile/hooks/useProfile"
-
 export const CURRENCY_SYMBOLS: Record<string, string> = {
-  USD: "$",
   INR: "₹",
 }
 
-export function formatCurrency(amount: number | string, currency: string = "USD") {
-  const symbol = CURRENCY_SYMBOLS[currency] || "$"
+export function formatCurrency(amount: number | string, currency: string = "INR") {
+  const symbol = "₹"
   const num = typeof amount === "number" ? amount : Number(amount)
   
   if (isNaN(num)) {
@@ -20,14 +17,13 @@ export function formatCurrency(amount: number | string, currency: string = "USD"
 }
 
 export function useCurrency() {
-  const { data: profile } = useProfileDetails()
-  const currency = profile?.currency || localStorage.getItem("currency") || "USD"
+  const currency = "INR"
 
   const format = (amount: number | string) => {
     return formatCurrency(amount, currency)
   }
 
-  const symbol = CURRENCY_SYMBOLS[currency] || "$"
+  const symbol = "₹"
 
   return { currency, format, symbol }
 }

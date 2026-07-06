@@ -18,47 +18,47 @@
   --danger: #DC2626;
   --info: #2563EB;
 
-  /* Neutral Palette Base Values */
-  --gray-50: #f9fafb;
-  --gray-100: #f3f4f6;
-  --gray-200: #e5e7eb;
-  --gray-300: #d1d5db;
-  --gray-400: #9ca3af;
-  --gray-500: #6b7280;
-  --gray-600: #4b5563;
-  --gray-700: #374151;
-  --gray-800: #1f2937;
-  --gray-900: #111827;
+  /* Neutral Palette Base Values (inverted for light mode dark theme) */
+  --gray-50: #14101c;
+  --gray-100: #1a1624;
+  --gray-200: #252030;
+  --gray-300: #363045;
+  --gray-400: #625c72;
+  --gray-500: #938c9f;
+  --gray-600: #b5adc0;
+  --gray-700: #d6cfdc;
+  --gray-800: #f1ecf5;
+  --gray-900: #ffffff;
 
   /* Background Colors */
-  --background: #f5f3f6;
-  --foreground: var(--gray-900);
+  --background: #1c1825;
+  --foreground: #ffffff;
 
   /* Card */
-  --card: #ffffff;
-  --card-foreground: var(--gray-900);
+  --card: #252030;
+  --card-foreground: #f1ecf5;
 
   /* Sidebar */
-  --sidebar: #ffffff;
-  --sidebar-foreground: var(--gray-700);
-  --sidebar-border: var(--gray-200);
+  --sidebar: #15121b;
+  --sidebar-foreground: #e5e7eb;
+  --sidebar-border: #252030;
 
   /* Popover */
-  --popover: #ffffff;
-  --popover-foreground: var(--gray-900);
+  --popover: #252030;
+  --popover-foreground: #f1ecf5;
 
   /* Inputs & Borders */
-  --border: var(--gray-200);
-  --input: var(--gray-200);
+  --border: #363045;
+  --input: #14101c;
   --ring: var(--primary);
 
   /* Muted states */
-  --muted: var(--gray-100);
-  --muted-foreground: var(--gray-500);
+  --muted: #1a1624;
+  --muted-foreground: #938c9f;
 
   /* Accent states */
-  --accent: var(--gray-50);
-  --accent-foreground: var(--gray-900);
+  --accent: #2a2538;
+  --accent-foreground: #ffffff;
 
   /* Destructive states */
   --destructive: var(--danger);
@@ -68,9 +68,9 @@
   --radius: 16px;
 
   /* Shadows */
-  --shadow-card: 0 2px 8px -1px rgba(0, 0, 0, 0.05), 0 1px 3px 0 rgba(0, 0, 0, 0.03);
-  --shadow-dropdown: 0 4px 12px -2px rgba(0, 0, 0, 0.08), 0 2px 6px -1px rgba(0, 0, 0, 0.04);
-  --shadow-modal: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  --shadow-card: 0 4px 20px -2px rgba(0, 0, 0, 0.25), 0 2px 8px -1px rgba(0, 0, 0, 0.15);
+  --shadow-dropdown: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 4px 10px -2px rgba(0, 0, 0, 0.2);
+  --shadow-modal: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
 }
 
 .dark {

@@ -527,7 +527,7 @@ export default function TransactionsPage() {
         <div className="flex flex-col gap-4 py-2 font-sans text-xs">
           
           <div className="flex flex-col gap-2">
-            <span className="font-semibold text-gray-600 select-none">Transaction Flow</span>
+            <span className="font-semibold text-muted-foreground select-none">Transaction Flow</span>
             <div className="grid grid-cols-2 gap-3">
               <button
                 type="button"
@@ -536,7 +536,7 @@ export default function TransactionsPage() {
                   "h-10 px-4 rounded-[10px] border font-semibold select-none transition-colors cursor-pointer",
                   txType === "EXPENSE"
                     ? "bg-primary text-white border-primary"
-                    : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
+                    : "bg-card text-muted-foreground border-border hover:bg-muted"
                 )}
               >
                 Expense
@@ -548,7 +548,7 @@ export default function TransactionsPage() {
                   "h-10 px-4 rounded-[10px] border font-semibold select-none transition-colors cursor-pointer",
                   txType === "INCOME"
                     ? "bg-primary text-white border-primary"
-                    : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
+                    : "bg-card text-muted-foreground border-border hover:bg-muted"
                 )}
               >
                 Income
@@ -579,13 +579,13 @@ export default function TransactionsPage() {
             />
           </div>
 
-          <div className="flex flex-col gap-1.5">
-            <span className="font-semibold text-gray-600 select-none">Transaction Date</span>
+          <div className="flex flex-col gap-1.5 text-foreground">
+            <span className="font-semibold text-muted-foreground select-none">Transaction Date</span>
             <input
               type="date"
               value={txDate}
               onChange={(e) => setTxDate(e.target.value)}
-              className="h-10 px-3.5 border border-gray-200 rounded-[10px] bg-white outline-none focus:border-primary transition-colors"
+              className="h-10 px-3.5 border border-border rounded-[10px] bg-background text-foreground outline-none focus:border-primary transition-colors"
             />
           </div>
 
@@ -619,7 +619,7 @@ export default function TransactionsPage() {
         <div className="flex flex-col gap-4 py-2 font-sans text-xs">
           
           <div className="flex flex-col gap-2">
-            <span className="font-semibold text-gray-600 select-none">Transaction Flow</span>
+            <span className="font-semibold text-muted-foreground select-none">Transaction Flow</span>
             <div className="grid grid-cols-2 gap-3">
               <button
                 type="button"
@@ -628,7 +628,7 @@ export default function TransactionsPage() {
                   "h-10 px-4 rounded-[10px] border font-semibold select-none transition-colors cursor-pointer",
                   txType === "EXPENSE"
                     ? "bg-primary text-white border-primary"
-                    : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
+                    : "bg-card text-muted-foreground border-border hover:bg-muted"
                 )}
               >
                 Expense
@@ -640,7 +640,7 @@ export default function TransactionsPage() {
                   "h-10 px-4 rounded-[10px] border font-semibold select-none transition-colors cursor-pointer",
                   txType === "INCOME"
                     ? "bg-primary text-white border-primary"
-                    : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
+                    : "bg-card text-muted-foreground border-border hover:bg-muted"
                 )}
               >
                 Income
@@ -671,13 +671,13 @@ export default function TransactionsPage() {
             />
           </div>
 
-          <div className="flex flex-col gap-1.5">
-            <span className="font-semibold text-gray-600 select-none">Transaction Date</span>
+          <div className="flex flex-col gap-1.5 text-foreground">
+            <span className="font-semibold text-muted-foreground select-none">Transaction Date</span>
             <input
               type="date"
               value={txDate}
               onChange={(e) => setTxDate(e.target.value)}
-              className="h-10 px-3.5 border border-gray-200 rounded-[10px] bg-white outline-none focus:border-primary transition-colors"
+              className="h-10 px-3.5 border border-border rounded-[10px] bg-background text-foreground outline-none focus:border-primary transition-colors"
             />
           </div>
 

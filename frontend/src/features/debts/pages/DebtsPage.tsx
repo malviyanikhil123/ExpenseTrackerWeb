@@ -518,14 +518,14 @@ export default function DebtsPage() {
           ) : (
             <div className="flex flex-col gap-3 max-h-[180px] overflow-y-auto pr-1">
               {repayments.map((repay) => (
-                <div key={repay.id} className="bg-white border border-gray-100 rounded-[10px] p-3 flex justify-between items-center shadow-2xs">
+                <div key={repay.id} className="bg-card border border-border rounded-[10px] p-3 flex justify-between items-center shadow-2xs">
                   <div className="flex flex-col">
-                    <span className="font-semibold text-gray-800">{formatMoney(repay.amount)}</span>
-                    <span className="text-2xs text-gray-400 mt-0.5">
+                    <span className="font-semibold text-foreground">{formatMoney(repay.amount)}</span>
+                    <span className="text-2xs text-muted-foreground mt-0.5">
                       {format(new Date(repay.repaymentDate), "dd MMM yyyy")}
                     </span>
                   </div>
-                  {repay.note && <span className="text-2xs text-gray-500 italic max-w-[150px] truncate">{repay.note}</span>}
+                  {repay.note && <span className="text-2xs text-muted-foreground italic max-w-[150px] truncate">{repay.note}</span>}
                 </div>
               ))}
             </div>
