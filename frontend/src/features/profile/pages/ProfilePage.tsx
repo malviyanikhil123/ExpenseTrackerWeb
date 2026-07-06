@@ -141,7 +141,7 @@ export default function ProfilePage() {
         {/* Left Side: Avatar Card */}
         <div className="bg-card border border-border rounded-[16px] p-6 shadow-card flex flex-col items-center justify-center relative overflow-hidden h-fit text-card-foreground">
           {/* Banner Graphic background */}
-          <div className="h-20 bg-gradient-to-tr from-[#706677] to-[#565264]/80 rounded-t-[16px] w-full absolute top-0 left-0 border-b border-border/10" />
+          <div className="h-20 bg-secondary rounded-t-[16px] w-full absolute top-0 left-0 border-b border-border/10" />
           
           <div className="relative mt-8 mb-3 z-10 flex flex-col items-center w-full">
             <AvatarComponent
@@ -268,47 +268,6 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          {/* Application Preferences (segmented tab control for premium interactive feel) */}
-          <div className="bg-card border border-border rounded-[16px] p-6 shadow-card flex flex-col gap-5 text-card-foreground">
-            <h3 className="text-sm font-semibold text-foreground border-b border-border pb-2.5 flex items-center gap-2">
-              <Globe className="size-4 text-muted-foreground" />
-              Local Preferences
-            </h3>
-
-            <div className="grid grid-cols-1 gap-6 text-xs font-sans">
-              
-              {/* Theme */}
-              <div className="flex flex-col gap-2">
-                <span className="font-semibold text-muted-foreground flex items-center gap-1.5 select-none">
-                  <Moon className="size-3.5" />
-                  Interface Theme
-                </span>
-                <div className="flex bg-muted p-1 rounded-[10px] w-full">
-                  {["LIGHT", "DARK", "SYSTEM"].map((th) => (
-                    <button
-                      key={th}
-                      type="button"
-                      onClick={() => handleThemeChange(th as any)}
-                      className={cn(
-                        "flex-1 py-1.5 rounded-[8px] text-[10px] font-bold transition-all cursor-pointer select-none",
-                        theme === th
-                          ? "bg-background text-foreground shadow-sm"
-                          : "text-muted-foreground hover:text-foreground hover:bg-muted/40"
-                      )}
-                    >
-                      {th.charAt(0) + th.slice(1).toLowerCase()}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-            </div>
-            
-            <div className="flex items-center gap-1.5 text-[10px] text-gray-400 mt-1 select-none">
-              <ShieldCheck className="size-3.5 text-success" />
-              <span>Session preferences apply instantly to your active browser cache.</span>
-            </div>
-          </div>
 
         </div>
 
@@ -368,14 +327,14 @@ export default function ProfilePage() {
 function ProfileSkeleton() {
   return (
     <div className="flex flex-col gap-6 pb-12 animate-pulse font-sans">
-      <div className="flex justify-between items-center border-b border-gray-100 pb-5">
+      <div className="flex justify-between items-center border-b border-border pb-5">
         <div className="h-8 w-1/4 bg-gray-200 rounded-[6px]" />
       </div>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-2">
-        <div className="bg-white border border-gray-200 rounded-[16px] h-80" />
+        <div className="bg-card border border-border rounded-[16px] h-80" />
         <div className="md:col-span-2 flex flex-col gap-6">
-          <div className="bg-white border border-gray-200 rounded-[16px] h-60" />
-          <div className="bg-white border border-gray-200 rounded-[16px] h-40" />
+          <div className="bg-card border border-border rounded-[16px] h-60" />
+          <div className="bg-card border border-border rounded-[16px] h-40" />
         </div>
       </div>
     </div>

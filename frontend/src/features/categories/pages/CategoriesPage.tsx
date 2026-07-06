@@ -16,16 +16,13 @@ import { CustomDialog } from "../../../components/dialogs/CustomDialog"
 import { DropdownMenu } from "../../../components/ui/dropdown-menu"
 
 const COLOR_PALETTE = [
-  "#706677",
-  "#565264",
-  "#22C55E",
-  "#EF4444",
-  "#F59E0B",
-  "#3B82F6",
-  "#EC4899",
-  "#8B5CF6",
-  "#06B6D4",
-  "#14B8A6",
+  "#9D6638", // Brown
+  "#B0BA99", // Sage Green
+  "#4E220F", // Dark Brown
+  "#53724D", // Success Text Green
+  "#6B5A4C", // Secondary Text
+  "#8A7D72", // Muted Text
+  "#D9C4A8", // Transfers Light Brown
 ]
 
 export default function CategoriesPage() {
@@ -154,9 +151,9 @@ export default function CategoriesPage() {
       
       {/* Header (Section 71) */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-border pb-5">
-        <div className="flex flex-col gap-1">
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">Categories</h1>
-          <p className="text-sm text-muted-foreground">Manage transaction classifications.</p>
+        <div className="flex flex-col gap-1.5">
+          <h1 className="text-[32px] font-bold leading-[40px] text-foreground">Categories</h1>
+          <p className="text-[14px] font-normal text-muted-foreground">Manage transaction classifications.</p>
         </div>
         <CustomButton variant="primary" size="md" className="gap-2 w-full sm:w-auto" onClick={handleOpenCreate}>
           <Plus className="size-4" />
@@ -168,12 +165,12 @@ export default function CategoriesPage() {
       <div className="flex flex-col md:flex-row gap-4 justify-between items-stretch md:items-center bg-card/50 p-4 rounded-[16px] border border-border">
         
         {/* Tab switch group */}
-        <div className="flex bg-muted p-1 rounded-[10px] self-start md:self-auto w-full md:w-auto">
+        <div className="flex bg-muted p-1.5 rounded-[12px] self-start md:self-auto w-full md:w-auto">
           <button
             type="button"
             onClick={() => setActiveTab("EXPENSE")}
             className={cn(
-              "flex-1 md:flex-none px-5 py-2 rounded-[8px] text-xs font-semibold select-none transition-colors cursor-pointer",
+              "flex-1 md:flex-none px-5 py-2 rounded-[8px] text-[15px] font-semibold select-none transition-colors cursor-pointer",
               activeTab === "EXPENSE" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
             )}
           >
@@ -183,7 +180,7 @@ export default function CategoriesPage() {
             type="button"
             onClick={() => setActiveTab("INCOME")}
             className={cn(
-              "flex-1 md:flex-none px-5 py-2 rounded-[8px] text-xs font-semibold select-none transition-colors cursor-pointer",
+              "flex-1 md:flex-none px-5 py-2 rounded-[8px] text-[15px] font-semibold select-none transition-colors cursor-pointer",
               activeTab === "INCOME" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
             )}
           >
@@ -193,13 +190,13 @@ export default function CategoriesPage() {
 
         {/* Search */}
         <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-3 top-2.5 size-4 text-muted-foreground" />
+          <Search className="absolute left-3.5 top-3 size-4 text-muted-foreground" />
           <input
             type="text"
             placeholder="Search by category name..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="h-9 w-full pl-9 pr-4 bg-card text-foreground border border-border rounded-[10px] text-xs outline-none focus:border-primary transition-colors font-sans"
+            className="h-10 w-full pl-10 pr-4 bg-card text-foreground border border-border rounded-[12px] text-[15px] font-medium placeholder-muted-foreground outline-none focus:border-primary transition-colors font-sans"
           />
         </div>
 
@@ -457,14 +454,14 @@ export default function CategoriesPage() {
 function CategoriesSkeleton() {
   return (
     <div className="flex flex-col gap-6 pb-12 animate-pulse">
-      <div className="flex justify-between items-center border-b border-gray-100 pb-5">
+      <div className="flex justify-between items-center border-b border-border pb-5">
         <div className="h-8 w-1/4 bg-gray-200 rounded-[6px]" />
         <div className="h-10 w-32 bg-gray-200 rounded-[10px]" />
       </div>
-      <div className="h-16 bg-gray-50 border border-gray-100 rounded-[16px] p-4" />
+      <div className="h-16 bg-background-secondary border border-border rounded-[16px] p-4" />
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
         {[...Array(8)].map((_, i) => (
-          <div key={i} className="bg-white border border-gray-200 rounded-[12px] p-5 h-20" />
+          <div key={i} className="bg-card border border-border rounded-[12px] p-5 h-20" />
         ))}
       </div>
     </div>

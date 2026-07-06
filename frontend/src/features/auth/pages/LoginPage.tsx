@@ -67,8 +67,8 @@ export default function LoginPage() {
           <div className="size-10 rounded-[10px] bg-primary flex items-center justify-center text-white font-bold text-lg mb-2 shadow-sm mx-auto sm:mx-0">
             ET
           </div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground leading-none">Welcome Back</h1>
-          <p className="text-sm text-muted-foreground mt-1 leading-normal">
+          <h1 className="text-[32px] font-bold tracking-tight text-foreground leading-none">Welcome Back</h1>
+          <p className="text-[14px] font-normal text-muted-foreground mt-1 leading-normal">
             Enter your credentials below to access your account dashboard.
           </p>
         </div>
@@ -108,8 +108,8 @@ export default function LoginPage() {
           </CustomButton>
         </form>
 
-        <div className="border-t border-gray-100 pt-5 text-center flex flex-col gap-2">
-          <p className="text-xs text-gray-500">
+        <div className="border-t border-border pt-5 text-center flex flex-col gap-2">
+          <p className="text-xs text-muted-foreground">
             Don't have an account?{" "}
             <Link to="/register" className="font-semibold text-primary hover:underline">
               Create Account

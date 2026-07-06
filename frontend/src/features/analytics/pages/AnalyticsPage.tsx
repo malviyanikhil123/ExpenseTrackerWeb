@@ -21,12 +21,12 @@ import { CustomButton } from "../../../components/buttons/CustomButton"
 import { useCurrency } from "../../../hooks/useCurrency"
 
 const COLOR_SCHEME = [
-  "#706677",
-  "#565264",
-  "#9ca3af",
-  "#d1d5db",
-  "#e5e7eb",
-  "#f3f4f6",
+  "var(--chart-expenses)",
+  "var(--chart-income)",
+  "var(--chart-savings)",
+  "var(--chart-transfers)",
+  "var(--secondary-foreground)",
+  "var(--muted-foreground)",
 ]
 
 export default function AnalyticsPage() {
@@ -112,10 +112,10 @@ export default function AnalyticsPage() {
         color: COLOR_SCHEME[index % COLOR_SCHEME.length],
       }))
     : [
-        { name: "Food & Drinks", value: 350, color: "#706677" },
-        { name: "Transport", value: 120, color: "#565264" },
-        { name: "Bills", value: 200, color: "#9ca3af" },
-        { name: "Others", value: 90, color: "#e5e7eb" },
+        { name: "Food & Drinks", value: 350, color: "var(--chart-expenses)" },
+        { name: "Transport", value: 120, color: "var(--chart-income)" },
+        { name: "Bills", value: 200, color: "var(--chart-savings)" },
+        { name: "Others", value: 90, color: "var(--chart-transfers)" },
       ]
 
   const accountBarData = report.accountBreakdown.length > 0
@@ -125,9 +125,9 @@ export default function AnalyticsPage() {
         color: COLOR_SCHEME[index % COLOR_SCHEME.length],
       }))
     : [
-        { name: "Chase Bank", amount: 5400, color: "#706677" },
-        { name: "Cash Wallet", amount: 620, color: "#565264" },
-        { name: "Robinhood", amount: 4800, color: "#9ca3af" },
+        { name: "Chase Bank", amount: 5400, color: "var(--chart-expenses)" },
+        { name: "Cash Wallet", amount: 620, color: "var(--chart-income)" },
+        { name: "Robinhood", amount: 4800, color: "var(--chart-savings)" },
       ]
 
   const hasData = report.income > 0 || report.expense > 0
@@ -137,9 +137,9 @@ export default function AnalyticsPage() {
       
       {/* Header (Section 76) */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-border pb-5">
-        <div className="flex flex-col gap-1">
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">Analytics</h1>
-          <p className="text-sm text-muted-foreground">Examine monthly cash flows, visual savings trends, and allocations.</p>
+        <div className="flex flex-col gap-1.5">
+          <h1 className="text-[32px] font-bold leading-[40px] text-foreground">Analytics</h1>
+          <p className="text-[14px] font-normal text-muted-foreground">Examine monthly cash flows, visual savings trends, and allocations.</p>
         </div>
 
         {/* Date Filter Panel */}
@@ -148,19 +148,19 @@ export default function AnalyticsPage() {
             type="date"
             value={filterStartDate}
             onChange={(e) => setFilterStartDate(e.target.value)}
-            className="h-9 px-3 border border-border rounded-[10px] text-xs outline-none focus:border-primary bg-card text-foreground transition-colors font-sans"
+            className="h-10 px-3 border border-border rounded-[10px] text-xs font-semibold outline-none focus:border-primary bg-card text-foreground transition-colors font-sans"
           />
-          <span className="text-xs text-muted-foreground self-center hidden sm:inline">to</span>
+          <span className="text-xs font-semibold text-muted-foreground self-center hidden sm:inline">to</span>
           <input
             type="date"
             value={filterEndDate}
             onChange={(e) => setFilterEndDate(e.target.value)}
-            className="h-9 px-3 border border-border rounded-[10px] text-xs outline-none focus:border-primary bg-card text-foreground transition-colors font-sans"
+            className="h-10 px-3 border border-border rounded-[10px] text-xs font-semibold outline-none focus:border-primary bg-card text-foreground transition-colors font-sans"
           />
           {(filterStartDate || filterEndDate) && (
             <button
               onClick={() => { setFilterStartDate(""); setFilterEndDate(""); }}
-              className="text-2xs font-bold text-danger hover:underline ml-1.5"
+              className="text-xs font-bold text-danger hover:underline ml-1.5"
             >
               Reset
             </button>
@@ -171,12 +171,12 @@ export default function AnalyticsPage() {
       {/* Summary metrics cards (Section 76) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         {cards.map((card, i) => (
-          <div key={i} className="bg-card border border-border rounded-[16px] p-6 shadow-card flex flex-col gap-3 text-card-foreground">
+          <div key={i} className="bg-card border border-border rounded-[16px] p-6 shadow-card hover:-translate-y-0.5 hover:shadow-md transition-all duration-200 ease-in-out flex flex-col gap-4 text-card-foreground">
             <div className="flex justify-between items-center">
-              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{card.title}</span>
+              <span className="text-[13px] font-bold uppercase tracking-[0.08em] text-muted-foreground">{card.title}</span>
               <div className="p-2 rounded-full bg-muted border border-border">{card.icon}</div>
             </div>
-             <span className={`text-2xl font-bold ${card.color}`}>
+             <span className={`text-[40px] font-extrabold leading-none tracking-tight ${card.color}`}>
               {card.isPercent ? `${card.amount.toFixed(0)}%` : formatMoney(card.amount)}
             </span>
           </div>
@@ -205,21 +205,21 @@ export default function AnalyticsPage() {
                 <AreaChart data={trendData}>
                   <defs>
                     <linearGradient id="colorInc" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#16A34A" stopOpacity={0.15}/>
-                      <stop offset="95%" stopColor="#16A34A" stopOpacity={0}/>
+                      <stop offset="5%" stopColor="var(--chart-income)" stopOpacity={0.15}/>
+                      <stop offset="95%" stopColor="var(--chart-income)" stopOpacity={0}/>
                     </linearGradient>
                     <linearGradient id="colorExp" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#DC2626" stopOpacity={0.15}/>
-                      <stop offset="95%" stopColor="#DC2626" stopOpacity={0}/>
+                      <stop offset="5%" stopColor="var(--chart-expenses)" stopOpacity={0.15}/>
+                      <stop offset="95%" stopColor="var(--chart-expenses)" stopOpacity={0}/>
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
-                  <XAxis dataKey="month" stroke="#9ca3af" fontSize={11} tickLine={false} />
-                  <YAxis stroke="#9ca3af" fontSize={11} tickLine={false} axisLine={false} />
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
+                  <XAxis dataKey="month" stroke="var(--muted-foreground)" fontSize={11} fontWeight={600} tickLine={false} />
+                  <YAxis stroke="var(--muted-foreground)" fontSize={11} fontWeight={600} tickLine={false} axisLine={false} />
                   <Tooltip />
-                  <Legend iconSize={8} wrapperStyle={{ fontSize: 11 }} />
-                  <Area type="monotone" dataKey="income" stroke="#16A34A" strokeWidth={2} fillOpacity={1} fill="url(#colorInc)" />
-                  <Area type="monotone" dataKey="expense" stroke="#DC2626" strokeWidth={2} fillOpacity={1} fill="url(#colorExp)" />
+                  <Legend iconSize={8} wrapperStyle={{ fontSize: 11, fontWeight: 600 }} />
+                  <Area type="monotone" dataKey="income" stroke="var(--chart-income)" strokeWidth={2} fillOpacity={1} fill="url(#colorInc)" />
+                  <Area type="monotone" dataKey="expense" stroke="var(--chart-expenses)" strokeWidth={2} fillOpacity={1} fill="url(#colorExp)" />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
@@ -298,18 +298,18 @@ export default function AnalyticsPage() {
 function AnalyticsSkeleton() {
   return (
     <div className="flex flex-col gap-6 pb-12 animate-pulse font-sans">
-      <div className="flex justify-between items-center border-b border-gray-100 pb-5">
+      <div className="flex justify-between items-center border-b border-border pb-5">
         <div className="h-8 w-1/4 bg-gray-200 rounded-[6px]" />
         <div className="h-10 w-44 bg-gray-200 rounded-[10px]" />
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         {[...Array(4)].map((_, i) => (
-          <div key={i} className="bg-white border border-gray-200 rounded-[16px] p-6 h-28" />
+          <div key={i} className="bg-card border border-border rounded-[16px] p-6 h-28" />
         ))}
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-6">
-        <div className="bg-white border border-gray-200 rounded-[16px] h-80" />
-        <div className="bg-white border border-gray-200 rounded-[16px] h-80" />
+        <div className="bg-card border border-border rounded-[16px] h-80" />
+        <div className="bg-card border border-border rounded-[16px] h-80" />
       </div>
     </div>
   )

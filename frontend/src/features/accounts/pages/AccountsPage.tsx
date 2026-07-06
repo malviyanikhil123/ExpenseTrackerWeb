@@ -17,13 +17,13 @@ import { useCurrency } from "../../../hooks/useCurrency"
 import { CustomSelect } from "../../../components/inputs/CustomSelect"
 
 const COLOR_PALETTE = [
-  "#706677",
-  "#565264",
-  "#22C55E",
-  "#EF4444",
-  "#F59E0B",
-  "#3B82F6",
-  "#EC4899",
+  "#9D6638", // Brown
+  "#B0BA99", // Sage Green
+  "#4E220F", // Dark Brown
+  "#53724D", // Success Text Green
+  "#6B5A4C", // Secondary Text
+  "#8A7D72", // Muted Text
+  "#D9C4A8", // Transfers Light Brown
 ]
 
 const ACCOUNT_TYPES = [
@@ -185,9 +185,9 @@ export default function AccountsPage() {
       
       {/* Header (Section 72) */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-border pb-5">
-        <div className="flex flex-col gap-1">
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">Accounts</h1>
-          <p className="text-sm text-muted-foreground">Manage bank checking accounts, credit cards, or cash wallets.</p>
+        <div className="flex flex-col gap-1.5">
+          <h1 className="text-[32px] font-bold leading-[40px] text-foreground">Accounts</h1>
+          <p className="text-[14px] font-normal text-muted-foreground">Manage bank checking accounts, credit cards, or cash wallets.</p>
         </div>
         <CustomButton variant="primary" size="md" className="gap-2 w-full sm:w-auto" onClick={handleOpenCreate}>
           <Plus className="size-4" />
@@ -223,8 +223,8 @@ export default function AccountsPage() {
             <div
               key={acc.id}
               className={cn(
-                "bg-card border rounded-[16px] p-6 shadow-card hover:shadow-md transition-shadow relative flex flex-col justify-between gap-4 text-card-foreground",
-                acc.isArchived ? "opacity-60 border-border/60" : "border-border"
+                "bg-card border rounded-[16px] p-6 shadow-card hover:-translate-y-0.5 hover:shadow-md transition-all duration-200 ease-in-out relative flex flex-col justify-between gap-5 text-card-foreground",
+                acc.isArchived ? "opacity-80 border-border/80" : "border-border"
               )}
             >
               <div className="flex items-start justify-between">
@@ -236,7 +236,7 @@ export default function AccountsPage() {
                     {getAccountIcon(acc.type, acc.color)}
                   </div>
                   <div className="flex flex-col">
-                    <span className="text-sm font-semibold text-foreground tracking-tight">{acc.name}</span>
+                    <span className="text-[15px] font-bold text-foreground tracking-tight">{acc.name}</span>
                     <span className="text-2xs font-medium text-muted-foreground mt-0.5 uppercase tracking-wide">
                       {acc.type.replace("_", " ")}
                     </span>
@@ -288,12 +288,12 @@ export default function AccountsPage() {
               </div>
 
               <div className="flex flex-col gap-1 border-t border-border pt-4">
-                <span className="text-2xs font-medium text-muted-foreground uppercase tracking-wider">Current Balance</span>
-                <span className="text-2xl font-bold text-foreground">
+                <span className="text-[13px] font-bold uppercase tracking-[0.08em] text-muted-foreground">Current Balance</span>
+                <span className="text-[40px] font-extrabold text-foreground leading-none mt-1">
                   {formatMoney(acc.openingBalance || 0)}
                 </span>
                 {acc.description && (
-                  <p className="text-2xs text-muted-foreground mt-1 leading-normal line-clamp-1">{acc.description}</p>
+                  <p className="text-xs text-muted-foreground mt-2 leading-normal line-clamp-1">{acc.description}</p>
                 )}
               </div>
             </div>
@@ -482,13 +482,13 @@ export default function AccountsPage() {
 function AccountsSkeleton() {
   return (
     <div className="flex flex-col gap-6 pb-12 animate-pulse">
-      <div className="flex justify-between items-center border-b border-gray-100 pb-5">
+      <div className="flex justify-between items-center border-b border-border pb-5">
         <div className="h-8 w-1/4 bg-gray-200 rounded-[6px]" />
         <div className="h-10 w-32 bg-gray-200 rounded-[10px]" />
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mt-6">
         {[...Array(6)].map((_, i) => (
-          <div key={i} className="bg-white border border-gray-200 rounded-[16px] p-6 h-40" />
+          <div key={i} className="bg-card border border-border rounded-[16px] p-6 h-40" />
         ))}
       </div>
     </div>

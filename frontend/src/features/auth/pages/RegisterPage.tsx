@@ -82,8 +82,8 @@ export default function RegisterPage() {
           <div className="size-10 rounded-[10px] bg-primary flex items-center justify-center text-white font-bold text-lg mb-2 shadow-sm mx-auto sm:mx-0">
             ET
           </div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground leading-none">Create Account</h1>
-          <p className="text-sm text-muted-foreground mt-1 leading-normal">
+          <h1 className="text-[32px] font-bold tracking-tight text-foreground leading-none">Create Account</h1>
+          <p className="text-[14px] font-normal text-muted-foreground mt-1 leading-normal">
             Track income, categorize purchases, and check debts.
           </p>
         </div>
@@ -132,7 +132,7 @@ export default function RegisterPage() {
 
           {passwordValue && (
             <div className="flex flex-col gap-1.5 -mt-2">
-              <div className="flex justify-between text-xs font-semibold text-gray-500">
+              <div className="flex justify-between text-xs font-semibold text-muted-foreground">
                 <span>Password Strength</span>
                 <span className={cn(
                   strength.label === "Weak" && "text-danger",
@@ -140,7 +140,7 @@ export default function RegisterPage() {
                   strength.label === "Strong" && "text-success"
                 )}>{strength.label}</span>
               </div>
-              <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
+              <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
                 <div
                   className={`h-full ${strength.color} transition-all duration-300`}
                   style={{ width: `${(strength.score / 5) * 100}%` }}
@@ -164,8 +164,8 @@ export default function RegisterPage() {
           </CustomButton>
         </form>
 
-        <div className="border-t border-gray-100 pt-5 text-center flex flex-col gap-2">
-          <p className="text-xs text-gray-500">
+        <div className="border-t border-border pt-5 text-center flex flex-col gap-2">
+          <p className="text-xs text-muted-foreground">
             Already have an account?{" "}
             <Link to="/login" className="font-semibold text-primary hover:underline">
               Login

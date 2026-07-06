@@ -5,7 +5,7 @@ import { CustomButton } from "../buttons/CustomButton"
 
 // Badge Component (Section 37)
 export interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
-  variant?: "default" | "success" | "warning" | "danger" | "info"
+  variant?: "default" | "success" | "warning" | "danger" | "info" | "sage" | "brown"
 }
 
 export const Badge: React.FC<BadgeProps> = ({
@@ -15,17 +15,19 @@ export const Badge: React.FC<BadgeProps> = ({
   ...props
 }) => {
   const styles = {
-    default: "bg-gray-100 text-gray-700 hover:bg-gray-200 border-transparent",
-    success: "bg-success/10 text-success border-transparent",
-    warning: "bg-warning/10 text-warning border-transparent",
-    danger: "bg-danger/10 text-danger border-transparent",
-    info: "bg-info/10 text-info border-transparent",
+    default: "bg-muted text-muted-foreground border-transparent",
+    success: "bg-success-bg text-success border-success-border",
+    warning: "bg-warning-bg text-warning border-transparent",
+    danger: "bg-danger-bg text-danger border-transparent",
+    info: "bg-info-bg text-info border-transparent",
+    sage: "bg-success-bg text-success border-success-border",
+    brown: "bg-[#F7F1DE] text-[#9D6638] border-border",
   }
 
   return (
     <span
       className={cn(
-        "inline-flex items-center px-2.5 py-0.5 rounded-pill text-xs font-semibold select-none border transition-colors",
+        "inline-flex items-center px-2.5 py-0.5 rounded-pill text-[13px] font-bold select-none border transition-colors",
         styles[variant],
         className
       )}
@@ -43,7 +45,7 @@ export const Skeleton: React.FC<React.HTMLAttributes<HTMLDivElement>> = ({
 }) => {
   return (
     <div
-      className={cn("animate-pulse bg-gray-200 rounded-[6px]", className)}
+      className={cn("animate-pulse bg-muted rounded-[6px]", className)}
       {...props}
     />
   )
@@ -52,14 +54,14 @@ export const Skeleton: React.FC<React.HTMLAttributes<HTMLDivElement>> = ({
 export const TableLoader: React.FC = () => {
   return (
     <div className="w-full flex flex-col gap-3">
-      <div className="flex gap-4 border-b border-gray-100 pb-3">
+      <div className="flex gap-4 border-b border-border pb-3">
         <Skeleton className="h-6 w-1/4" />
         <Skeleton className="h-6 w-1/4" />
         <Skeleton className="h-6 w-1/4" />
         <Skeleton className="h-6 w-1/4" />
       </div>
       {[...Array(5)].map((_, i) => (
-        <div key={i} className="flex gap-4 py-2 border-b border-gray-50 items-center">
+        <div key={i} className="flex gap-4 py-2 border-b border-border/40 items-center">
           <Skeleton className="h-5 w-1/6" />
           <Skeleton className="h-5 w-2/6" />
           <Skeleton className="h-5 w-1/6" />
@@ -144,12 +146,12 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
   onAction,
 }) => {
   return (
-    <div className="flex flex-col items-center justify-center text-center p-8 border border-dashed border-gray-200 rounded-[16px] bg-gray-50/50">
-      <div className="p-4 rounded-full bg-white border border-gray-100 shadow-sm text-gray-400 mb-4">
+    <div className="flex flex-col items-center justify-center text-center p-8 border border-dashed border-border rounded-[16px] bg-background-secondary">
+      <div className="p-4 rounded-full bg-card border border-border shadow-sm text-muted-foreground mb-4">
         {icon || <FolderOpen className="size-8 text-secondary" />}
       </div>
-      <h3 className="text-lg font-semibold text-gray-900 mb-1">{title}</h3>
-      <p className="text-sm text-gray-500 max-w-[320px] mb-6 leading-normal">{description}</p>
+      <h3 className="text-lg font-semibold text-foreground mb-1">{title}</h3>
+      <p className="text-sm text-muted-foreground max-w-[320px] mb-6 leading-normal">{description}</p>
       {actionLabel && onAction && (
         <CustomButton variant="primary" size="md" onClick={onAction}>
           {actionLabel}
@@ -161,10 +163,10 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
 
 export const SearchEmptyState: React.FC = () => {
   return (
-    <div className="flex flex-col items-center justify-center text-center p-12 bg-white">
-      <Search className="size-10 text-gray-300 mb-3" />
-      <h3 className="text-base font-semibold text-gray-900 mb-1">No results found</h3>
-      <p className="text-sm text-gray-500 max-w-[280px]">Try changing your filters or search term.</p>
+    <div className="flex flex-col items-center justify-center text-center p-12 bg-card">
+      <Search className="size-10 text-muted-foreground/50 mb-3" />
+      <h3 className="text-base font-semibold text-foreground mb-1">No results found</h3>
+      <p className="text-sm text-muted-foreground max-w-[280px]">Try changing your filters or search term.</p>
     </div>
   )
 }
@@ -184,12 +186,12 @@ export const ErrorState: React.FC<ErrorStateProps> = ({
   onRetry,
 }) => {
   return (
-    <div className="flex flex-col items-center justify-center text-center p-8 border border-danger/10 rounded-[16px] bg-danger/5">
-      <div className="p-4 rounded-full bg-white border border-danger/20 shadow-sm text-danger mb-4">
+    <div className="flex flex-col items-center justify-center text-center p-8 border border-danger/15 rounded-[16px] bg-danger-bg">
+      <div className="p-4 rounded-full bg-card border border-danger/25 shadow-sm text-danger mb-4">
         {icon || <AlertCircle className="size-8" />}
       </div>
-      <h3 className="text-lg font-semibold text-gray-900 mb-1">{title}</h3>
-      <p className="text-sm text-gray-655 text-gray-600 max-w-[320px] mb-6 leading-normal">
+      <h3 className="text-lg font-semibold text-foreground mb-1">{title}</h3>
+      <p className="text-sm text-danger max-w-[320px] mb-6 leading-normal font-medium">
         {message}
       </p>
       {onRetry && (

@@ -96,14 +96,14 @@ export function DataTable<T extends { id: string | number }>({
         </button>
 
         {isMenuOpen && (
-          <div className="absolute right-0 mt-8 w-40 bg-white border border-gray-200 rounded-[10px] shadow-dropdown py-1 z-30">
+          <div className="absolute right-0 mt-8 w-40 bg-card border border-border rounded-[10px] shadow-dropdown py-1 z-30">
             {onView && (
               <button
                 type="button"
                 onClick={() => onView(row)}
-                className="w-full h-10 px-4 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
+                className="w-full h-10 px-4 text-left text-sm text-foreground hover:bg-muted/40 flex items-center gap-2"
               >
-                <Eye className="size-4 text-gray-400" />
+                <Eye className="size-4 text-muted-foreground" />
                 View
               </button>
             )}
@@ -111,9 +111,9 @@ export function DataTable<T extends { id: string | number }>({
               <button
                 type="button"
                 onClick={() => onEdit(row)}
-                className="w-full h-10 px-4 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
+                className="w-full h-10 px-4 text-left text-sm text-foreground hover:bg-muted/40 flex items-center gap-2"
               >
-                <Edit2 className="size-4 text-gray-400" />
+                <Edit2 className="size-4 text-muted-foreground" />
                 Edit
               </button>
             )}
@@ -121,7 +121,7 @@ export function DataTable<T extends { id: string | number }>({
               <button
                 type="button"
                 onClick={() => onDelete(row)}
-                className="w-full h-10 px-4 text-left text-sm text-danger hover:bg-danger/5 flex items-center gap-2 border-t border-gray-50"
+                className="w-full h-10 px-4 text-left text-sm text-danger hover:bg-danger-bg/50 flex items-center gap-2 border-t border-border"
               >
                 <Trash2 className="size-4 text-danger" />
                 Delete
@@ -136,38 +136,38 @@ export function DataTable<T extends { id: string | number }>({
   return (
     <div className="w-full">
       {/* Desktop Table View (Section 31) */}
-      <div className="hidden md:block overflow-x-auto w-full border border-gray-100 rounded-[16px] bg-white shadow-card">
+      <div className="hidden md:block overflow-x-auto w-full border border-[#E7DDCE] rounded-[16px] bg-card shadow-card">
         <table className="w-full text-left border-collapse">
           <thead>
-            <tr className="border-b border-gray-100 bg-gray-50/50">
+            <tr className="border-b border-[#E7DDCE] bg-[#F5EFE4]">
               {columns.map((col) => (
                 <th
                   key={col.key}
-                  className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider sticky top-0"
+                  className="px-6 py-[18px] text-[14px] font-bold text-foreground tracking-wide sticky top-0"
                 >
                   {col.header}
                 </th>
               ))}
               {(onView || onEdit || onDelete) && (
-                <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider sticky top-0 text-right">
+                <th className="px-6 py-[18px] text-[14px] font-bold text-foreground tracking-wide sticky top-0 text-right">
                   Actions
                 </th>
               )}
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100">
-            {data.map((row) => (
+          <tbody className="divide-y divide-[#E7DDCE]">
+            {data.map((row, index) => (
               <tr
                 key={row.id}
-                className="hover:bg-gray-50/50 transition-colors group/row"
+                className="bg-[#FAF7F1] hover:bg-[#F2EBDE] transition-colors group/row"
               >
                 {columns.map((col) => (
-                  <td key={col.key} className="px-6 py-4 text-sm text-gray-700 font-normal">
+                  <td key={col.key} className="px-6 py-[18px] text-[15px] font-medium text-foreground">
                     {col.render ? col.render(row) : (row as any)[col.key]}
                   </td>
                 ))}
                 {(onView || onEdit || onDelete) && (
-                  <td className="px-6 py-4 text-sm text-gray-700 text-right">
+                  <td className="px-6 py-[18px] text-[15px] text-foreground text-right">
                     {renderActionsMenu(row)}
                   </td>
                 )}
@@ -182,7 +182,7 @@ export function DataTable<T extends { id: string | number }>({
         {data.map((row) => (
           <div
             key={row.id}
-            className="bg-white border border-gray-100 rounded-[16px] p-6 shadow-card hover:shadow-md transition-shadow relative flex flex-col gap-2"
+            className="bg-card border border-[#E7DDCE] rounded-[16px] p-6 shadow-card hover:-translate-y-0.5 hover:shadow-md transition-all duration-200 ease-in-out relative flex flex-col gap-2"
           >
             {/* Action menu positioned at the top-right of the card */}
             <div className="absolute top-4 right-4">

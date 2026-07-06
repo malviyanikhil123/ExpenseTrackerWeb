@@ -629,14 +629,14 @@ export default function DebtsPage() {
 function DebtsSkeleton() {
   return (
     <div className="flex flex-col gap-6 pb-12 animate-pulse">
-      <div className="flex justify-between items-center border-b border-gray-100 pb-5">
+      <div className="flex justify-between items-center border-b border-border pb-5">
         <div className="h-8 w-1/4 bg-gray-200 rounded-[6px]" />
         <div className="h-10 w-32 bg-gray-200 rounded-[10px]" />
       </div>
-      <div className="h-16 bg-gray-50 border border-gray-100 rounded-[16px] p-4" />
+      <div className="h-16 bg-background-secondary border border-border rounded-[16px] p-4" />
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
         {[...Array(6)].map((_, i) => (
-          <div key={i} className="bg-white border border-gray-200 rounded-[16px] h-44" />
+          <div key={i} className="bg-card border border-border rounded-[16px] h-44" />
         ))}
       </div>
     </div>

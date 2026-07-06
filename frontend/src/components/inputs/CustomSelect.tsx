@@ -55,9 +55,9 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
   return (
     <div className="flex flex-col gap-2 w-full text-foreground relative" ref={containerRef}>
       {label && (
-        <label className="text-sm font-medium text-foreground select-none flex items-center">
+        <label className="text-[14px] font-semibold text-foreground select-none flex items-center">
           {label}
-          {isRequired && <span className="text-danger ml-1 font-semibold">*</span>}
+          {isRequired && <span className="text-danger ml-1 font-bold text-sm">*</span>}
         </label>
       )}
       
@@ -66,7 +66,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
         disabled={disabled}
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
-          "w-full h-10 px-3.5 py-2 text-sm bg-background text-foreground border border-border rounded-[10px] outline-none flex items-center justify-between transition-all duration-150 cursor-pointer select-none",
+          "w-full h-10 px-3.5 py-2 text-[15px] font-medium bg-input text-foreground border border-border hover:border-[#D8C8B3] rounded-[12px] outline-none flex items-center justify-between transition-all duration-200 cursor-pointer select-none",
           isOpen && "border-primary ring-2 ring-primary/20",
           disabled && "opacity-50 cursor-not-allowed",
           className
@@ -101,8 +101,8 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
                   className={cn(
                     "w-full flex items-center justify-between gap-2.5 px-3 py-2.5 text-left rounded-[8px] transition-all duration-150 select-none cursor-pointer group font-medium",
                     isSelected
-                      ? "bg-primary/10 text-primary font-semibold"
-                      : "text-popover-foreground/80 hover:bg-muted hover:text-popover-foreground"
+                      ? "bg-[#EAE3D4] text-foreground font-semibold"
+                      : "text-popover-foreground/80 hover:bg-[#F2EBDE] hover:text-popover-foreground"
                   )}
                 >
                   <div className="flex items-center gap-2.5 truncate">

@@ -84,7 +84,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({
 
   return (
     <div className="flex flex-col gap-2 w-full">
-      {label && <span className="text-sm font-medium text-gray-700 select-none">{label}</span>}
+      {label && <span className="text-[14px] font-semibold text-foreground select-none">{label}</span>}
 
       {!selectedFile ? (
         <div
@@ -93,7 +93,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({
           onDrop={handleDrop}
           onClick={handleBrowse}
           className={cn(
-            "flex flex-col items-center justify-center border-2 border-dashed border-gray-200 rounded-[10px] p-6 bg-white cursor-pointer transition-all hover:bg-gray-50",
+            "flex flex-col items-center justify-center border-2 border-dashed border-border hover:border-[#D8C8B3] rounded-[12px] p-6 bg-input cursor-pointer transition-all hover:bg-background/40",
             isDragOver && "border-primary bg-primary/5",
             error && "border-danger bg-danger/5"
           )}
@@ -105,34 +105,34 @@ export const FileUpload: React.FC<FileUploadProps> = ({
             accept={accept}
             onChange={handleFileChange}
           />
-          <Upload className={cn("size-8 text-gray-400 mb-3", isDragOver && "text-primary")} />
-          <p className="text-sm font-medium text-gray-700 mb-1">
+          <Upload className={cn("size-8 text-muted-foreground mb-3", isDragOver && "text-primary")} />
+          <p className="text-sm font-medium text-foreground mb-1">
             Drag & Drop or <span className="text-primary hover:underline">Browse</span>
           </p>
-          <p className="text-xs text-gray-400">Supports images & PDFs up to {maxSizeMB}MB</p>
+          <p className="text-xs text-muted-foreground">Supports images & PDFs up to {maxSizeMB}MB</p>
           {error && <span className="text-xs text-danger font-medium mt-2">{error}</span>}
         </div>
       ) : (
-        <div className="border border-gray-200 rounded-[10px] p-4 bg-white flex items-center justify-between shadow-card">
+        <div className="border border-border rounded-[12px] p-4 bg-card flex items-center justify-between shadow-card">
           <div className="flex items-center gap-3">
             {previewUrl ? (
               <img
                 src={previewUrl}
                 alt="File preview"
-                className="size-12 rounded-md object-cover border border-gray-100"
+                className="size-12 rounded-md object-cover border border-border"
               />
             ) : selectedFile.type.includes("pdf") ? (
-              <div className="size-12 rounded-md bg-danger/5 border border-danger/10 flex items-center justify-center text-danger">
+              <div className="size-12 rounded-md bg-danger-bg border border-danger/10 flex items-center justify-center text-danger">
                 <FileText className="size-6" />
               </div>
             ) : (
-              <div className="size-12 rounded-md bg-gray-50 border border-gray-100 flex items-center justify-center text-gray-400">
+              <div className="size-12 rounded-md bg-muted border border-border flex items-center justify-center text-muted-foreground">
                 <ImageIcon className="size-6" />
               </div>
             )}
             <div className="flex flex-col max-w-[200px] sm:max-w-[300px]">
-              <span className="text-sm font-medium text-gray-900 truncate">{selectedFile.name}</span>
-              <span className="text-xs text-gray-500">
+              <span className="text-sm font-medium text-foreground truncate">{selectedFile.name}</span>
+              <span className="text-xs text-muted-foreground">
                 {(selectedFile.size / 1024).toFixed(1)} KB
               </span>
             </div>
@@ -141,7 +141,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({
             <CustomButton variant="outline" size="sm" onClick={handleBrowse}>
               Replace
             </CustomButton>
-            <CustomButton variant="icon" className="text-danger hover:bg-danger/5 border-transparent size-8" onClick={handleRemove}>
+            <CustomButton variant="icon" className="text-danger hover:bg-danger/10 border-transparent size-8" onClick={handleRemove}>
               <X className="size-4" />
             </CustomButton>
           </div>

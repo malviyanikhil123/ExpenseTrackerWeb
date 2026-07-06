@@ -211,8 +211,8 @@ export default function DashboardPage() {
       id: "expense",
       title: "Expenses",
       amount: dashboardData.totalExpense,
-      icon: <ArrowUpRight className="size-5 text-danger" />,
-      color: "text-foreground",
+      icon: <ArrowUpRight className="size-5 text-primary" />,
+      color: "text-primary",
       action: () => navigate("/transactions", { state: { filterType: "EXPENSE" } }),
     },
     {
@@ -226,23 +226,23 @@ export default function DashboardPage() {
   ]
 
   const compareData = [
-    { name: "Income", amount: dashboardData.totalIncome, color: "#16A34A" },
-    { name: "Expenses", amount: dashboardData.totalExpense, color: "#DC2626" },
+    { name: "Income", amount: dashboardData.totalIncome, color: "var(--chart-income)" },
+    { name: "Expenses", amount: dashboardData.totalExpense, color: "var(--chart-expenses)" },
   ]
 
   const pieData = [
-    { name: "Food & Drinks", value: 35, color: "#706677" },
-    { name: "Transport", value: 20, color: "#565264" },
-    { name: "Bills & Utilities", value: 25, color: "#9ca3af" },
-    { name: "Others", value: 20, color: "#e5e7eb" },
+    { name: "Food & Drinks", value: 35, color: "var(--chart-expenses)" },
+    { name: "Transport", value: 20, color: "var(--chart-income)" },
+    { name: "Bills & Utilities", value: 25, color: "var(--chart-savings)" },
+    { name: "Others", value: 20, color: "var(--chart-transfers)" },
   ]
 
   return (
     <div className="flex flex-col gap-8 pb-12">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-border pb-6">
-        <div className="flex flex-col gap-1">
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">Dashboard</h1>
-          <p className="text-sm text-muted-foreground">
+        <div className="flex flex-col gap-1.5">
+          <h1 className="text-[32px] font-bold leading-[40px] text-foreground">Dashboard</h1>
+          <p className="text-[14px] font-normal text-muted-foreground">
             Welcome back, <span className="font-semibold text-foreground">{user?.name}</span> •{" "}
             {format(new Date(), "eeee, d MMMM yyyy")}
           </p>
@@ -260,13 +260,13 @@ export default function DashboardPage() {
           <div
             key={card.id}
             onClick={card.action}
-            className="bg-card border border-border rounded-[16px] p-6 shadow-card hover:shadow-md transition-shadow cursor-pointer flex flex-col gap-3 text-card-foreground"
+            className="bg-card border border-border rounded-[16px] p-6 shadow-card hover:-translate-y-0.5 hover:shadow-md transition-all duration-200 ease-in-out cursor-pointer flex flex-col gap-4 text-card-foreground"
           >
             <div className="flex justify-between items-center">
-              <span className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">{card.title}</span>
+              <span className="text-[13px] font-bold uppercase tracking-[0.08em] text-muted-foreground">{card.title}</span>
               <div className="p-2 rounded-full bg-muted border border-border">{card.icon}</div>
             </div>
-            <span className={`text-3xl font-bold ${card.color}`}>
+            <span className={`text-[40px] font-extrabold leading-none tracking-tight ${card.color}`}>
               {formatMoney(Math.abs(card.amount))}
             </span>
           </div>
@@ -306,9 +306,9 @@ export default function DashboardPage() {
             ) : (
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={compareData}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
-                  <XAxis dataKey="name" stroke="#9ca3af" fontSize={12} tickLine={false} />
-                  <YAxis stroke="#9ca3af" fontSize={12} tickLine={false} axisLine={false} />
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
+                  <XAxis dataKey="name" stroke="#5C4E43" fontSize={12} fontWeight={600} tickLine={false} />
+                  <YAxis stroke="#5C4E43" fontSize={12} fontWeight={600} tickLine={false} axisLine={false} />
                   <Tooltip cursor={{ fill: "rgba(0,0,0,0.02)" }} />
                   <Bar dataKey="amount" radius={[8, 8, 0, 0]} maxBarSize={60}>
                     {compareData.map((entry, idx) => (
@@ -398,7 +398,7 @@ export default function DashboardPage() {
                     </div>
                     <span className={cn(
                       "text-sm font-bold",
-                      tx.type === "INCOME" ? "text-success" : "text-foreground"
+                      tx.type === "INCOME" ? "text-success" : "text-primary"
                     )}>
                       {tx.type === "INCOME" ? "+" : "-"}{formatMoney(tx.amount)}
                     </span>
@@ -697,18 +697,18 @@ function DashboardSkeleton() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {[...Array(4)].map((_, i) => (
-          <div key={i} className="bg-white border border-gray-100 rounded-[16px] p-6 shadow-card flex flex-col gap-4">
+          <div key={i} className="bg-card border border-border rounded-[16px] p-6 shadow-card flex flex-col gap-4">
             <div className="h-4 w-1/3 bg-gray-200 rounded-[6px]" />
             <div className="h-8 w-2/3 bg-gray-200 rounded-[6px]" />
           </div>
         ))}
       </div>
 
-      <div className="h-24 bg-gray-50 border border-gray-100 rounded-[16px] p-6" />
+      <div className="h-24 bg-background-secondary border border-border rounded-[16px] p-6" />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div className="h-[300px] bg-white border border-gray-100 rounded-[16px] p-6" />
-        <div className="h-[300px] bg-white border border-gray-100 rounded-[16px] p-6" />
+        <div className="h-[300px] bg-card border border-border rounded-[16px] p-6" />
+        <div className="h-[300px] bg-card border border-border rounded-[16px] p-6" />
       </div>
     </div>
   )

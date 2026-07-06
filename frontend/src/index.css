@@ -7,95 +7,98 @@
 
 :root {
   /* Primary & Secondary Theme Colors */
-  --primary: #706677;
+  --primary: #9D6638;
   --primary-foreground: #ffffff;
-  --secondary: #565264;
-  --secondary-foreground: #ffffff;
+  --secondary: #B0BA99;
+  --secondary-foreground: #4E220F;
 
   /* Status Colors */
-  --success: #16A34A;
-  --warning: #F59E0B;
-  --danger: #DC2626;
-  --info: #2563EB;
-
-  /* Neutral Palette Base Values (inverted for light mode dark theme) */
-  --gray-50: #14101c;
-  --gray-100: #1a1624;
-  --gray-200: #252030;
-  --gray-300: #363045;
-  --gray-400: #625c72;
-  --gray-500: #938c9f;
-  --gray-600: #b5adc0;
-  --gray-700: #d6cfdc;
-  --gray-800: #f1ecf5;
-  --gray-900: #ffffff;
+  --success: #53724D;
+  --warning: #9D6638;
+  --danger: #B13E2E;
+  --info: #4A6B73;
 
   /* Background Colors */
-  --background: #1c1825;
-  --foreground: #ffffff;
+  --background: #F7F1DE;
+  --foreground: #4E220F;
 
   /* Card */
-  --card: #252030;
-  --card-foreground: #f1ecf5;
+  --card: #FAF7F1;
+  --card-foreground: #4E220F;
 
   /* Sidebar */
-  --sidebar: #15121b;
-  --sidebar-foreground: #e5e7eb;
-  --sidebar-border: #252030;
+  --sidebar: #4E220F;
+  --sidebar-foreground: #F7F1DE;
+  --sidebar-border: rgba(247, 241, 222, 0.1);
 
   /* Popover */
-  --popover: #252030;
-  --popover-foreground: #f1ecf5;
+  --popover: #FBF8F2;
+  --popover-foreground: #4E220F;
 
   /* Inputs & Borders */
-  --border: #363045;
-  --input: #14101c;
+  --border: #E7DDCE;
+  --input: #FCFAF6;
   --ring: var(--primary);
 
   /* Muted states */
-  --muted: #1a1624;
-  --muted-foreground: #938c9f;
+  --muted: #E8E1D5;
+  --muted-foreground: #5C4E43;
 
   /* Accent states */
-  --accent: #2a2538;
-  --accent-foreground: #ffffff;
+  --accent: #F7F1DE;
+  --accent-foreground: #4E220F;
 
   /* Destructive states */
   --destructive: var(--danger);
   --destructive-foreground: #ffffff;
 
   /* Border Radii */
-  --radius: 16px;
+  --radius: 12px;
 
   /* Shadows */
-  --shadow-card: 0 4px 20px -2px rgba(0, 0, 0, 0.25), 0 2px 8px -1px rgba(0, 0, 0, 0.15);
-  --shadow-dropdown: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 4px 10px -2px rgba(0, 0, 0, 0.2);
-  --shadow-modal: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
+  --shadow-card: 0 4px 12px rgba(78, 34, 15, 0.06);
+  --shadow-dropdown: 0 8px 24px rgba(78, 34, 15, 0.08);
+  --shadow-modal: 0 16px 40px rgba(78, 34, 15, 0.10);
+
+  /* Chart Colors */
+  --chart-expenses: #9D6638;
+  --chart-income: #B0BA99;
+  --chart-savings: #53724D;
+  --chart-transfers: #D9C4A8;
 }
 
 .dark {
-  --gray-850: #151c28;
-  --background: var(--gray-900);
-  --foreground: var(--gray-50);
-
-  --card: var(--gray-800);
-  --card-foreground: var(--gray-50);
-
-  --popover: var(--gray-800);
-  --popover-foreground: var(--gray-50);
-
-  --sidebar: var(--gray-850);
-  --sidebar-foreground: var(--gray-200);
-  --sidebar-border: var(--gray-800);
-
-  --border: var(--gray-800);
-  --input: var(--gray-800);
-
-  --muted: var(--gray-800);
-  --muted-foreground: var(--gray-400);
-
-  --accent: var(--gray-800);
-  --accent-foreground: var(--gray-50);
+  /* Force same values to disable dark mode changes */
+  --primary: #9D6638;
+  --primary-foreground: #ffffff;
+  --secondary: #B0BA99;
+  --secondary-foreground: #4E220F;
+  --success: #53724D;
+  --warning: #9D6638;
+  --danger: #B13E2E;
+  --info: #4A6B73;
+  --background: #F7F1DE;
+  --foreground: #4E220F;
+  --card: #FAF7F1;
+  --card-foreground: #4E220F;
+  --sidebar: #4E220F;
+  --sidebar-foreground: #F7F1DE;
+  --sidebar-border: rgba(247, 241, 222, 0.1);
+  --popover: #FBF8F2;
+  --popover-foreground: #4E220F;
+  --border: #E7DDCE;
+  --input: #FCFAF6;
+  --ring: var(--primary);
+  --muted: #E8E1D5;
+  --muted-foreground: #5C4E43;
+  --accent: #F7F1DE;
+  --accent-foreground: #4E220F;
+  --destructive: var(--danger);
+  --destructive-foreground: #ffffff;
+  --radius: 12px;
+  --shadow-card: 0 4px 12px rgba(78, 34, 15, 0.06);
+  --shadow-dropdown: 0 8px 24px rgba(78, 34, 15, 0.08);
+  --shadow-modal: 0 16px 40px rgba(78, 34, 15, 0.10);
 }
 
 @theme inline {
@@ -112,7 +115,13 @@
   --color-danger: var(--danger);
   --color-info: var(--info);
 
+  --color-success-bg: #EAF3E4;
+  --color-warning-bg: #FFF3D6;
+  --color-danger-bg: #FCE9E5;
+  --color-info-bg: #EEF6F6;
+
   --color-background: var(--background);
+  --color-background-secondary: #FCF8EF;
   --color-foreground: var(--foreground);
 
   --color-card: var(--card);
@@ -138,8 +147,8 @@
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
 
-  --radius-sm: 6px;
-  --radius-md: 10px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
   --radius-lg: 16px;
   --radius-pill: 999px;
 
@@ -198,27 +207,26 @@ body {
   scrollbar-width: none;  /* Firefox */
 }
 
-/* Custom scrollbar utility */
-.custom-scrollbar::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
+/* Custom scrollbar utility & Global Scrollbars Override */
+*::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
 }
 
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
+*::-webkit-scrollbar-track {
+  background: #F2EBDE;
 }
 
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(100, 116, 139, 0.3); /* semi-transparent slate */
+*::-webkit-scrollbar-thumb {
+  background: #D8C8B3;
   border-radius: 9999px;
 }
 
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(100, 116, 139, 0.5);
+*::-webkit-scrollbar-thumb:hover {
+  background: #C8B49A;
 }
 
-/* Firefox support for custom scrollbar */
-.custom-scrollbar {
+* {
   scrollbar-width: thin;
-  scrollbar-color: rgba(100, 116, 139, 0.3) transparent;
+  scrollbar-color: #D8C8B3 #F2EBDE;
 }

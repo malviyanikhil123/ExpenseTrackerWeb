@@ -95,28 +95,28 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 href={`#${item.id}`}
                 onClick={(e) => handleItemClick(item.id, e)}
                 className={cn(
-                  "relative flex items-center gap-3 px-3.5 py-3 text-sm font-normal rounded-[10px] select-none transition-colors group/nav",
+                  "relative flex items-center gap-3.5 px-4 py-3.5 text-[15px] font-semibold rounded-[12px] select-none transition-all group/nav",
                   isActive
-                    ? "bg-primary text-white font-semibold"
-                    : "text-sidebar-foreground/80 hover:bg-white/10 hover:text-white"
+                    ? "bg-primary text-sidebar-foreground font-semibold shadow-sm"
+                    : "text-sidebar-foreground/90 hover:bg-white/8 hover:text-sidebar-foreground"
                 )}
                 title={isCollapsed ? item.title : undefined}
               >
                 <span className={cn(
                   isActive
-                    ? "text-white"
-                    : "text-sidebar-foreground/45 group-hover/nav:text-white"
+                    ? "text-sidebar-foreground"
+                    : "text-sidebar-foreground/75 group-hover/nav:text-sidebar-foreground"
                 )}>
                   {item.icon}
                 </span>
-                {!isCollapsed && <span className="font-normal">{item.title}</span>}
+                {!isCollapsed && <span className="font-semibold">{item.title}</span>}
 
                 {/* Badge indicator */}
                 {item.badge && !isCollapsed && (
                   <span
                     className={cn(
                       "ml-auto text-[10px] px-2 py-0.5 rounded-full font-bold",
-                      isActive ? "bg-white/20 text-white" : "bg-white/10 text-sidebar-foreground/80"
+                      isActive ? "bg-white/20 text-sidebar-foreground" : "bg-white/10 text-sidebar-foreground/80"
                     )}
                   >
                     {item.badge}
@@ -141,12 +141,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
           type="button"
           onClick={onLogout}
           className={cn(
-            "relative w-full flex items-center gap-3 px-3.5 py-3 text-sm font-normal text-danger hover:bg-danger/10 rounded-[10px] select-none transition-colors group/logout"
+            "relative w-full flex items-center gap-3 px-3.5 py-3 text-sm font-medium text-danger hover:bg-white/8 rounded-[12px] select-none transition-all group/logout"
           )}
           title={isCollapsed ? "Logout" : undefined}
         >
           <LogOut className="size-5 shrink-0 text-danger" />
-          {!isCollapsed && <span className="font-normal">Logout</span>}
+          {!isCollapsed && <span className="font-semibold">Logout</span>}
 
           {/* Tooltip on Collapsed */}
           {isCollapsed && (

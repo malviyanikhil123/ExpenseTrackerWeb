@@ -16,28 +16,28 @@ export const CustomInput = React.forwardRef<HTMLInputElement, InputProps>(
     return (
       <div className="flex flex-col gap-2 w-full text-foreground">
         {label && (
-          <label className="text-sm font-medium text-foreground select-none">
+          <label className="text-[14px] font-semibold text-foreground select-none">
             {label}
-            {isRequired && <span className="text-danger ml-1 font-semibold">*</span>}
+            {isRequired && <span className="text-danger ml-1 font-bold text-sm">*</span>}
           </label>
         )}
         <input
           ref={ref}
           type={type}
           className={cn(
-            "w-full h-10 px-3.5 py-2 text-sm bg-background text-foreground border rounded-[10px] outline-none transition-colors",
-            "placeholder:text-muted-foreground focus:ring-2 focus:ring-offset-1 focus:ring-ring disabled:opacity-50",
+            "w-full h-10 px-3.5 py-2 text-[15px] font-medium bg-input text-foreground border border-border rounded-[12px] outline-none transition-all duration-200",
+            "placeholder:text-muted-foreground hover:border-[#D8C8B3] focus:ring-2 focus:ring-offset-1 focus:ring-primary/20 disabled:opacity-50",
             error
-              ? "border-danger focus:border-danger focus:ring-danger/20"
+              ? "border-danger hover:border-danger focus:border-danger focus:ring-danger/20"
               : isSuccess
-              ? "border-success focus:border-success focus:ring-success/20"
+              ? "border-success hover:border-success focus:border-success focus:ring-success/20"
               : "border-border focus:border-primary focus:ring-primary/20",
             className
           )}
           {...props}
         />
         {helperText && <span className="text-xs text-muted-foreground leading-none mt-0.5">{helperText}</span>}
-        {error && <span className="text-xs text-danger font-medium leading-none">{error}</span>}
+        {error && <span className="text-xs text-danger font-semibold leading-none">{error}</span>}
       </div>
     )
   }
@@ -59,8 +59,8 @@ export const SearchInput = React.forwardRef<HTMLInputElement, SearchInputProps>(
           ref={ref}
           type="text"
           className={cn(
-            "w-full h-10 pl-10 pr-10 py-2 text-sm bg-background text-foreground border border-border rounded-[10px] outline-none transition-colors",
-            "placeholder:text-muted-foreground focus:ring-2 focus:ring-offset-1 focus:ring-primary/20 focus:border-primary",
+            "w-full h-10 pl-10 pr-10 py-2 text-[15px] font-medium bg-input text-foreground border border-border rounded-[12px] outline-none transition-all duration-200",
+            "placeholder:text-muted-foreground hover:border-[#D8C8B3] focus:ring-2 focus:ring-offset-1 focus:ring-primary/20 focus:border-primary",
             className
           )}
           {...props}
@@ -94,13 +94,13 @@ export const CurrencyInput = React.forwardRef<HTMLInputElement, CurrencyInputPro
     return (
       <div className="flex flex-col gap-2 w-full text-foreground">
         {label && (
-          <label className="text-sm font-medium text-foreground select-none">
+          <label className="text-[14px] font-semibold text-foreground select-none">
             {label}
-            {isRequired && <span className="text-danger ml-1 font-semibold">*</span>}
+            {isRequired && <span className="text-danger ml-1 font-bold text-sm">*</span>}
           </label>
         )}
         <div className="relative flex items-center">
-          <span className="absolute left-3 text-sm font-medium text-muted-foreground select-none pointer-events-none">
+          <span className="absolute left-3 text-sm font-semibold text-muted-foreground select-none pointer-events-none">
             {activeSymbol}
           </span>
           <input
@@ -108,19 +108,19 @@ export const CurrencyInput = React.forwardRef<HTMLInputElement, CurrencyInputPro
             type="number"
             step="0.01"
             className={cn(
-              "w-full h-10 pl-8 pr-3 py-2 text-sm bg-background text-foreground border rounded-[10px] outline-none transition-colors",
-              "placeholder:text-muted-foreground focus:ring-2 focus:ring-offset-1 focus:ring-ring disabled:opacity-50",
+              "w-full h-10 pl-8 pr-3 py-2 text-[15px] font-medium bg-input text-foreground border border-border rounded-[12px] outline-none transition-all duration-200",
+              "placeholder:text-muted-foreground hover:border-[#D8C8B3] focus:ring-2 focus:ring-offset-1 focus:ring-primary/20 disabled:opacity-50",
               error
-                ? "border-danger focus:border-danger focus:ring-danger/20"
+                ? "border-danger hover:border-danger focus:border-danger focus:ring-danger/20"
                 : isSuccess
-                ? "border-success focus:border-success focus:ring-success/20"
+                ? "border-success hover:border-success focus:border-success focus:ring-success/20"
                 : "border-border focus:border-primary focus:ring-primary/20",
               className
             )}
             {...props}
           />
         </div>
-        {error && <span className="text-xs text-danger font-medium leading-none">{error}</span>}
+        {error && <span className="text-xs text-danger font-semibold leading-none">{error}</span>}
       </div>
     )
   }

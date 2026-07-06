@@ -78,17 +78,20 @@ export const AvatarComponent: React.FC<AvatarProps> = ({
       <div
         onClick={handleBrowse}
         className={cn(
-          "relative rounded-full overflow-hidden border border-gray-200 bg-white flex items-center justify-center font-semibold text-gray-600 shrink-0",
+          "relative rounded-full overflow-hidden border border-border flex items-center justify-center font-semibold shrink-0 transition-all",
           sizes[size],
-          editable ? "cursor-pointer group hover:opacity-90 shadow-md p-1 bg-white border-2 border-gray-100" : "bg-gray-50"
+          localSrc
+            ? "bg-card"
+            : "bg-secondary text-foreground", // Sage green circle
+          editable ? "cursor-pointer group hover:opacity-90 shadow-md p-1 border-2 border-border" : ""
         )}
       >
         {localSrc ? (
           <img src={localSrc} alt="Avatar" className="size-full object-cover rounded-full" />
         ) : initials ? (
-          <span className="select-none">{getInitials(initials)}</span>
+          <span className="select-none font-bold text-sm tracking-wide">{getInitials(initials)}</span>
         ) : (
-          <User className="size-1/2 text-gray-400" />
+          <User className="size-1/2 text-foreground/75" />
         )}
 
         {editable && (
@@ -100,7 +103,7 @@ export const AvatarComponent: React.FC<AvatarProps> = ({
 
       {editable && (
         <div className="flex flex-col gap-1 items-center justify-center">
-          <span className="text-sm font-semibold text-gray-800 tracking-tight">Profile Picture</span>
+          <span className="text-sm font-semibold text-foreground tracking-tight">Profile Picture</span>
           <div className="flex items-center gap-2 justify-center mt-0.5">
             <button
               type="button"
@@ -111,7 +114,7 @@ export const AvatarComponent: React.FC<AvatarProps> = ({
             </button>
             {localSrc && (
               <>
-                <span className="text-gray-300 text-xs">|</span>
+                <span className="text-border text-xs">|</span>
                 <button
                   type="button"
                   onClick={handleRemove}

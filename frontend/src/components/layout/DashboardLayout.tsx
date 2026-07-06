@@ -102,18 +102,18 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
 
             {/* Breadcrumb - Desktop only (Section 24) */}
             {breadcrumbs.length > 0 && (
-              <nav className="hidden sm:flex items-center gap-1.5 text-sm font-normal text-muted-foreground">
+              <nav className="hidden sm:flex items-center gap-1.5 text-[15px] font-semibold text-muted-foreground">
                 {breadcrumbs.map((crumb, idx) => {
                   const isLast = idx === breadcrumbs.length - 1
                   return (
                     <React.Fragment key={idx}>
-                      {idx > 0 && <ChevronRight className="size-3.5 text-muted-foreground/40 select-none" />}
+                      {idx > 0 && <ChevronRight className="size-3.5 text-muted-foreground select-none" />}
                       {isLast ? (
                         <span className="font-semibold text-foreground leading-none select-none">
                           {crumb.label}
                         </span>
                       ) : (
-                        <span className="hover:text-foreground transition-colors select-none leading-none">
+                        <span className="hover:text-foreground transition-colors select-none leading-none cursor-pointer">
                           {crumb.label}
                         </span>
                       )}
@@ -128,9 +128,9 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
           <div className="flex items-center gap-3">
             <button
               type="button"
-              className="p-2 rounded-full hover:bg-muted text-muted-foreground hover:text-foreground transition-colors relative"
+              className="p-2 rounded-full hover:bg-muted text-primary hover:text-primary-hover transition-colors relative"
             >
-              <Bell className="size-5" />
+              <Bell className="size-5 text-primary" />
               <span className="absolute top-1 right-1.5 size-2 rounded-full bg-danger ring-2 ring-card" />
             </button>
 
@@ -147,7 +147,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
                   size="sm"
                   className="size-8 cursor-pointer"
                 />
-                <span className="hidden sm:inline text-sm font-semibold text-card-foreground/90">
+                <span className="hidden sm:inline text-[15px] font-semibold text-foreground">
                   {userDisplayName}
                 </span>
               </button>
