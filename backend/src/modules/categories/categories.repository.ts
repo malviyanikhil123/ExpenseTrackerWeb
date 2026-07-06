@@ -1,4 +1,4 @@
-import { and, asc, eq, isNull, ne } from "drizzle-orm";
+import { and, asc, desc, eq, isNull, ne } from "drizzle-orm";
 
 import { db } from "../../db";
 import { categories } from "../../db/schema/categories";
@@ -63,7 +63,7 @@ export class CategoriesRepository {
                     type ? eq(categories.type, type) : undefined,
                 ),
             )
-            .orderBy(asc(categories.name));
+            .orderBy(desc(categories.createdAt));
     }
 
     async findByName(

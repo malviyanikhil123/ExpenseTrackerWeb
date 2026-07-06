@@ -220,6 +220,27 @@ export class AccountsRepository {
         return { totalBalance, count: rows.length };
     }
 
+    async getAccountBreakdown(userId: string) {
+        const rows = await db
+            .select({
+                accountName: accounts.name,
+                balance: accounts.openingBalance,
+            })
+            .from(accounts)
+            .where(
+                and(
+                    eq(accounts.userId, userId),
+                    isNull(accounts.deletedAt),
+                    eq(accounts.isArchived, false),
+                ),
+            );
+
+        return rows.map((r) => ({
+            accountName: r.accountName,
+            balance: Number(r.balance ?? 0),
+        }));
+    }
+
 }
 
 export const accountsRepository = new AccountsRepository();

@@ -24,7 +24,8 @@ import {
   useUpdateTransaction,
   useDeleteTransaction,
 } from "../hooks/useTransactions"
-import { useCategoriesList } from "../../categories/hooks/useCategories"
+import { useCategoriesList, useCategoryIcons } from "../../categories/hooks/useCategories"
+import * as Icons from "lucide-react"
 import { useAccountsList } from "../../accounts/hooks/useAccounts"
 
 import { CustomButton } from "../../../components/buttons/CustomButton"
@@ -69,6 +70,13 @@ export default function TransactionsPage() {
   // Dropdown list hooks
   const { data: categories = [] } = useCategoriesList()
   const { data: accounts = [] } = useAccountsList()
+  const { data: icons = [] } = useCategoryIcons()
+
+  const renderCategoryIcon = (iconName: string, color?: string) => {
+    const IconComp = (Icons as any)[iconName]
+    if (!IconComp) return <Icons.FolderOpen className="size-4" style={{ color }} />
+    return <IconComp className="size-4" style={{ color }} />
+  }
   
   const queryFilters = {
     type: filterType,
@@ -479,7 +487,15 @@ export default function TransactionsPage() {
             onChange={setFilterCategoryId}
             options={[
               { value: "", label: "All Categories" },
-              ...categories.map((c) => ({ value: c.id, label: `${c.name} (${c.type})` })),
+              ...categories.map((c) => {
+                const iconObj = icons.find((i) => i.id === c.categoryIconId)
+                const iconKey = iconObj?.iconKey || "FolderOpen"
+                return {
+                  value: c.id,
+                  label: `${c.name} (${c.type})`,
+                  icon: renderCategoryIcon(iconKey, c.color || "#64748b")
+                }
+              }),
             ]}
           />
 
@@ -575,7 +591,15 @@ export default function TransactionsPage() {
               label="Category type"
               value={txCategoryId}
               onChange={setTxCategoryId}
-              options={categories.filter(c => c.type === txType).map((c) => ({ value: c.id, label: c.name }))}
+              options={categories.filter(c => c.type === txType).map((c) => {
+                const iconObj = icons.find((i) => i.id === c.categoryIconId)
+                const iconKey = iconObj?.iconKey || "FolderOpen"
+                return {
+                  value: c.id,
+                  label: c.name,
+                  icon: renderCategoryIcon(iconKey, c.color || "#64748b")
+                }
+              })}
             />
           </div>
 
@@ -667,7 +691,15 @@ export default function TransactionsPage() {
               label="Category type"
               value={txCategoryId}
               onChange={setTxCategoryId}
-              options={categories.filter(c => c.type === txType).map((c) => ({ value: c.id, label: c.name }))}
+              options={categories.filter(c => c.type === txType).map((c) => {
+                const iconObj = icons.find((i) => i.id === c.categoryIconId)
+                const iconKey = iconObj?.iconKey || "FolderOpen"
+                return {
+                  value: c.id,
+                  label: c.name,
+                  icon: renderCategoryIcon(iconKey, c.color || "#64748b")
+                }
+              })}
             />
           </div>
 

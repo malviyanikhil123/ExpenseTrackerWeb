@@ -40,6 +40,7 @@ export default function CategoriesPage() {
   const [catName, setCatName] = useState("")
   const [catColor, setCatColor] = useState(COLOR_PALETTE[0])
   const [selectedIconId, setSelectedIconId] = useState("")
+  const [showAllIcons, setShowAllIcons] = useState(false)
 
   const { data: categories = [], isLoading, isError, refetch } = useCategoriesList(activeTab)
   const { data: icons = [] } = useCategoryIcons()
@@ -55,6 +56,7 @@ export default function CategoriesPage() {
   const handleOpenCreate = () => {
     setCatName("")
     setCatColor(COLOR_PALETTE[0])
+    setShowAllIcons(false)
     
     // Auto-select first icon that matches active tab type
     const tabIcons = icons.filter((i) => i.type === activeTab)
@@ -67,6 +69,7 @@ export default function CategoriesPage() {
     setCatName(category.name)
     setCatColor(category.color || COLOR_PALETTE[0])
     setSelectedIconId(category.categoryIconId)
+    setShowAllIcons(false)
     setIsEditOpen(true)
   }
 
@@ -314,6 +317,7 @@ export default function CategoriesPage() {
             <div className="grid grid-cols-6 gap-2 max-h-[140px] overflow-y-auto border border-border rounded-[10px] p-2 bg-muted/30">
               {icons
                 .filter((icon) => icon.type === activeTab)
+                .slice(0, showAllIcons ? undefined : 15)
                 .map((icon) => (
                   <button
                     key={icon.id}
@@ -328,6 +332,15 @@ export default function CategoriesPage() {
                   </button>
                 ))}
             </div>
+            {icons.filter((icon) => icon.type === activeTab).length > 15 && !showAllIcons && (
+              <button
+                type="button"
+                onClick={() => setShowAllIcons(true)}
+                className="text-xs font-semibold text-primary hover:text-primary/80 transition-colors flex items-center gap-1 self-end mt-1 cursor-pointer"
+              >
+                + Show More Icons
+              </button>
+            )}
           </div>
         </div>
       </CustomDialog>
@@ -380,6 +393,7 @@ export default function CategoriesPage() {
             <div className="grid grid-cols-6 gap-2 max-h-[140px] overflow-y-auto border border-border rounded-[10px] p-2 bg-muted/30">
               {icons
                 .filter((icon) => icon.type === (selectedCategory?.type || activeTab))
+                .slice(0, showAllIcons ? undefined : 15)
                 .map((icon) => (
                   <button
                     key={icon.id}
@@ -394,6 +408,15 @@ export default function CategoriesPage() {
                   </button>
                 ))}
             </div>
+            {icons.filter((icon) => icon.type === (selectedCategory?.type || activeTab)).length > 15 && !showAllIcons && (
+              <button
+                type="button"
+                onClick={() => setShowAllIcons(true)}
+                className="text-xs font-semibold text-primary hover:text-primary/80 transition-colors flex items-center gap-1 self-end mt-1 cursor-pointer"
+              >
+                + Show More Icons
+              </button>
+            )}
           </div>
         </div>
       </CustomDialog>

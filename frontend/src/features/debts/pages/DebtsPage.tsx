@@ -45,7 +45,12 @@ export default function DebtsPage() {
   const [repayAmount, setRepayAmount] = useState("")
   const [repayNotes, setRepayNotes] = useState("")
 
-  const { data: debts = [], isLoading, isError, refetch } = useDebtsList(activeTab)
+  const [filterStatus, setFilterStatus] = useState<"PENDING" | "COMPLETED" | "">("PENDING")
+
+  const { data: debts = [], isLoading, isError, refetch } = useDebtsList({
+    type: activeTab,
+    status: filterStatus || undefined,
+  })
   const { data: accounts = [] } = useAccountsList()
 
   const createMutation = useCreateDebt()
@@ -242,16 +247,31 @@ export default function DebtsPage() {
           </button>
         </div>
 
-        {/* Search */}
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-3 top-2.5 size-4 text-muted-foreground" />
-          <input
-            type="text"
-            placeholder="Search by person name..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="h-9 w-full pl-9 pr-4 bg-card text-foreground border border-border rounded-[10px] text-xs outline-none focus:border-primary transition-colors font-sans"
-          />
+        {/* Search & Status Filter */}
+        <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center w-full md:w-auto md:flex-1 justify-end">
+          <div className="relative w-full sm:max-w-xs">
+            <Search className="absolute left-3 top-2.5 size-4 text-muted-foreground" />
+            <input
+              type="text"
+              placeholder="Search by person name..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="h-9 w-full pl-9 pr-4 bg-card text-foreground border border-border rounded-[10px] text-xs outline-none focus:border-primary transition-colors font-sans"
+            />
+          </div>
+
+          <div className="w-full sm:w-44 select-none">
+            <CustomSelect
+              value={filterStatus}
+              onChange={(val) => setFilterStatus(val as any)}
+              options={[
+                { value: "", label: "All Statuses" },
+                { value: "PENDING", label: "Pending Outstanding" },
+                { value: "COMPLETED", label: "Settled / Paid" },
+              ]}
+              placeholder="Filter by status"
+            />
+          </div>
         </div>
 
       </div>

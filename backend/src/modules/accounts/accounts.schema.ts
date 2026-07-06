@@ -52,7 +52,16 @@ export const accountParamsSchema = z.object({
 });
 
 export const accountQuerySchema = z.object({
-    archived: z.coerce.boolean().optional(),
+    archived: z
+        .preprocess(
+            (val) => {
+                if (val === "true" || val === true) return true;
+                if (val === "false" || val === false) return false;
+                return val;
+            },
+            z.boolean()
+        )
+        .optional(),
 });
 
 export type AccountType = z.infer<typeof accountTypeSchema>;

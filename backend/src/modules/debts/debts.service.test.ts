@@ -19,8 +19,15 @@ vi.mock("../accounts/accounts.repository", () => ({
     },
 }));
 
+vi.mock("../repayments/repayments.repository", () => ({
+    repaymentsRepository: {
+        getTotalRepaid: vi.fn(),
+    },
+}));
+
 import { debtsRepository } from "./debts.repository";
 import { accountsRepository } from "../accounts/accounts.repository";
+import { repaymentsRepository } from "../repayments/repayments.repository";
 
 const USER_ID = "user-123";
 
@@ -29,6 +36,7 @@ describe("DebtsService", () => {
 
     beforeEach(() => {
         vi.clearAllMocks();
+        vi.mocked(repaymentsRepository.getTotalRepaid).mockResolvedValue(0);
         service = new DebtsService();
     });
 

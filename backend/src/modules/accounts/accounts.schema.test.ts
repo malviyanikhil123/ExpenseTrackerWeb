@@ -135,6 +135,9 @@ describe("accountQuerySchema", () => {
     it("should coerce string to boolean for archived", () => {
         const result = accountQuerySchema.parse({ archived: "true" });
         expect(result.archived).toBe(true);
+
+        const resultFalse = accountQuerySchema.parse({ archived: "false" });
+        expect(resultFalse.archived).toBe(false);
     });
 
     it("should accept empty query", () => {

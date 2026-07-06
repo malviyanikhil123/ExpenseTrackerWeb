@@ -97,7 +97,7 @@ export const CustomDialog: React.FC<DialogProps> = ({
         </div>
 
         {/* Content (Scrollable if tall) */}
-        <div className="flex-1 overflow-y-auto px-6 py-2 text-sm text-foreground leading-relaxed">
+        <div className="flex-1 overflow-y-auto scrollbar-none px-6 py-2 text-sm text-foreground leading-relaxed">
           {children}
         </div>
 

@@ -3,10 +3,10 @@ import { debtsApi } from "../api/debtsApi"
 import type { Debt, Repayment } from "../api/debtsApi"
 import { toast } from "sonner"
 
-export function useDebtsList(type?: "LENT" | "BORROW") {
+export function useDebtsList(filters?: { type?: "LENT" | "BORROW"; status?: "PENDING" | "COMPLETED" }) {
   return useQuery<Debt[]>({
-    queryKey: ["debts", type],
-    queryFn: () => debtsApi.getAll(type),
+    queryKey: ["debts", filters],
+    queryFn: () => debtsApi.getAll(filters),
     staleTime: 2 * 60 * 1000, // Short cache (Section 92)
   })
 }

@@ -1,6 +1,7 @@
 import { ApiError } from "../../lib/api-response";
 
 import { accountsRepository } from "../accounts/accounts.repository";
+import { repaymentsRepository } from "../repayments/repayments.repository";
 
 import { debtsRepository } from "./debts.repository";
 import type {
@@ -37,14 +38,26 @@ export class DebtsService {
       delta,
     );
 
-    return debt;
+    return {
+      ...debt,
+      remainingAmount: Number(debt.totalAmount),
+    };
   }
 
   async findAll(
     userId: string,
     query: DebtQueryInput,
   ) {
-    return debtsRepository.findAll(userId, query);
+    const debtsList = await debtsRepository.findAll(userId, query);
+    return Promise.all(
+      debtsList.map(async (debt) => {
+        const totalRepaid = await repaymentsRepository.getTotalRepaid(debt.id);
+        return {
+          ...debt,
+          remainingAmount: Number(debt.totalAmount) - totalRepaid,
+        };
+      })
+    );
   }
 
   async findById(
@@ -60,7 +73,11 @@ export class DebtsService {
       throw new ApiError(404, "Debt not found.");
     }
 
-    return debt;
+    const totalRepaid = await repaymentsRepository.getTotalRepaid(debt.id);
+    return {
+      ...debt,
+      remainingAmount: Number(debt.totalAmount) - totalRepaid,
+    };
   }
 
   async update(
@@ -123,7 +140,11 @@ export class DebtsService {
       newDelta,
     );
 
-    return updated;
+    const totalRepaid = await repaymentsRepository.getTotalRepaid(debtId);
+    return {
+      ...updated,
+      remainingAmount: Number(updated.totalAmount) - totalRepaid,
+    };
   }
 
   async delete(

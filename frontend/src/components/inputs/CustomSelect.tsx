@@ -87,7 +87,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
       </button>
 
       {isOpen && (
-        <div className="absolute left-0 right-0 top-[calc(100%+4px)] bg-popover/95 backdrop-blur-md border border-border rounded-[12px] shadow-dropdown z-50 p-1.5 font-sans text-xs animate-dropdown origin-top max-h-[220px] overflow-y-auto">
+        <div className="absolute left-0 right-0 top-[calc(100%+4px)] bg-popover/95 backdrop-blur-md border border-border rounded-[12px] shadow-dropdown z-50 p-1.5 font-sans text-xs animate-dropdown origin-top max-h-[220px] overflow-y-auto custom-scrollbar">
           {options.length === 0 ? (
             <div className="py-3 text-center text-muted-foreground">No options available</div>
           ) : (

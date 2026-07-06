@@ -10,6 +10,7 @@ import {
 
 import { db } from "../../db";
 import { transactions } from "../../db/schema/transactions";
+import { categories } from "../../db/schema/categories";
 
 import type {
     CreateTransactionInput,
@@ -268,21 +269,66 @@ export class TransactionsRepository {
         if (query.endDate) filters.push(lte(transactions.transactionDate, query.endDate));
 
         const rows = await db
-            .select({ categoryId: transactions.categoryId, amount: transactions.amount })
+            .select({
+                categoryId: transactions.categoryId,
+                categoryName: categories.name,
+                amount: transactions.amount,
+            })
             .from(transactions)
+            .leftJoin(categories, eq(transactions.categoryId, categories.id))
             .where(and(...filters));
 
-        const map: Record<string, number> = {};
+        const map: Record<string, { name: string; amount: number }> = {};
         for (const r of rows) {
             const id = String(r.categoryId);
-            map[id] = (map[id] || 0) + Number(r.amount ?? 0);
+            const name = r.categoryName || "Unknown";
+            if (!map[id]) {
+                map[id] = { name, amount: 0 };
+            }
+            map[id].amount += Number(r.amount ?? 0);
         }
 
-        return Object.entries(map).map(([categoryId, total]) => ({ categoryId, total }));
+        return Object.values(map).map((val) => ({
+            categoryName: val.name,
+            amount: val.amount,
+        }));
     }
 
     async getMonthlyTrend(userId: string, query: any) {
-        return this.getMonthlySummary(userId, query);
+        const filters = [eq(transactions.userId, userId), isNull(transactions.deletedAt)];
+        if (query.startDate) filters.push(gte(transactions.transactionDate, query.startDate));
+        if (query.endDate) filters.push(lte(transactions.transactionDate, query.endDate));
+
+        const rows = await db
+            .select({
+                amount: transactions.amount,
+                date: transactions.transactionDate,
+                type: transactions.type,
+            })
+            .from(transactions)
+            .where(and(...filters));
+
+        const map: Record<string, { income: number; expense: number }> = {};
+        const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+        for (const r of rows) {
+            const d = new Date(r.date as unknown as string);
+            const key = `${monthNames[d.getMonth()]} ${d.getFullYear()}`;
+            if (!map[key]) {
+                map[key] = { income: 0, expense: 0 };
+            }
+            if (r.type === "INCOME") {
+                map[key].income += Number(r.amount ?? 0);
+            } else if (r.type === "EXPENSE") {
+                map[key].expense += Number(r.amount ?? 0);
+            }
+        }
+
+        return Object.entries(map).map(([month, data]) => ({
+            month,
+            income: data.income,
+            expense: data.expense,
+        }));
     }
 }
 

@@ -5,10 +5,12 @@ import {
     gte,
     isNull,
     lte,
+    sql,
 } from "drizzle-orm";
 
 import { db } from "../../db";
 import { debts } from "../../db/schema/debts";
+import { repayments } from "../../db/schema/repayments";
 
 import type {
     CreateDebtInput,
@@ -200,8 +202,13 @@ export class DebtsRepository {
 
     async getPendingLent(userId: string) {
         const rows = await db
-            .select({ total: debts.totalAmount })
+            .select({
+                id: debts.id,
+                totalAmount: debts.totalAmount,
+                totalRepaid: sql<string>`COALESCE(SUM(${repayments.amount}), 0)`,
+            })
             .from(debts)
+            .leftJoin(repayments, eq(repayments.debtId, debts.id))
             .where(
                 and(
                     eq(debts.userId, userId),
@@ -209,15 +216,21 @@ export class DebtsRepository {
                     eq(debts.status, "PENDING"),
                     isNull(debts.deletedAt),
                 ),
-            );
+            )
+            .groupBy(debts.id);
 
-        return rows.reduce((sum, r) => sum + Number(r.total ?? 0), 0);
+        return rows.reduce((sum, r) => sum + (Number(r.totalAmount) - Number(r.totalRepaid)), 0);
     }
 
     async getPendingBorrow(userId: string) {
         const rows = await db
-            .select({ total: debts.totalAmount })
+            .select({
+                id: debts.id,
+                totalAmount: debts.totalAmount,
+                totalRepaid: sql<string>`COALESCE(SUM(${repayments.amount}), 0)`,
+            })
             .from(debts)
+            .leftJoin(repayments, eq(repayments.debtId, debts.id))
             .where(
                 and(
                     eq(debts.userId, userId),
@@ -225,9 +238,10 @@ export class DebtsRepository {
                     eq(debts.status, "PENDING"),
                     isNull(debts.deletedAt),
                 ),
-            );
+            )
+            .groupBy(debts.id);
 
-        return rows.reduce((sum, r) => sum + Number(r.total ?? 0), 0);
+        return rows.reduce((sum, r) => sum + (Number(r.totalAmount) - Number(r.totalRepaid)), 0);
     }
 
     async getRecentDebts(userId: string, limit = 5) {

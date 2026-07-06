@@ -18,6 +18,10 @@ vi.mock("../../lib/password", () => ({
     verifyPassword: vi.fn(),
 }));
 
+vi.mock("../../db/seeds/categories-seeder", () => ({
+    seedDefaultCategoriesForUser: vi.fn().mockResolvedValue(undefined),
+}));
+
 import { authRepository } from "./auth.repository";
 import { hashPassword, verifyPassword } from "../../lib/password";
 

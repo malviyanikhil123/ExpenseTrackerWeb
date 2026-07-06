@@ -1,8 +1,7 @@
-import "dotenv/config";
 import { z } from "zod";
 import dotenv from "dotenv";
 
-dotenv.config();
+dotenv.config({ override: true });
 const envSchema = z.object({
     NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
     HOST: z.string(),
