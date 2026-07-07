@@ -408,7 +408,7 @@ export default function DebtsPage() {
               {debt.phoneNumber && (
                 <CustomButton
                   variant="outline"
-                  size="xs"
+                  size="sm"
                   className="w-full gap-1.5 mt-1 border-primary/20 text-primary hover:bg-primary/5 font-semibold text-2xs cursor-pointer"
                   onClick={() => {
                     const msg = generateDebtReminderMessage({
@@ -420,7 +420,7 @@ export default function DebtsPage() {
                       senderName: user?.name,
                     })
                     const url = generateWhatsAppLink({
-                      phone: debt.phoneNumber,
+                      phone: debt.phoneNumber || "",
                       message: msg,
                     })
                     openWhatsApp(url)
@@ -710,7 +710,7 @@ export default function DebtsPage() {
                     senderName: user?.name,
                   })
                   const url = generateWhatsAppLink({
-                    phone: selectedDebt.phoneNumber,
+                    phone: selectedDebt.phoneNumber || "",
                     message: msg,
                   })
                   openWhatsApp(url)
@@ -757,7 +757,7 @@ export default function DebtsPage() {
                     senderName: user?.name,
                   })
                   const url = generateWhatsAppLink({
-                    phone: createdDebt.phoneNumber,
+                    phone: createdDebt.phoneNumber || "",
                     message: msg,
                   })
                   openWhatsApp(url)
