@@ -147,7 +147,7 @@ export const CustomDatePicker: React.FC<DatePickerProps> = ({
       {isOpen && (
         <div className={cn(
           "absolute top-[calc(100%+6px)] z-50 w-[290px] p-4 bg-[#FAF7F1] border border-border rounded-[16px] shadow-modal animate-dropdown select-none",
-          align === "right" ? "right-0" : "left-0"
+          align === "right" ? "left-0 sm:left-auto sm:right-0" : "left-0"
         )}>
           {/* Header */}
           <div className="flex items-center justify-between mb-4">
