@@ -19,6 +19,7 @@ import {
 import { useAnalyticsReport } from "../hooks/useAnalytics"
 import { CustomButton } from "../../../components/buttons/CustomButton"
 import { useCurrency } from "../../../hooks/useCurrency"
+import { CustomDatePicker } from "../../../components/inputs/CustomDatePicker"
 
 const COLOR_SCHEME = [
   "var(--chart-expenses)",
@@ -144,19 +145,22 @@ export default function AnalyticsPage() {
 
         {/* Date Filter Panel */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-          <input
-            type="date"
-            value={filterStartDate}
-            onChange={(e) => setFilterStartDate(e.target.value)}
-            className="h-10 px-3 border border-border rounded-[10px] text-xs font-semibold outline-none focus:border-primary bg-card text-foreground transition-colors font-sans"
-          />
+          <div className="w-36 sm:w-40">
+            <CustomDatePicker
+              value={filterStartDate}
+              onChange={setFilterStartDate}
+              placeholder="Start Date"
+            />
+          </div>
           <span className="text-xs font-semibold text-muted-foreground self-center hidden sm:inline">to</span>
-          <input
-            type="date"
-            value={filterEndDate}
-            onChange={(e) => setFilterEndDate(e.target.value)}
-            className="h-10 px-3 border border-border rounded-[10px] text-xs font-semibold outline-none focus:border-primary bg-card text-foreground transition-colors font-sans"
-          />
+          <div className="w-36 sm:w-40">
+            <CustomDatePicker
+              value={filterEndDate}
+              onChange={setFilterEndDate}
+              placeholder="End Date"
+              align="right"
+            />
+          </div>
           {(filterStartDate || filterEndDate) && (
             <button
               onClick={() => { setFilterStartDate(""); setFilterEndDate(""); }}

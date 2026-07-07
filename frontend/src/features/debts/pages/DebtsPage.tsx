@@ -2,6 +2,12 @@ import { useState } from "react"
 import { Plus, Search, MoreVertical, Edit2, Trash2, Calendar, AlertCircle, Info, DollarSign, History, User } from "lucide-react"
 import { format } from "date-fns"
 import { toast } from "sonner"
+import {
+  generateWhatsAppLink,
+  openWhatsApp,
+  generateDebtReminderMessage,
+  generateRepaymentReminderMessage,
+} from "../../../utils/whatsapp"
 
 import {
   useDebtsList,
@@ -19,9 +25,12 @@ import { CustomDialog } from "../../../components/dialogs/CustomDialog"
 import { Badge } from "../../../components/feedback/FeedbackStates"
 import { DropdownMenu } from "../../../components/ui/dropdown-menu"
 import { useCurrency } from "../../../hooks/useCurrency"
+import { useAuthStore } from "../../../store/authStore"
 import { CustomSelect } from "../../../components/inputs/CustomSelect"
+import { CustomDatePicker } from "../../../components/inputs/CustomDatePicker"
 
 export default function DebtsPage() {
+  const user = useAuthStore((state) => state.user)
   const [searchQuery, setSearchQuery] = useState("")
   const [activeTab, setActiveTab] = useState<"BORROW" | "LENT">("BORROW")
   const { format: formatMoney } = useCurrency()
@@ -31,11 +40,16 @@ export default function DebtsPage() {
   const [isDeleteOpen, setIsDeleteOpen] = useState(false)
   const [isRepaymentsOpen, setIsRepaymentsOpen] = useState(false)
   const [isAddRepaymentOpen, setIsAddRepaymentOpen] = useState(false)
+  const [isRepaymentConfirmOpen, setIsRepaymentConfirmOpen] = useState(false)
+  const [lastRepaymentAmount, setLastRepaymentAmount] = useState(0)
+  const [isDebtConfirmOpen, setIsDebtConfirmOpen] = useState(false)
+  const [createdDebt, setCreatedDebt] = useState<any>(null)
 
   const [selectedDebt, setSelectedDebt] = useState<any>(null)
 
   // Form Fields
   const [debtParty, setDebtParty] = useState("")
+  const [debtPhone, setDebtPhone] = useState("")
   const [debtAmount, setDebtAmount] = useState("")
   const [debtNotes, setDebtNotes] = useState("")
   const [debtDueDate, setDebtDueDate] = useState("")
@@ -67,6 +81,7 @@ export default function DebtsPage() {
 
   const handleOpenCreate = () => {
     setDebtParty("")
+    setDebtPhone("")
     setDebtAmount("")
     setDebtNotes("")
     setDebtDueDate("")
@@ -77,6 +92,7 @@ export default function DebtsPage() {
   const handleOpenEdit = (debt: any) => {
     setSelectedDebt(debt)
     setDebtParty(debt.partyName)
+    setDebtPhone(debt.phoneNumber || "")
     setDebtAmount(String(debt.totalAmount))
     setDebtNotes(debt.notes || "")
     setDebtDueDate(debt.dueDate ? new Date(debt.dueDate).toISOString().split("T")[0] : "")
@@ -98,6 +114,10 @@ export default function DebtsPage() {
       toast.error("Person / Party name is required.")
       return
     }
+    if (debtPhone.trim() && !/^\+?\d+$/.test(debtPhone.trim())) {
+      toast.error("Phone number must contain only digits and an optional '+' prefix.")
+      return
+    }
     if (!debtAmount || Number(debtAmount) <= 0) {
       toast.error("Please enter a valid amount.")
       return
@@ -109,6 +129,7 @@ export default function DebtsPage() {
     createMutation.mutate(
       {
         partyName: debtParty.trim(),
+        phoneNumber: debtPhone.trim() || undefined,
         totalAmount: Number(debtAmount),
         type: activeTab,
         debtDate: new Date().toISOString(),
@@ -117,7 +138,11 @@ export default function DebtsPage() {
         accountId: debtAccountId,
       },
       {
-        onSuccess: () => setIsCreateOpen(false),
+        onSuccess: (newDebt) => {
+          setIsCreateOpen(false)
+          setCreatedDebt(newDebt)
+          setIsDebtConfirmOpen(true)
+        },
       }
     )
   }
@@ -125,6 +150,10 @@ export default function DebtsPage() {
   const handleEdit = () => {
     if (!debtParty.trim()) {
       toast.error("Person name is required.")
+      return
+    }
+    if (debtPhone.trim() && !/^\+?\d+$/.test(debtPhone.trim())) {
+      toast.error("Phone number must contain only digits and an optional '+' prefix.")
       return
     }
     if (!debtAmount || Number(debtAmount) <= 0) {
@@ -136,6 +165,7 @@ export default function DebtsPage() {
         id: selectedDebt.id,
         data: {
           partyName: debtParty.trim(),
+          phoneNumber: debtPhone.trim() || null,
           totalAmount: Number(debtAmount),
           dueDate: debtDueDate ? new Date(debtDueDate).toISOString() : undefined,
           notes: debtNotes.trim() || undefined,
@@ -165,10 +195,12 @@ export default function DebtsPage() {
       return
     }
 
+    const amountNum = Number(repayAmount)
+
     createRepaymentMutation.mutate(
       {
         debtId: selectedDebt.id,
-        amount: Number(repayAmount),
+        amount: amountNum,
         repaymentDate: new Date().toISOString(),
         note: repayNotes.trim() || undefined,
       },
@@ -177,12 +209,16 @@ export default function DebtsPage() {
           setIsAddRepaymentOpen(false)
           setRepayAmount("")
           setRepayNotes("")
+          setLastRepaymentAmount(amountNum)
+          
           // Invalidate and refresh local state
           setSelectedDebt((prev: any) => ({
             ...prev,
-            remainingAmount: prev.remainingAmount - Number(repayAmount),
-            status: prev.remainingAmount - Number(repayAmount) <= 0 ? "COMPLETED" : "PENDING",
+            remainingAmount: prev.remainingAmount - amountNum,
+            status: prev.remainingAmount - amountNum <= 0 ? "COMPLETED" : "PENDING",
           }))
+
+          setIsRepaymentConfirmOpen(true)
         },
       }
     )
@@ -369,6 +405,31 @@ export default function DebtsPage() {
                 </button>
               </div>
 
+              {debt.phoneNumber && (
+                <CustomButton
+                  variant="outline"
+                  size="xs"
+                  className="w-full gap-1.5 mt-1 border-primary/20 text-primary hover:bg-primary/5 font-semibold text-2xs cursor-pointer"
+                  onClick={() => {
+                    const msg = generateDebtReminderMessage({
+                      partyName: debt.partyName,
+                      type: debt.type,
+                      amount: Number(debt.totalAmount),
+                      remainingAmount: Number(debt.remainingAmount),
+                      dueDate: debt.dueDate,
+                      senderName: user?.name,
+                    })
+                    const url = generateWhatsAppLink({
+                      phone: debt.phoneNumber,
+                      message: msg,
+                    })
+                    openWhatsApp(url)
+                  }}
+                >
+                  📱 Send WhatsApp Reminder
+                </CustomButton>
+              )}
+
             </div>
           ))}
         </div>
@@ -400,6 +461,13 @@ export default function DebtsPage() {
             onChange={(e) => setDebtParty(e.target.value)}
           />
 
+          <CustomInput
+            label="Phone Number (Optional)"
+            placeholder="e.g. 9876543210"
+            value={debtPhone}
+            onChange={(e) => setDebtPhone(e.target.value)}
+          />
+
           <CurrencyInput
             label="Original Amount"
             placeholder="0.00"
@@ -414,15 +482,11 @@ export default function DebtsPage() {
             options={accounts.filter(a => !a.isArchived).map((a) => ({ value: a.id, label: a.name }))}
           />
 
-          <div className="flex flex-col gap-1.5">
-            <span className="font-semibold text-muted-foreground select-none">Due Date (Optional)</span>
-            <input
-              type="date"
-              value={debtDueDate}
-              onChange={(e) => setDebtDueDate(e.target.value)}
-              className="h-10 px-3.5 border border-border rounded-[10px] bg-background text-foreground outline-none focus:border-primary transition-colors"
-            />
-          </div>
+          <CustomDatePicker
+            label="Due Date (Optional)"
+            value={debtDueDate}
+            onChange={setDebtDueDate}
+          />
 
           <CustomInput
             label="Notes / Comments"
@@ -460,6 +524,13 @@ export default function DebtsPage() {
             onChange={(e) => setDebtParty(e.target.value)}
           />
 
+          <CustomInput
+            label="Phone Number (Optional)"
+            placeholder="e.g. 9876543210"
+            value={debtPhone}
+            onChange={(e) => setDebtPhone(e.target.value)}
+          />
+
           <CurrencyInput
             label="Total Amount"
             placeholder="0.00"
@@ -467,15 +538,11 @@ export default function DebtsPage() {
             onChange={(e) => setDebtAmount(e.target.value)}
           />
 
-          <div className="flex flex-col gap-1.5 text-foreground">
-            <span className="font-semibold text-muted-foreground select-none">Due Date (Optional)</span>
-            <input
-              type="date"
-              value={debtDueDate}
-              onChange={(e) => setDebtDueDate(e.target.value)}
-              className="h-10 px-3.5 border border-border rounded-[10px] bg-background text-foreground outline-none focus:border-primary transition-colors"
-            />
-          </div>
+          <CustomDatePicker
+            label="Due Date (Optional)"
+            value={debtDueDate}
+            onChange={setDebtDueDate}
+          />
 
           <CustomInput
             label="Notes / Comments"
@@ -616,6 +683,99 @@ export default function DebtsPage() {
             This will permanently remove records. Verify split details before deleting.
           </span>
         </div>
+      </CustomDialog>
+
+      {/* Repayment WhatsApp Confirmation Dialog */}
+      <CustomDialog
+        isOpen={isRepaymentConfirmOpen}
+        onClose={() => setIsRepaymentConfirmOpen(false)}
+        title="Repayment Recorded"
+        description="Repayment recorded successfully. Would you like to send a WhatsApp confirmation?"
+        footer={
+          <>
+            <CustomButton variant="outline" size="sm" onClick={() => setIsRepaymentConfirmOpen(false)}>
+              Cancel
+            </CustomButton>
+            <CustomButton
+              variant="primary"
+              size="sm"
+              disabled={!selectedDebt?.phoneNumber}
+              onClick={() => {
+                if (selectedDebt?.phoneNumber) {
+                  const msg = generateRepaymentReminderMessage({
+                    partyName: selectedDebt.partyName,
+                    type: selectedDebt.type,
+                    amountPaid: lastRepaymentAmount,
+                    remainingAmount: selectedDebt.remainingAmount,
+                    senderName: user?.name,
+                  })
+                  const url = generateWhatsAppLink({
+                    phone: selectedDebt.phoneNumber,
+                    message: msg,
+                  })
+                  openWhatsApp(url)
+                }
+                setIsRepaymentConfirmOpen(false)
+              }}
+            >
+              Send WhatsApp
+            </CustomButton>
+          </>
+        }
+      >
+        {!selectedDebt?.phoneNumber && (
+          <div className="flex items-center gap-2 p-3 bg-amber-50 border border-amber-200/60 rounded-[10px] mt-2 text-amber-800 text-xs">
+            <AlertCircle className="size-4 text-amber-600 flex-shrink-0" />
+            <span>No phone number available.</span>
+          </div>
+        )}
+      </CustomDialog>
+
+      {/* Debt Creation WhatsApp Confirmation Dialog */}
+      <CustomDialog
+        isOpen={isDebtConfirmOpen}
+        onClose={() => setIsDebtConfirmOpen(false)}
+        title="Debt Recorded"
+        description="Debt recorded successfully. Would you like to send a WhatsApp reminder?"
+        footer={
+          <>
+            <CustomButton variant="outline" size="sm" onClick={() => setIsDebtConfirmOpen(false)}>
+              Later
+            </CustomButton>
+            <CustomButton
+              variant="primary"
+              size="sm"
+              disabled={!createdDebt?.phoneNumber}
+              onClick={() => {
+                if (createdDebt?.phoneNumber) {
+                  const msg = generateDebtReminderMessage({
+                    partyName: createdDebt.partyName,
+                    type: createdDebt.type,
+                    amount: Number(createdDebt.totalAmount),
+                    remainingAmount: Number(createdDebt.remainingAmount),
+                    dueDate: createdDebt.dueDate,
+                    senderName: user?.name,
+                  })
+                  const url = generateWhatsAppLink({
+                    phone: createdDebt.phoneNumber,
+                    message: msg,
+                  })
+                  openWhatsApp(url)
+                }
+                setIsDebtConfirmOpen(false)
+              }}
+            >
+              Send WhatsApp
+            </CustomButton>
+          </>
+        }
+      >
+        {!createdDebt?.phoneNumber && (
+          <div className="flex items-center gap-2 p-3 bg-amber-50 border border-amber-200/60 rounded-[10px] mt-2 text-amber-800 text-xs">
+            <AlertCircle className="size-4 text-amber-600 flex-shrink-0" />
+            <span>No phone number available.</span>
+          </div>
+        )}
       </CustomDialog>
 
     </div>

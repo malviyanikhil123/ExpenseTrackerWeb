@@ -34,6 +34,7 @@ function PublicRoute() {
 
 // Protected Layout wrapper providing DashboardLayout framework (Section 51, 52)
 import { ConfirmDialog } from "../components/dialogs/CustomDialog"
+import { useDebtsList } from "../features/debts/hooks/useDebts"
 
 function ProtectedLayoutWrapper() {
   const navigate = useNavigate()
@@ -41,6 +42,7 @@ function ProtectedLayoutWrapper() {
   const queryClient = useQueryClient()
   const user = useAuthStore((state) => state.user)
   const { data: profile } = useProfileDetails()
+  const { data: debts = [] } = useDebtsList()
   const clearAuth = useAuthStore((state) => state.clearAuth)
   const [isConfirmLogoutOpen, setIsConfirmLogoutOpen] = useState(false)
 
@@ -57,6 +59,7 @@ function ProtectedLayoutWrapper() {
         userEmail={profile?.email || user?.email || ""}
         userAvatarUrl={profile?.avatarUrl || undefined}
         onLogout={() => setIsConfirmLogoutOpen(true)}
+        debts={debts}
       >
         <Outlet />
       </DashboardLayout>

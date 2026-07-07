@@ -35,6 +35,7 @@ import { useCurrency } from "../../../hooks/useCurrency"
 import { Badge } from "../../../components/feedback/FeedbackStates"
 import { CustomPagination } from "../../../components/pagination/CustomPagination"
 import { CustomSelect } from "../../../components/inputs/CustomSelect"
+import { CustomDatePicker } from "../../../components/inputs/CustomDatePicker"
 
 export default function TransactionsPage() {
   const location = useLocation()
@@ -500,24 +501,17 @@ export default function TransactionsPage() {
           />
 
           <div className="grid grid-cols-2 gap-3">
-            <div className="flex flex-col gap-1.5">
-              <span className="text-muted-foreground font-semibold select-none">Start Date</span>
-              <input
-                type="date"
-                value={filterStartDate}
-                onChange={(e) => setFilterStartDate(e.target.value)}
-                className="h-10 px-3.5 border border-border rounded-[10px] outline-none focus:border-primary bg-background text-foreground transition-colors"
-              />
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <span className="text-muted-foreground font-semibold select-none">End Date</span>
-              <input
-                type="date"
-                value={filterEndDate}
-                onChange={(e) => setFilterEndDate(e.target.value)}
-                className="h-10 px-3.5 border border-border rounded-[10px] outline-none focus:border-primary bg-background text-foreground transition-colors"
-              />
-            </div>
+            <CustomDatePicker
+              label="Start Date"
+              value={filterStartDate}
+              onChange={setFilterStartDate}
+            />
+            <CustomDatePicker
+              label="End Date"
+              value={filterEndDate}
+              onChange={setFilterEndDate}
+              align="right"
+            />
           </div>
 
         </div>
@@ -591,6 +585,7 @@ export default function TransactionsPage() {
               label="Category type"
               value={txCategoryId}
               onChange={setTxCategoryId}
+              isSearchable={true}
               options={categories.filter(c => c.type === txType).map((c) => {
                 const iconObj = icons.find((i) => i.id === c.categoryIconId)
                 const iconKey = iconObj?.iconKey || "FolderOpen"
@@ -603,15 +598,11 @@ export default function TransactionsPage() {
             />
           </div>
 
-          <div className="flex flex-col gap-1.5 text-foreground">
-            <span className="font-semibold text-muted-foreground select-none">Transaction Date</span>
-            <input
-              type="date"
-              value={txDate}
-              onChange={(e) => setTxDate(e.target.value)}
-              className="h-10 px-3.5 border border-border rounded-[10px] bg-background text-foreground outline-none focus:border-primary transition-colors"
-            />
-          </div>
+          <CustomDatePicker
+            label="Transaction Date"
+            value={txDate}
+            onChange={setTxDate}
+          />
 
           <CustomInput
             label="Description Note (Optional)"
@@ -691,6 +682,7 @@ export default function TransactionsPage() {
               label="Category type"
               value={txCategoryId}
               onChange={setTxCategoryId}
+              isSearchable={true}
               options={categories.filter(c => c.type === txType).map((c) => {
                 const iconObj = icons.find((i) => i.id === c.categoryIconId)
                 const iconKey = iconObj?.iconKey || "FolderOpen"
@@ -703,15 +695,11 @@ export default function TransactionsPage() {
             />
           </div>
 
-          <div className="flex flex-col gap-1.5 text-foreground">
-            <span className="font-semibold text-muted-foreground select-none">Transaction Date</span>
-            <input
-              type="date"
-              value={txDate}
-              onChange={(e) => setTxDate(e.target.value)}
-              className="h-10 px-3.5 border border-border rounded-[10px] bg-background text-foreground outline-none focus:border-primary transition-colors"
-            />
-          </div>
+          <CustomDatePicker
+            label="Transaction Date"
+            value={txDate}
+            onChange={setTxDate}
+          />
 
           <CustomInput
             label="Description Note (Optional)"

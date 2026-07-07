@@ -1,9 +1,10 @@
-import React, { useState } from "react"
+import React, { useState, useRef, useEffect } from "react"
 import { Menu, User, Settings, LogOut, ChevronRight, Bell } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Sidebar } from "./Sidebar"
 import { CustomDrawer } from "../drawers/CustomDrawer"
 import { AvatarComponent } from "../ui/AvatarComponent"
+import type { Debt } from "../../features/debts/api/debtsApi"
 
 export interface BreadcrumbItem {
   label: string
@@ -19,6 +20,7 @@ export interface DashboardLayoutProps {
   userDisplayName?: string
   userEmail?: string
   userAvatarUrl?: string
+  debts?: Debt[]
 }
 
 export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
@@ -30,10 +32,13 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   userDisplayName = "Nikhil Malviya",
   userEmail = "nikhil@example.com",
   userAvatarUrl,
+  debts = [],
 }) => {
   const [isCollapsed, setIsCollapsed] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false)
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false)
+  const notificationsRef = useRef<HTMLDivElement>(null)
 
   // Toggle profile menu dropdown
   const handleProfileClick = (e: React.MouseEvent) => {
@@ -41,12 +46,58 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
     setIsProfileMenuOpen(!isProfileMenuOpen)
   }
 
-  // Click away for profile menu
-  React.useEffect(() => {
-    const clickAway = () => setIsProfileMenuOpen(false)
+  // Click away for profile menu and notifications dropdown
+  useEffect(() => {
+    const clickAway = () => {
+      setIsProfileMenuOpen(false)
+    }
     window.addEventListener("click", clickAway)
-    return () => window.removeEventListener("click", clickAway)
+
+    const handleClickOutside = (e: MouseEvent) => {
+      if (notificationsRef.current && !notificationsRef.current.contains(e.target as Node)) {
+        setIsNotificationsOpen(false)
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside)
+
+    return () => {
+      window.removeEventListener("click", clickAway)
+      document.removeEventListener("mousedown", handleClickOutside)
+    }
   }, [])
+
+  // Filter debts that have a due date and are pending
+  const notificationDebts = (debts || []).filter(
+    (debt) => debt.dueDate && debt.status === "PENDING"
+  )
+
+  // Format date helper
+  const formatDueNotificationDate = (dateStr: string) => {
+    try {
+      const d = new Date(dateStr)
+      if (isNaN(d.getTime())) return dateStr
+      return d.toLocaleDateString("en-IN", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      })
+    } catch {
+      return dateStr
+    }
+  }
+
+  // Check if a date has passed or is today
+  const isOverdue = (dateStr: string) => {
+    try {
+      const today = new Date()
+      today.setHours(0, 0, 0, 0)
+      const d = new Date(dateStr)
+      d.setHours(0, 0, 0, 0)
+      return d <= today
+    } catch {
+      return false
+    }
+  }
 
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-background text-foreground font-sans">
@@ -126,13 +177,103 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
 
           {/* Header Actions & Profile Dropdown */}
           <div className="flex items-center gap-3">
-            <button
-              type="button"
-              className="p-2 rounded-full hover:bg-muted text-primary hover:text-primary-hover transition-colors relative"
-            >
-              <Bell className="size-5 text-primary" />
-              <span className="absolute top-1 right-1.5 size-2 rounded-full bg-danger ring-2 ring-card" />
-            </button>
+            {/* Notifications Bell Dropdown */}
+            <div className="relative flex" ref={notificationsRef}>
+              <button
+                type="button"
+                onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
+                className="p-2 rounded-full hover:bg-muted text-primary hover:text-primary-hover transition-colors relative cursor-pointer outline-none flex items-center justify-center"
+              >
+                <Bell className="size-5 text-primary" />
+                {notificationDebts.length > 0 && (
+                  <span className="absolute -top-1.5 -right-1.5 min-w-4.5 h-4.5 px-1 rounded-full bg-danger text-[9px] font-extrabold text-white flex items-center justify-center ring-2 ring-card select-none">
+                    {notificationDebts.length}
+                  </span>
+                )}
+              </button>
+
+              {isNotificationsOpen && (
+                <div className="absolute right-0 top-[calc(100%+6px)] w-[320px] sm:w-[360px] bg-[#FAF7F1] border border-border rounded-[16px] shadow-dropdown py-3 px-4 z-40 animate-dropdown origin-top-right">
+                  <div className="flex items-center justify-between border-b border-border pb-2 mb-2">
+                    <span className="text-sm font-bold text-foreground">Notifications</span>
+                    {notificationDebts.length > 0 && (
+                      <span className="text-2xs bg-danger/10 text-danger px-2 py-0.5 rounded-full font-bold">
+                        {notificationDebts.length} Pending
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="flex flex-col gap-2 max-h-[280px] overflow-y-auto pr-1 scrollbar-none">
+                    {notificationDebts.length === 0 ? (
+                      <div className="py-8 text-center text-xs text-muted-foreground font-medium">
+                        No pending due date notifications.
+                      </div>
+                    ) : (
+                      notificationDebts.map((debt) => {
+                        const amountVal = Number(debt.totalAmount || 0)
+                        const formattedAmount = `₹${amountVal.toLocaleString("en-IN", {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}`
+                        const dueTodayOrOverdue = isOverdue(debt.dueDate!)
+
+                        return (
+                          <div
+                            key={debt.id}
+                            onClick={() => {
+                              onNavSelect("debts")
+                              setIsNotificationsOpen(false)
+                            }}
+                            className={cn(
+                              "p-3 rounded-[12px] border border-border bg-card hover:bg-muted/40 transition-colors cursor-pointer text-left flex flex-col gap-1.5",
+                              dueTodayOrOverdue && "border-danger/25 bg-danger/2"
+                            )}
+                          >
+                            <div className="flex items-center justify-between">
+                              <span className="text-[13px] font-bold text-foreground">
+                                {debt.partyName}
+                              </span>
+                              <span
+                                className={cn(
+                                  "text-[11px] px-2 py-0.5 rounded-full font-bold",
+                                  debt.type === "BORROW"
+                                    ? "bg-amber-100 text-amber-800"
+                                    : "bg-emerald-100 text-emerald-800"
+                                )}
+                              >
+                                {debt.type === "BORROW" ? "Borrowed" : "Lent"}
+                              </span>
+                            </div>
+                            
+                            <p className="text-xs text-muted-foreground font-medium leading-relaxed">
+                              {debt.type === "BORROW" ? (
+                                <>You borrowed <span className="font-bold text-foreground">{formattedAmount}</span></>
+                              ) : (
+                                <>You lent <span className="font-bold text-foreground">{formattedAmount}</span></>
+                              )}
+                            </p>
+
+                            <div className="flex items-center justify-between mt-0.5 text-3xs font-bold uppercase tracking-wider">
+                              <span className={cn(
+                                "text-muted-foreground",
+                                dueTodayOrOverdue && "text-danger"
+                              )}>
+                                Due: {formatDueNotificationDate(debt.dueDate!)}
+                              </span>
+                              {dueTodayOrOverdue && (
+                                <span className="text-danger flex items-center gap-1 font-extrabold text-[10px]">
+                                  ⚠️ Action Required
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        )
+                      })
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
 
             {/* Profile Dropdown Toggle (Section 23 / 35) */}
             <div className="relative">

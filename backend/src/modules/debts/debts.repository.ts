@@ -31,8 +31,10 @@ export class DebtsRepository {
                 type: data.type,
                 partyName: data.partyName,
                 partyPhone: data.partyPhone,
+                phoneNumber: data.phoneNumber || null,
                 totalAmount: data.totalAmount.toString(),
                 debtDate: data.debtDate,
+                dueDate: data.dueDate ? new Date(data.dueDate) : null,
                 status: "PENDING",
                 note: data.note,
             })
@@ -129,6 +131,10 @@ export class DebtsRepository {
                     partyPhone: data.partyPhone,
                 }),
 
+                ...(data.phoneNumber !== undefined && {
+                    phoneNumber: data.phoneNumber || null,
+                }),
+
                 ...(data.totalAmount !== undefined && {
                     totalAmount:
                         data.totalAmount.toString(),
@@ -136,6 +142,10 @@ export class DebtsRepository {
 
                 ...(data.debtDate && {
                     debtDate: data.debtDate,
+                }),
+
+                ...(data.dueDate !== undefined && {
+                    dueDate: data.dueDate ? new Date(data.dueDate) : null,
                 }),
 
                 ...(data.note !== undefined && {

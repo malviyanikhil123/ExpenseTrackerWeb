@@ -7,7 +7,6 @@ import {
   Coins,
   BarChart3,
   User,
-  LogOut,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react"
@@ -77,7 +76,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <button
               type="button"
               onClick={onToggleCollapse}
-              className="hidden md:flex p-1 rounded-md border border-sidebar-border text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-white/10 transition-colors cursor-pointer"
+              className="hidden md:flex p-1 rounded-md border border-sidebar-border text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-white/10 transition-colors cursor-pointer ml-[10px]"
             >
               {isCollapsed ? <ChevronRight className="size-4" /> : <ChevronLeft className="size-4" />}
             </button>
@@ -85,7 +84,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
 
         {/* Navigation Items (Section 22) */}
-        <nav className="flex flex-col gap-1.5 p-4 overflow-y-auto">
+        <nav className="flex flex-col gap-1.5 p-4 overflow-y-auto scrollbar-none">
           {items.map((item) => {
             const isActive = activeId === item.id
 
@@ -135,27 +134,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </nav>
       </div>
 
-      {/* Sidebar Bottom: Logout Action (Section 22) */}
-      <div className="p-4 border-t border-sidebar-border/60 bg-sidebar/50">
-        <button
-          type="button"
-          onClick={onLogout}
-          className={cn(
-            "relative w-full flex items-center gap-3 px-3.5 py-3 text-sm font-medium text-danger hover:bg-white/8 rounded-[12px] select-none transition-all group/logout"
-          )}
-          title={isCollapsed ? "Logout" : undefined}
-        >
-          <LogOut className="size-5 shrink-0 text-danger" />
-          {!isCollapsed && <span className="font-semibold">Logout</span>}
-
-          {/* Tooltip on Collapsed */}
-          {isCollapsed && (
-            <div className="absolute left-20 ml-2 hidden group-hover/logout:block bg-danger text-white text-xs px-2.5 py-1.5 rounded-[6px] shadow-md whitespace-nowrap z-30 font-medium">
-              Logout
-            </div>
-          )}
-        </button>
-      </div>
     </aside>
   )
 }

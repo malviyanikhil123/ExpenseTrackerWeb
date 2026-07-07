@@ -247,12 +247,6 @@ export default function DashboardPage() {
             {format(new Date(), "eeee, d MMMM yyyy")}
           </p>
         </div>
-        <div>
-          <CustomButton variant="primary" size="md" className="gap-2 w-full sm:w-auto" onClick={handleOpenTx}>
-            <Plus className="size-4" />
-            Add Transaction
-          </CustomButton>
-        </div>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 select-none">
@@ -544,6 +538,7 @@ export default function DashboardPage() {
               placeholder="Select Category"
               value={txCategoryId}
               onChange={setTxCategoryId}
+              isSearchable={true}
               options={categories.filter(c => c.type === txType).map((c) => ({ value: c.id, label: c.name }))}
             />
           </div>

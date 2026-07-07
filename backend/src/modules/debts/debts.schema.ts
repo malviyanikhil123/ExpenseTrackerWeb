@@ -30,6 +30,17 @@ export const createDebtSchema = z.object({
     )
     .optional(),
 
+  phoneNumber: z
+    .string()
+    .trim()
+    .regex(
+      /^\+?\d+$/,
+      "Phone number must contain only digits and an optional country code prefix.",
+    )
+    .optional()
+    .nullable()
+    .or(z.literal("")),
+
   totalAmount: z
     .number({
       error: "Amount is required.",
@@ -39,6 +50,8 @@ export const createDebtSchema = z.object({
   debtDate: z.coerce.date({
     error: "Debt date is required.",
   }),
+
+  dueDate: z.coerce.date().optional().nullable().or(z.literal("")),
 
   note: z
     .string()

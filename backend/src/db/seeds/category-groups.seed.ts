@@ -65,5 +65,25 @@ export default async function categoryGroupsSeed() {
             description: "Miscellaneous categories",
             sortOrder: 13,
         },
+        {
+            name: "Sports",
+            description: "Sports and fitness expenses",
+            sortOrder: 14,
+        },
+        {
+            name: "Office",
+            description: "Office, job, and career related expenses",
+            sortOrder: 15,
+        },
+        {
+            name: "Festival",
+            description: "Festivals, holidays, and event expenses",
+            sortOrder: 16,
+        },
+        {
+            name: "Life",
+            description: "Daily life, hobbies, and household expenses",
+            sortOrder: 17,
+        },
     ] as const;
 }

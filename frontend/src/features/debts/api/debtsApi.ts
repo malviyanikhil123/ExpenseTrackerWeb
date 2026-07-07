@@ -3,6 +3,7 @@ import { api } from "../../../lib/api"
 export interface Debt {
   id: string
   partyName: string
+  phoneNumber?: string | null
   totalAmount: number
   remainingAmount: number
   type: "LENT" | "BORROW"
@@ -32,6 +33,7 @@ export const debtsApi = {
 
   create: async (data: {
     partyName: string
+    phoneNumber?: string
     totalAmount: number
     type: "LENT" | "BORROW"
     debtDate: string
@@ -45,6 +47,7 @@ export const debtsApi = {
 
   update: async (id: string, data: Partial<{
     partyName: string
+    phoneNumber?: string | null
     totalAmount: number
     type: "LENT" | "BORROW"
     debtDate: string

@@ -1,0 +1,1 @@
+ALTER TABLE "debts" ADD COLUMN "phone_number" text;

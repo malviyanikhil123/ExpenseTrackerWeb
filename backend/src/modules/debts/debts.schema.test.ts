@@ -60,6 +60,43 @@ describe("createDebtSchema", () => {
         ).toThrow();
     });
 
+    it("should validate and accept phoneNumber formats", () => {
+        const data1 = {
+            accountId: "550e8400-e29b-41d4-a716-446655440000",
+            type: "LENT" as const,
+            partyName: "Test",
+            phoneNumber: "+919876543210",
+            totalAmount: 100,
+            debtDate: "2025-01-15",
+        };
+        const res1 = createDebtSchema.parse(data1);
+        expect(res1.phoneNumber).toBe("+919876543210");
+
+        const data2 = {
+            accountId: "550e8400-e29b-41d4-a716-446655440000",
+            type: "LENT" as const,
+            partyName: "Test",
+            phoneNumber: "919876543210",
+            totalAmount: 100,
+            debtDate: "2025-01-15",
+        };
+        const res2 = createDebtSchema.parse(data2);
+        expect(res2.phoneNumber).toBe("919876543210");
+    });
+
+    it("should reject non-digit characters in phoneNumber", () => {
+        expect(() =>
+            createDebtSchema.parse({
+                accountId: "550e8400-e29b-41d4-a716-446655440000",
+                type: "LENT",
+                partyName: "Test",
+                phoneNumber: "987654-3210",
+                totalAmount: 100,
+                debtDate: "2025-01-15",
+            })
+        ).toThrow();
+    });
+
     it("should reject a party name that is too short", () => {
         expect(() =>
             createDebtSchema.parse({

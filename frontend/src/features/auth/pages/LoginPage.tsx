@@ -82,7 +82,7 @@ export default function LoginPage() {
       const { user, accessToken, refreshToken } = response.data
 
       setAuth(user, accessToken, refreshToken)
-      
+
       // Persist password hash if Remember Me is checked
       if (rememberMe) {
         localStorage.setItem("remembered_email", data.email)
@@ -114,7 +114,7 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4 sm:p-6 lg:p-8 font-sans">
       <div className="w-full max-w-[420px] bg-card border border-border rounded-[16px] p-8 shadow-card flex flex-col gap-6 text-card-foreground">
-        
+
         <div className="flex flex-col gap-1.5 text-center sm:text-left select-none">
           <div className="size-10 rounded-[10px] bg-primary flex items-center justify-center text-white font-bold text-lg mb-2 shadow-sm mx-auto sm:mx-0">
             ET

@@ -38,6 +38,8 @@ export const debts = pgTable(
 
         partyPhone: text("party_phone"),
 
+        phoneNumber: text("phone_number"),
+
         totalAmount: numeric("total_amount", {
             precision: 12,
             scale: 2,
@@ -46,6 +48,10 @@ export const debts = pgTable(
         debtDate: timestamp("debt_date", {
             mode: "date",
         }).notNull(),
+
+        dueDate: timestamp("due_date", {
+            mode: "date",
+        }),
 
         note: text("note"),
 

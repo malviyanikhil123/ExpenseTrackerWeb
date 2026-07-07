@@ -8,6 +8,20 @@
       "when": 1783178300265,
       "tag": "0000_living_zaran",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1783433260965,
+      "tag": "0001_daffy_mister_fear",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1783447631731,
+      "tag": "0002_petite_giant_girl",
+      "breakpoints": true
     }
   ]
 }

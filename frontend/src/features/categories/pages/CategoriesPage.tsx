@@ -1,5 +1,5 @@
-import { useState } from "react"
-import { Plus, Search, MoreVertical, Edit2, Trash2, FolderOpen, AlertCircle, Info } from "lucide-react"
+import { useState, useRef, useEffect } from "react"
+import { Plus, Search, MoreVertical, Edit2, Trash2, FolderOpen, AlertCircle, Info, ChevronDown, X } from "lucide-react"
 import * as Icons from "lucide-react"
 import { toast } from "sonner"
 
@@ -38,9 +38,43 @@ export default function CategoriesPage() {
   const [catColor, setCatColor] = useState(COLOR_PALETTE[0])
   const [selectedIconId, setSelectedIconId] = useState("")
   const [showAllIcons, setShowAllIcons] = useState(false)
+  const [iconSearchQuery, setIconSearchQuery] = useState("")
+  const [isIconDropdownOpen, setIsIconDropdownOpen] = useState(false)
+  
+  const createIconDropdownRef = useRef<HTMLDivElement>(null)
+  const editIconDropdownRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        (!createIconDropdownRef.current || !createIconDropdownRef.current.contains(e.target as Node)) &&
+        (!editIconDropdownRef.current || !editIconDropdownRef.current.contains(e.target as Node))
+      ) {
+        setIsIconDropdownOpen(false)
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => document.removeEventListener("mousedown", handleClickOutside)
+  }, [])
 
   const { data: categories = [], isLoading, isError, refetch } = useCategoriesList(activeTab)
   const { data: icons = [] } = useCategoryIcons()
+
+  // Deduplicate icons by iconKey to show each visual icon exactly once
+  const uniqueIcons: typeof icons = []
+  const seenKeys = new Set<string>()
+  for (const icon of icons) {
+    if (!seenKeys.has(icon.iconKey)) {
+      seenKeys.add(icon.iconKey)
+      uniqueIcons.push(icon)
+    }
+  }
+
+  const filteredIcons = uniqueIcons.filter(
+    (icon) =>
+      icon.displayName.toLowerCase().includes(iconSearchQuery.toLowerCase()) ||
+      icon.iconKey.toLowerCase().includes(iconSearchQuery.toLowerCase())
+  )
 
   const createMutation = useCreateCategory()
   const updateMutation = useUpdateCategory()
@@ -309,34 +343,88 @@ export default function CategoriesPage() {
             </div>
           </div>
 
-          <div className="flex flex-col gap-2">
-            <span className="text-xs font-semibold text-gray-600 select-none">Icon Representation</span>
-            <div className="grid grid-cols-6 gap-2 max-h-[140px] overflow-y-auto border border-border rounded-[10px] p-2 bg-muted/30">
-              {icons
-                .filter((icon) => icon.type === activeTab)
-                .slice(0, showAllIcons ? undefined : 15)
-                .map((icon) => (
-                  <button
-                    key={icon.id}
-                    type="button"
-                    onClick={() => setSelectedIconId(icon.id)}
-                    className={cn(
-                      "aspect-square rounded-[8px] border flex items-center justify-center bg-card text-foreground cursor-pointer hover:bg-muted transition-colors",
-                      selectedIconId === icon.id ? "border-primary bg-primary/5" : "border-border"
-                    )}
-                  >
-                    {renderIcon(icon.iconKey, selectedIconId === icon.id ? catColor : "#94a3b8")}
-                  </button>
-                ))}
-            </div>
-            {icons.filter((icon) => icon.type === activeTab).length > 15 && !showAllIcons && (
-              <button
-                type="button"
-                onClick={() => setShowAllIcons(true)}
-                className="text-xs font-semibold text-primary hover:text-primary/80 transition-colors flex items-center gap-1 self-end mt-1 cursor-pointer"
-              >
-                + Show More Icons
-              </button>
+          <div ref={createIconDropdownRef} className="flex flex-col gap-2 relative w-full text-foreground select-none">
+            <span className="text-[14px] font-semibold text-foreground select-none">Icon Representation</span>
+            
+            <button
+              type="button"
+              onClick={() => {
+                setIsIconDropdownOpen(!isIconDropdownOpen)
+                setIconSearchQuery("")
+              }}
+              className="flex items-center justify-between w-full h-10 px-3.5 py-2 text-[15px] font-semibold bg-input text-foreground border border-border rounded-[12px] outline-none cursor-pointer hover:border-[#D8C8B3] transition-all duration-200"
+            >
+              <div className="flex items-center gap-2.5">
+                {(() => {
+                  const selectedIcon = icons.find((i) => i.id === selectedIconId)
+                  return selectedIcon ? (
+                    <>
+                      <span className="flex items-center justify-center p-1 rounded-md" style={{ backgroundColor: `${catColor}15` }}>
+                        {renderIcon(selectedIcon.iconKey, catColor)}
+                      </span>
+                      <span className="text-sm font-semibold">
+                        {selectedIcon.displayName}
+                      </span>
+                    </>
+                  ) : (
+                    <span className="text-muted-foreground text-sm font-medium">Select Icon</span>
+                  )
+                })()}
+              </div>
+              <ChevronDown className="size-4 text-muted-foreground" />
+            </button>
+
+            {isIconDropdownOpen && (
+              <div className="absolute top-[calc(100%+6px)] left-0 z-50 w-full p-3 bg-[#FAF7F1] border border-border rounded-[16px] shadow-modal flex flex-col gap-2.5 animate-dropdown">
+                {/* Search Bar */}
+                <div className="relative flex items-center">
+                  <Search className="absolute left-3 size-3.5 text-muted-foreground pointer-events-none select-none" />
+                  <input
+                    type="text"
+                    placeholder="Search icons..."
+                    value={iconSearchQuery}
+                    onChange={(e) => setIconSearchQuery(e.target.value)}
+                    className="h-8 w-full pl-8 pr-8 bg-input text-foreground border border-border rounded-[8px] text-xs outline-none focus:border-primary transition-colors font-sans font-medium"
+                    autoFocus
+                  />
+                  {iconSearchQuery && (
+                    <button
+                      type="button"
+                      onClick={() => setIconSearchQuery("")}
+                      className="absolute right-2.5 p-1 rounded-full text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-colors cursor-pointer outline-none"
+                    >
+                      <X className="size-3" />
+                    </button>
+                  )}
+                </div>
+
+                {/* Icons Grid */}
+                <div className="grid grid-cols-6 gap-2 overflow-y-auto max-h-[160px] pr-1">
+                  {filteredIcons.length === 0 ? (
+                    <div className="col-span-6 py-6 text-center text-xs text-muted-foreground font-medium">
+                      No matching icons found.
+                    </div>
+                  ) : (
+                    filteredIcons.map((icon) => (
+                      <button
+                        key={icon.id}
+                        type="button"
+                        onClick={() => {
+                          setSelectedIconId(icon.id)
+                          setIsIconDropdownOpen(false)
+                        }}
+                        className={cn(
+                          "aspect-square rounded-[8px] border flex items-center justify-center bg-card text-foreground cursor-pointer hover:bg-muted transition-colors p-1.5",
+                          selectedIconId === icon.id ? "border-primary bg-primary/5" : "border-border"
+                        )}
+                        title={icon.displayName}
+                      >
+                        {renderIcon(icon.iconKey, selectedIconId === icon.id ? catColor : "#94a3b8")}
+                      </button>
+                    ))
+                  )}
+                </div>
+              </div>
             )}
           </div>
         </div>
@@ -385,34 +473,88 @@ export default function CategoriesPage() {
             </div>
           </div>
 
-          <div className="flex flex-col gap-2">
-            <span className="text-xs font-semibold text-gray-600 select-none">Icon Representation</span>
-            <div className="grid grid-cols-6 gap-2 max-h-[140px] overflow-y-auto border border-border rounded-[10px] p-2 bg-muted/30">
-              {icons
-                .filter((icon) => icon.type === (selectedCategory?.type || activeTab))
-                .slice(0, showAllIcons ? undefined : 15)
-                .map((icon) => (
-                  <button
-                    key={icon.id}
-                    type="button"
-                    onClick={() => setSelectedIconId(icon.id)}
-                    className={cn(
-                      "aspect-square rounded-[8px] border flex items-center justify-center bg-card text-foreground cursor-pointer hover:bg-muted transition-colors",
-                      selectedIconId === icon.id ? "border-primary bg-primary/5" : "border-border"
-                    )}
-                  >
-                    {renderIcon(icon.iconKey, selectedIconId === icon.id ? catColor : "#94a3b8")}
-                  </button>
-                ))}
-            </div>
-            {icons.filter((icon) => icon.type === (selectedCategory?.type || activeTab)).length > 15 && !showAllIcons && (
-              <button
-                type="button"
-                onClick={() => setShowAllIcons(true)}
-                className="text-xs font-semibold text-primary hover:text-primary/80 transition-colors flex items-center gap-1 self-end mt-1 cursor-pointer"
-              >
-                + Show More Icons
-              </button>
+          <div ref={editIconDropdownRef} className="flex flex-col gap-2 relative w-full text-foreground select-none">
+            <span className="text-[14px] font-semibold text-foreground select-none">Icon Representation</span>
+            
+            <button
+              type="button"
+              onClick={() => {
+                setIsIconDropdownOpen(!isIconDropdownOpen)
+                setIconSearchQuery("")
+              }}
+              className="flex items-center justify-between w-full h-10 px-3.5 py-2 text-[15px] font-semibold bg-input text-foreground border border-border rounded-[12px] outline-none cursor-pointer hover:border-[#D8C8B3] transition-all duration-200"
+            >
+              <div className="flex items-center gap-2.5">
+                {(() => {
+                  const selectedIcon = icons.find((i) => i.id === selectedIconId)
+                  return selectedIcon ? (
+                    <>
+                      <span className="flex items-center justify-center p-1 rounded-md" style={{ backgroundColor: `${catColor}15` }}>
+                        {renderIcon(selectedIcon.iconKey, catColor)}
+                      </span>
+                      <span className="text-sm font-semibold">
+                        {selectedIcon.displayName}
+                      </span>
+                    </>
+                  ) : (
+                    <span className="text-muted-foreground text-sm font-medium">Select Icon</span>
+                  )
+                })()}
+              </div>
+              <ChevronDown className="size-4 text-muted-foreground" />
+            </button>
+
+            {isIconDropdownOpen && (
+              <div className="absolute top-[calc(100%+6px)] left-0 z-50 w-full p-3 bg-[#FAF7F1] border border-border rounded-[16px] shadow-modal flex flex-col gap-2.5 animate-dropdown">
+                {/* Search Bar */}
+                <div className="relative flex items-center">
+                  <Search className="absolute left-3 size-3.5 text-muted-foreground pointer-events-none select-none" />
+                  <input
+                    type="text"
+                    placeholder="Search icons..."
+                    value={iconSearchQuery}
+                    onChange={(e) => setIconSearchQuery(e.target.value)}
+                    className="h-8 w-full pl-8 pr-8 bg-input text-foreground border border-border rounded-[8px] text-xs outline-none focus:border-primary transition-colors font-sans font-medium"
+                    autoFocus
+                  />
+                  {iconSearchQuery && (
+                    <button
+                      type="button"
+                      onClick={() => setIconSearchQuery("")}
+                      className="absolute right-2.5 p-1 rounded-full text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-colors cursor-pointer outline-none"
+                    >
+                      <X className="size-3" />
+                    </button>
+                  )}
+                </div>
+
+                {/* Icons Grid */}
+                <div className="grid grid-cols-6 gap-2 overflow-y-auto max-h-[160px] pr-1">
+                  {filteredIcons.length === 0 ? (
+                    <div className="col-span-6 py-6 text-center text-xs text-muted-foreground font-medium">
+                      No matching icons found.
+                    </div>
+                  ) : (
+                    filteredIcons.map((icon) => (
+                      <button
+                        key={icon.id}
+                        type="button"
+                        onClick={() => {
+                          setSelectedIconId(icon.id)
+                          setIsIconDropdownOpen(false)
+                        }}
+                        className={cn(
+                          "aspect-square rounded-[8px] border flex items-center justify-center bg-card text-foreground cursor-pointer hover:bg-muted transition-colors p-1.5",
+                          selectedIconId === icon.id ? "border-primary bg-primary/5" : "border-border"
+                        )}
+                        title={icon.displayName}
+                      >
+                        {renderIcon(icon.iconKey, selectedIconId === icon.id ? catColor : "#94a3b8")}
+                      </button>
+                    ))
+                  )}
+                </div>
+              </div>
             )}
           </div>
         </div>

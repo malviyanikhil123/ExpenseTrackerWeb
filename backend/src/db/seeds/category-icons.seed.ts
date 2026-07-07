@@ -155,5 +155,75 @@ export default async function categoryIconsSeed() {
         // =========================
         { icon: "Circle", group: "Others", sortOrder: 99 },
         { icon: "Star", group: "Others", sortOrder: 100 },
+
+        // =========================
+        // Sports
+        // =========================
+        { icon: "Waves", group: "Sports", sortOrder: 101 },
+        { icon: "Target", group: "Sports", sortOrder: 102 },
+        { icon: "Sword", group: "Sports", sortOrder: 103 },
+        { icon: "HardHat", group: "Sports", sortOrder: 104 },
+        { icon: "Bike", group: "Sports", sortOrder: 105 },
+        { icon: "Dumbbell", group: "Sports", sortOrder: 106 },
+        { icon: "Trophy", group: "Sports", sortOrder: 107 },
+        { icon: "Medal", group: "Sports", sortOrder: 108 },
+        { icon: "Flag", group: "Sports", sortOrder: 109 },
+
+        // =========================
+        // Office
+        // =========================
+        { icon: "Globe", group: "Office", sortOrder: 110 },
+        { icon: "Megaphone", group: "Office", sortOrder: 111 },
+        { icon: "Phone", group: "Office", sortOrder: 112 },
+        { icon: "Briefcase", group: "Office", sortOrder: 113 },
+        { icon: "Save", group: "Office", sortOrder: 114 },
+        { icon: "Download", group: "Office", sortOrder: 115 },
+        { icon: "Paperclip", group: "Office", sortOrder: 116 },
+        { icon: "Wifi", group: "Office", sortOrder: 117 },
+        { icon: "Calendar", group: "Office", sortOrder: 118 },
+        { icon: "Printer", group: "Office", sortOrder: 119 },
+        { icon: "Monitor", group: "Office", sortOrder: 120 },
+        { icon: "Pencil", group: "Office", sortOrder: 121 },
+        { icon: "Mouse", group: "Office", sortOrder: 122 },
+
+        // =========================
+        // Festival
+        // =========================
+        { icon: "CalendarHeart", group: "Festival", sortOrder: 123 },
+        { icon: "Sparkles", group: "Festival", sortOrder: 124 },
+        { icon: "Flame", group: "Festival", sortOrder: 125 },
+        { icon: "Smile", group: "Festival", sortOrder: 126 },
+        { icon: "Snowflake", group: "Festival", sortOrder: 127 },
+        { icon: "GlassWater", group: "Festival", sortOrder: 128 },
+        { icon: "Cake", group: "Festival", sortOrder: 129 },
+
+        // =========================
+        // Life
+        // =========================
+        { icon: "Coffee", group: "Life", sortOrder: 130 },
+        { icon: "Flashlight", group: "Life", sortOrder: 131 },
+        { icon: "Bath", group: "Life", sortOrder: 132 },
+        { icon: "Tv", group: "Life", sortOrder: 133 },
+        { icon: "TreePine", group: "Life", sortOrder: 134 },
+        { icon: "Wind", group: "Life", sortOrder: 135 },
+        { icon: "Umbrella", group: "Life", sortOrder: 136 },
+        { icon: "Pill", group: "Life", sortOrder: 137 },
+        { icon: "Camera", group: "Life", sortOrder: 138 },
+        { icon: "Bed", group: "Life", sortOrder: 139 },
+        { icon: "Shirt", group: "Life", sortOrder: 140 },
+        { icon: "Lamp", group: "Life", sortOrder: 141 },
+        { icon: "Home", group: "Life", sortOrder: 142 },
+        { icon: "WashingMachine", group: "Life", sortOrder: 143 },
+        { icon: "Calculator", group: "Life", sortOrder: 144 },
+
+        // =========================
+        // Others Extras
+        // =========================
+        { icon: "Binoculars", group: "Others", sortOrder: 145 },
+        { icon: "Flower", group: "Others", sortOrder: 146 },
+        { icon: "Mail", group: "Others", sortOrder: 147 },
+        { icon: "Award", group: "Others", sortOrder: 148 },
+        { icon: "Gavel", group: "Others", sortOrder: 149 },
+        { icon: "MessageSquare", group: "Others", sortOrder: 150 },
     ] as const;
 }
