@@ -28,7 +28,8 @@ export class TransactionsRepository {
             .values({
                 userId,
                 accountId: data.accountId,
-                categoryId: data.categoryId,
+                categoryId: data.categoryId ?? null,
+                destinationAccountId: data.destinationAccountId ?? null,
                 type: data.type,
                 amount: data.amount.toString(),
                 transactionDate: data.transactionDate,
@@ -110,8 +111,11 @@ export class TransactionsRepository {
                 ...(data.accountId && {
                     accountId: data.accountId,
                 }),
-                ...(data.categoryId && {
+                ...(data.categoryId !== undefined && {
                     categoryId: data.categoryId,
+                }),
+                ...(data.destinationAccountId !== undefined && {
+                    destinationAccountId: data.destinationAccountId,
                 }),
                 ...(data.type && {
                     type: data.type,

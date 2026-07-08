@@ -51,6 +51,12 @@ export default function AccountsPage() {
   const [accColor, setAccColor] = useState(COLOR_PALETTE[0])
   const [accDefault, setAccDefault] = useState(false)
 
+  // Specific account type attributes
+  const [accLimit, setAccLimit] = useState("")
+  const [accStatementDate, setAccStatementDate] = useState("")
+  const [accDueDate, setAccDueDate] = useState("")
+  const [accLinkedBankId, setAccLinkedBankId] = useState("")
+
   const { data: accounts = [], isLoading, isError, refetch } = useAccountsList(showArchived)
 
   const createMutation = useCreateAccount()
@@ -64,6 +70,10 @@ export default function AccountsPage() {
     setAccDesc("")
     setAccColor(COLOR_PALETTE[0])
     setAccDefault(false)
+    setAccLimit("")
+    setAccStatementDate("")
+    setAccDueDate("")
+    setAccLinkedBankId("")
     setIsCreateOpen(true)
   }
 
@@ -74,6 +84,10 @@ export default function AccountsPage() {
     setAccDesc(acc.description || "")
     setAccColor(acc.color || COLOR_PALETTE[0])
     setAccDefault(acc.isDefault)
+    setAccLimit(acc.creditLimit ? String(acc.creditLimit) : "")
+    setAccStatementDate(acc.statementDate ? String(acc.statementDate) : "")
+    setAccDueDate(acc.dueDate ? String(acc.dueDate) : "")
+    setAccLinkedBankId(acc.linkedBankAccountId || "")
     setIsEditOpen(true)
   }
 
@@ -87,18 +101,35 @@ export default function AccountsPage() {
       toast.error("Account name is required.")
       return
     }
-    if (!accBalance.trim()) {
+
+    const isCredit = accType === "CREDIT_CARD"
+    const isLinked = accType === "DEBIT_CARD" || accType === "UPI"
+
+    if (!isCredit && !isLinked && !accBalance.trim()) {
       toast.error("Opening balance is required.")
       return
     }
+    if (isCredit && !accLimit.trim()) {
+      toast.error("Credit limit is required.")
+      return
+    }
+    if (isLinked && !accLinkedBankId) {
+      toast.error("Linked bank account is required.")
+      return
+    }
+
     createMutation.mutate(
       {
         name: accName.trim(),
         type: accType,
-        openingBalance: Number(accBalance),
+        openingBalance: isCredit || isLinked ? 0 : Number(accBalance),
         description: accDesc.trim() || undefined,
         color: accColor,
         isDefault: accDefault,
+        creditLimit: isCredit ? Number(accLimit) : undefined,
+        statementDate: isCredit && accStatementDate ? Number(accStatementDate) : undefined,
+        dueDate: isCredit && accDueDate ? Number(accDueDate) : undefined,
+        linkedBankAccountId: isLinked ? accLinkedBankId : undefined,
       },
       {
         onSuccess: () => setIsCreateOpen(false),
@@ -111,6 +142,19 @@ export default function AccountsPage() {
       toast.error("Account name is required.")
       return
     }
+
+    const isCredit = accType === "CREDIT_CARD"
+    const isLinked = accType === "DEBIT_CARD" || accType === "UPI"
+
+    if (isCredit && !accLimit.trim()) {
+      toast.error("Credit limit is required.")
+      return
+    }
+    if (isLinked && !accLinkedBankId) {
+      toast.error("Linked bank account is required.")
+      return
+    }
+
     updateMutation.mutate(
       {
         id: selectedAccount.id,
@@ -120,6 +164,10 @@ export default function AccountsPage() {
           description: accDesc.trim() || undefined,
           color: accColor,
           isDefault: accDefault,
+          creditLimit: isCredit ? Number(accLimit) : undefined,
+          statementDate: isCredit && accStatementDate ? Number(accStatementDate) : null,
+          dueDate: isCredit && accDueDate ? Number(accDueDate) : null,
+          linkedBankAccountId: isLinked ? accLinkedBankId : null,
         },
       },
       {
@@ -288,10 +336,36 @@ export default function AccountsPage() {
               </div>
 
               <div className="flex flex-col gap-1 border-t border-border pt-4">
-                <span className="text-[13px] font-bold uppercase tracking-[0.08em] text-muted-foreground">Current Balance</span>
-                <span className="text-[40px] font-extrabold text-foreground leading-none mt-1">
-                  {formatMoney(acc.openingBalance || 0)}
-                </span>
+                {acc.type === "CREDIT_CARD" ? (
+                  <div className="grid grid-cols-3 gap-2">
+                    <div className="flex flex-col gap-0.5">
+                      <span className="text-[10px] font-bold uppercase tracking-[0.06em] text-muted-foreground">Limit</span>
+                      <span className="text-xs font-bold text-foreground">{formatMoney(acc.creditLimit || 0)}</span>
+                    </div>
+                    <div className="flex flex-col gap-0.5">
+                      <span className="text-[10px] font-bold uppercase tracking-[0.06em] text-muted-foreground">Owed</span>
+                      <span className="text-xs font-bold text-danger">{formatMoney(acc.outstanding || 0)}</span>
+                    </div>
+                    <div className="flex flex-col gap-0.5">
+                      <span className="text-[10px] font-bold uppercase tracking-[0.06em] text-muted-foreground">Available</span>
+                      <span className="text-xs font-bold text-success">{formatMoney(acc.availableCredit || 0)}</span>
+                    </div>
+                  </div>
+                ) : acc.type === "DEBIT_CARD" || acc.type === "UPI" ? (
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-[10px] font-bold uppercase tracking-[0.06em] text-muted-foreground">Linked Bank Account</span>
+                    <span className="text-sm font-bold text-foreground">
+                      {accounts.find((a: any) => a.id === acc.linkedBankAccountId)?.name || "Unknown Account"}
+                    </span>
+                  </div>
+                ) : (
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-[10px] font-bold uppercase tracking-[0.06em] text-muted-foreground">Current Balance</span>
+                    <span className="text-[32px] font-extrabold text-foreground leading-none mt-1">
+                      {formatMoney(acc.openingBalance || 0)}
+                    </span>
+                  </div>
+                )}
                 {acc.description && (
                   <p className="text-xs text-muted-foreground mt-2 leading-normal line-clamp-1">{acc.description}</p>
                 )}
@@ -333,12 +407,52 @@ export default function AccountsPage() {
             options={ACCOUNT_TYPES}
           />
 
-          <CurrencyInput
-            label="Opening Balance"
-            placeholder="0.00"
-            value={accBalance}
-            onChange={(e) => setAccBalance(e.target.value)}
-          />
+          {accType !== "CREDIT_CARD" && accType !== "DEBIT_CARD" && accType !== "UPI" && (
+            <CurrencyInput
+              label="Opening Balance"
+              placeholder="0.00"
+              value={accBalance}
+              onChange={(e) => setAccBalance(e.target.value)}
+            />
+          )}
+
+          {accType === "CREDIT_CARD" && (
+            <>
+              <CurrencyInput
+                label="Credit Limit"
+                placeholder="0.00"
+                value={accLimit}
+                onChange={(e) => setAccLimit(e.target.value)}
+              />
+              <div className="grid grid-cols-2 gap-4">
+                <CustomInput
+                  label="Statement Date (1-31)"
+                  type="number"
+                  placeholder="e.g. 15"
+                  value={accStatementDate}
+                  onChange={(e) => setAccStatementDate(e.target.value)}
+                />
+                <CustomInput
+                  label="Due Date (1-31)"
+                  type="number"
+                  placeholder="e.g. 5"
+                  value={accDueDate}
+                  onChange={(e) => setAccDueDate(e.target.value)}
+                />
+              </div>
+            </>
+          )}
+
+          {(accType === "DEBIT_CARD" || accType === "UPI") && (
+            <CustomSelect
+              label="Linked Bank Account"
+              value={accLinkedBankId}
+              onChange={(val) => setAccLinkedBankId(val)}
+              options={accounts
+                .filter((a: any) => a.type === "BANK")
+                .map((a: any) => ({ value: a.id, label: a.name }))}
+            />
+          )}
 
           <CustomInput
             label="Description (Optional)"
@@ -408,6 +522,44 @@ export default function AccountsPage() {
             onChange={(val) => setAccType(val as any)}
             options={ACCOUNT_TYPES}
           />
+
+          {accType === "CREDIT_CARD" && (
+            <>
+              <CurrencyInput
+                label="Credit Limit"
+                placeholder="0.00"
+                value={accLimit}
+                onChange={(e) => setAccLimit(e.target.value)}
+              />
+              <div className="grid grid-cols-2 gap-4">
+                <CustomInput
+                  label="Statement Date (1-31)"
+                  type="number"
+                  placeholder="e.g. 15"
+                  value={accStatementDate}
+                  onChange={(e) => setAccStatementDate(e.target.value)}
+                />
+                <CustomInput
+                  label="Due Date (1-31)"
+                  type="number"
+                  placeholder="e.g. 5"
+                  value={accDueDate}
+                  onChange={(e) => setAccDueDate(e.target.value)}
+                />
+              </div>
+            </>
+          )}
+
+          {(accType === "DEBIT_CARD" || accType === "UPI") && (
+            <CustomSelect
+              label="Linked Bank Account"
+              value={accLinkedBankId}
+              onChange={(val) => setAccLinkedBankId(val)}
+              options={accounts
+                .filter((a: any) => a.type === "BANK")
+                .map((a: any) => ({ value: a.id, label: a.name }))}
+            />
+          )}
 
           <CustomInput
             label="Description (Optional)"

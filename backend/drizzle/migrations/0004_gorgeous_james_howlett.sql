@@ -1,0 +1,2 @@
+ALTER TABLE "repayments" ADD COLUMN "account_id" uuid NOT NULL;--> statement-breakpoint
+ALTER TABLE "repayments" ADD CONSTRAINT "repayments_account_id_accounts_id_fk" FOREIGN KEY ("account_id") REFERENCES "public"."accounts"("id") ON DELETE restrict ON UPDATE cascade;

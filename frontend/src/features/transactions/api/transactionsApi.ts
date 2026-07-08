@@ -3,18 +3,19 @@ import { api } from "../../../lib/api"
 export interface Transaction {
   id: string
   accountId: string
-  categoryId: string
-  type: "INCOME" | "EXPENSE"
+  categoryId?: string | null
+  type: "INCOME" | "EXPENSE" | "TRANSFER"
   amount: number
   transactionDate: string
   note?: string
   attachmentUrl?: string
+  destinationAccountId?: string | null
   createdAt: string
   updatedAt: string
 }
 
 export interface TransactionsQueryFilters {
-  type?: "INCOME" | "EXPENSE"
+  type?: "INCOME" | "EXPENSE" | "TRANSFER"
   accountId?: string
   categoryId?: string
   startDate?: string
@@ -29,12 +30,13 @@ export const transactionsApi = {
 
   create: async (data: {
     accountId: string
-    categoryId: string
-    type: "INCOME" | "EXPENSE"
+    categoryId?: string
+    type: "INCOME" | "EXPENSE" | "TRANSFER"
     amount: number
     transactionDate: string
     note?: string
     attachmentUrl?: string
+    destinationAccountId?: string
   }): Promise<Transaction> => {
     const res = await api.post("/transactions", data)
     return res.data.data
@@ -42,12 +44,13 @@ export const transactionsApi = {
 
   update: async (id: string, data: Partial<{
     accountId: string
-    categoryId: string
-    type: "INCOME" | "EXPENSE"
+    categoryId?: string
+    type: "INCOME" | "EXPENSE" | "TRANSFER"
     amount: number
     transactionDate: string
     note?: string
     attachmentUrl?: string
+    destinationAccountId?: string
   }>): Promise<Transaction> => {
     const res = await api.patch(`/transactions/${id}`, data)
     return res.data.data

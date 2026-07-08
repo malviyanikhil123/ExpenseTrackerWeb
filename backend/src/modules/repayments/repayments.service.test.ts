@@ -22,12 +22,28 @@ vi.mock("../debts/debts.repository", () => ({
 
 vi.mock("../accounts/accounts.repository", () => ({
     accountsRepository: {
+        findById: vi.fn(),
         adjustBalance: vi.fn(),
+    },
+}));
+
+vi.mock("../accounts/accounts.service", () => ({
+    accountsService: {
+        populateAccountsBalances: vi.fn((userId, accountsList) =>
+            Promise.resolve(
+                accountsList.map((acc: any) => ({
+                    ...acc,
+                    openingBalance: "10000.00",
+                    outstanding: "1000.00",
+                }))
+            )
+        ),
     },
 }));
 
 import { repaymentsRepository } from "./repayments.repository";
 import { debtsRepository } from "../debts/debts.repository";
+import { accountsRepository } from "../accounts/accounts.repository";
 
 const USER_ID = "user-123";
 
@@ -37,6 +53,13 @@ describe("RepaymentsService", () => {
     beforeEach(() => {
         vi.clearAllMocks();
         service = new RepaymentsService();
+
+        // Default mock for account search
+        vi.mocked(accountsRepository.findById).mockResolvedValue({
+            id: "acc-1",
+            type: "CASH",
+            openingBalance: "10000.00",
+        } as any);
     });
 
     describe("create", () => {
@@ -56,6 +79,7 @@ describe("RepaymentsService", () => {
             const result = await service.create(
                 {
                     debtId: "debt-1",
+                    accountId: "acc-1",
                     amount: 200,
                     repaymentDate: new Date(),
                 },
@@ -86,6 +110,7 @@ describe("RepaymentsService", () => {
             await service.create(
                 {
                     debtId: "debt-1",
+                    accountId: "acc-1",
                     amount: 300,
                     repaymentDate: new Date(),
                 },
@@ -106,6 +131,7 @@ describe("RepaymentsService", () => {
                 service.create(
                     {
                         debtId: "nonexistent",
+                        accountId: "acc-1",
                         amount: 100,
                         repaymentDate: new Date(),
                     },
@@ -127,6 +153,7 @@ describe("RepaymentsService", () => {
                 service.create(
                     {
                         debtId: "debt-1",
+                        accountId: "acc-1",
                         amount: 200, // Only 100 pending
                         repaymentDate: new Date(),
                     },
@@ -141,6 +168,7 @@ describe("RepaymentsService", () => {
             vi.mocked(repaymentsRepository.findById).mockResolvedValue({
                 id: "rep-1",
                 debtId: "debt-1",
+                accountId: "acc-1",
             } as any);
             vi.mocked(debtsRepository.findById).mockResolvedValue({
                 id: "debt-1",
@@ -162,6 +190,7 @@ describe("RepaymentsService", () => {
             vi.mocked(repaymentsRepository.findById).mockResolvedValue({
                 id: "rep-1",
                 debtId: "debt-1",
+                accountId: "acc-1",
             } as any);
             vi.mocked(debtsRepository.findById).mockResolvedValue(null);
 
@@ -177,8 +206,8 @@ describe("RepaymentsService", () => {
                 id: "debt-1",
             } as any);
             vi.mocked(repaymentsRepository.findByDebtId).mockResolvedValue([
-                { id: "rep-1" },
-                { id: "rep-2" },
+                { id: "rep-1", accountId: "acc-1" },
+                { id: "rep-2", accountId: "acc-1" },
             ] as any);
 
             const result = await service.findByDebtId(USER_ID, "debt-1");
@@ -196,10 +225,10 @@ describe("RepaymentsService", () => {
 
     describe("update", () => {
         it("should update a repayment within limits", async () => {
-            // findById flow: repayment exists, debt exists
             vi.mocked(repaymentsRepository.findById).mockResolvedValue({
                 id: "rep-1",
                 debtId: "debt-1",
+                accountId: "acc-1",
                 amount: "200.00",
             } as any);
             vi.mocked(debtsRepository.findById).mockResolvedValue({
@@ -216,6 +245,7 @@ describe("RepaymentsService", () => {
 
             const result = await service.update(USER_ID, "rep-1", {
                 amount: 300,
+                accountId: "acc-1",
             });
 
             expect(result.amount).toBe("300.00");
@@ -225,6 +255,7 @@ describe("RepaymentsService", () => {
             vi.mocked(repaymentsRepository.findById).mockResolvedValue({
                 id: "rep-1",
                 debtId: "debt-1",
+                accountId: "acc-1",
                 amount: "100.00",
             } as any);
             vi.mocked(debtsRepository.findById).mockResolvedValue({
@@ -235,11 +266,8 @@ describe("RepaymentsService", () => {
             } as any);
             vi.mocked(repaymentsRepository.getTotalRepaid).mockResolvedValue(400);
 
-            // paidWithoutCurrent = 400 - 100 = 300
-            // pending = 500 - 300 = 200
-            // newAmount = 300 > 200 → should throw
             await expect(
-                service.update(USER_ID, "rep-1", { amount: 300 })
+                service.update(USER_ID, "rep-1", { amount: 300, accountId: "acc-1" })
             ).rejects.toThrow(ApiError);
         });
     });
@@ -249,8 +277,8 @@ describe("RepaymentsService", () => {
             vi.mocked(repaymentsRepository.findById).mockResolvedValue({
                 id: "rep-1",
                 debtId: "debt-1",
+                accountId: "acc-1",
             } as any);
-            // First call: for findById access check, second call: for post-delete status
             vi.mocked(debtsRepository.findById)
                 .mockResolvedValueOnce({ id: "debt-1", accountId: "acc-1", type: "LENT" } as any)
                 .mockResolvedValueOnce({

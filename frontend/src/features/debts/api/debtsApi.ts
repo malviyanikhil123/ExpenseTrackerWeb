@@ -18,6 +18,7 @@ export interface Debt {
 export interface Repayment {
   id: string
   debtId: string
+  accountId: string
   amount: number
   repaymentDate: string
   note?: string
@@ -28,6 +29,11 @@ export interface Repayment {
 export const debtsApi = {
   getAll: async (params?: { type?: "LENT" | "BORROW"; status?: "PENDING" | "COMPLETED" }): Promise<Debt[]> => {
     const res = await api.get("/debts", { params })
+    return res.data.data
+  },
+
+  getOne: async (id: string): Promise<Debt> => {
+    const res = await api.get(`/debts/${id}`)
     return res.data.data
   },
 
@@ -70,6 +76,7 @@ export const debtsApi = {
 
   createRepayment: async (data: {
     debtId: string
+    accountId: string
     amount: number
     repaymentDate: string
     note?: string

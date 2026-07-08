@@ -6,22 +6,27 @@ import {
     repaymentQuerySchema,
 } from "./repayments.schema";
 
+const VALID_UUID = "550e8400-e29b-41d4-a716-446655440000";
+
 describe("createRepaymentSchema", () => {
     it("should validate a correct repayment payload", () => {
         const data = {
-            debtId: "550e8400-e29b-41d4-a716-446655440000",
+            debtId: VALID_UUID,
+            accountId: VALID_UUID,
             amount: 100,
             repaymentDate: "2025-03-15",
         };
         const result = createRepaymentSchema.parse(data);
-        expect(result.debtId).toBe("550e8400-e29b-41d4-a716-446655440000");
+        expect(result.debtId).toBe(VALID_UUID);
+        expect(result.accountId).toBe(VALID_UUID);
         expect(result.amount).toBe(100);
         expect(result.repaymentDate).toBeInstanceOf(Date);
     });
 
     it("should accept optional note", () => {
         const data = {
-            debtId: "550e8400-e29b-41d4-a716-446655440000",
+            debtId: VALID_UUID,
+            accountId: VALID_UUID,
             amount: 200,
             repaymentDate: "2025-03-15",
             note: "Partial repayment",
@@ -33,7 +38,8 @@ describe("createRepaymentSchema", () => {
     it("should reject zero amount", () => {
         expect(() =>
             createRepaymentSchema.parse({
-                debtId: "550e8400-e29b-41d4-a716-446655440000",
+                debtId: VALID_UUID,
+                accountId: VALID_UUID,
                 amount: 0,
                 repaymentDate: "2025-03-15",
             })
@@ -43,7 +49,8 @@ describe("createRepaymentSchema", () => {
     it("should reject negative amount", () => {
         expect(() =>
             createRepaymentSchema.parse({
-                debtId: "550e8400-e29b-41d4-a716-446655440000",
+                debtId: VALID_UUID,
+                accountId: VALID_UUID,
                 amount: -50,
                 repaymentDate: "2025-03-15",
             })
@@ -54,6 +61,7 @@ describe("createRepaymentSchema", () => {
         expect(() =>
             createRepaymentSchema.parse({
                 debtId: "not-a-uuid",
+                accountId: VALID_UUID,
                 amount: 100,
                 repaymentDate: "2025-03-15",
             })
@@ -63,7 +71,8 @@ describe("createRepaymentSchema", () => {
     it("should reject note exceeding 500 characters", () => {
         expect(() =>
             createRepaymentSchema.parse({
-                debtId: "550e8400-e29b-41d4-a716-446655440000",
+                debtId: VALID_UUID,
+                accountId: VALID_UUID,
                 amount: 100,
                 repaymentDate: "2025-03-15",
                 note: "N".repeat(501),
@@ -87,9 +96,9 @@ describe("updateRepaymentSchema", () => {
 describe("repaymentParamsSchema", () => {
     it("should accept valid UUID", () => {
         const result = repaymentParamsSchema.parse({
-            id: "550e8400-e29b-41d4-a716-446655440000",
+            id: VALID_UUID,
         });
-        expect(result.id).toBe("550e8400-e29b-41d4-a716-446655440000");
+        expect(result.id).toBe(VALID_UUID);
     });
 
     it("should reject invalid UUID", () => {
@@ -102,9 +111,9 @@ describe("repaymentParamsSchema", () => {
 describe("repaymentQuerySchema", () => {
     it("should accept valid debtId filter", () => {
         const result = repaymentQuerySchema.parse({
-            debtId: "550e8400-e29b-41d4-a716-446655440000",
+            debtId: VALID_UUID,
         });
-        expect(result.debtId).toBe("550e8400-e29b-41d4-a716-446655440000");
+        expect(result.debtId).toBe(VALID_UUID);
     });
 
     it("should accept date range filters", () => {

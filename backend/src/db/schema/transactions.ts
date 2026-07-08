@@ -32,8 +32,13 @@ export const transactions = pgTable(
             }),
 
         categoryId: uuid("category_id")
-            .notNull()
             .references(() => categories.id, {
+                onDelete: "restrict",
+                onUpdate: "cascade",
+            }),
+
+        destinationAccountId: uuid("destination_account_id")
+            .references(() => accounts.id, {
                 onDelete: "restrict",
                 onUpdate: "cascade",
             }),

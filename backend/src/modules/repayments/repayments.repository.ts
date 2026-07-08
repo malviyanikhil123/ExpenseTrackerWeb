@@ -20,6 +20,7 @@ export class RepaymentsRepository {
             .insert(repayments)
             .values({
                 debtId: data.debtId,
+                accountId: data.accountId,
                 amount: data.amount.toString(),
                 repaymentDate: data.repaymentDate,
                 note: data.note,
@@ -73,6 +74,10 @@ export class RepaymentsRepository {
 
                 ...(data.repaymentDate && {
                     repaymentDate: data.repaymentDate,
+                }),
+
+                ...(data.accountId !== undefined && {
+                    accountId: data.accountId,
                 }),
 
                 ...(data.note !== undefined && {

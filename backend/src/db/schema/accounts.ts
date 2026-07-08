@@ -1,6 +1,7 @@
 import {
     boolean,
     index,
+    integer,
     numeric,
     pgTable,
     text,
@@ -48,6 +49,23 @@ export const accounts = pgTable(
         isArchived: boolean("is_archived")
             .default(false)
             .notNull(),
+
+        creditLimit: numeric("credit_limit", {
+            precision: 12,
+            scale: 2,
+        })
+            .default("0.00")
+            .notNull(),
+
+        statementDate: integer("statement_date"),
+
+        dueDate: integer("due_date"),
+
+        linkedBankAccountId: uuid("linked_bank_account_id")
+            .references((): any => accounts.id, {
+                onDelete: "restrict",
+                onUpdate: "cascade",
+            }),
 
         createdAt: timestamp("created_at", {
             withTimezone: true,

@@ -26,6 +26,8 @@ describe("createAccountSchema", () => {
                 name: "Test Account",
                 type,
                 openingBalance: 0,
+                ...(type === "CREDIT_CARD" && { creditLimit: 5000 }),
+                ...((type === "DEBIT_CARD" || type === "UPI") && { linkedBankAccountId: "550e8400-e29b-41d4-a716-446655440000" }),
             });
             expect(result.type).toBe(type);
         }
@@ -33,16 +35,16 @@ describe("createAccountSchema", () => {
 
     it("should accept optional fields", () => {
         const data = {
-            name: "My Card",
-            type: "CREDIT_CARD" as const,
+            name: "My Bank",
+            type: "BANK" as const,
             openingBalance: 500,
-            description: "Personal credit card",
+            description: "Personal checking account",
             color: "#4A90D9",
             isDefault: true,
             isArchived: false,
         };
         const result = createAccountSchema.parse(data);
-        expect(result.description).toBe("Personal credit card");
+        expect(result.description).toBe("Personal checking account");
         expect(result.color).toBe("#4A90D9");
         expect(result.isDefault).toBe(true);
         expect(result.isArchived).toBe(false);

@@ -58,6 +58,7 @@ export default function DebtsPage() {
   // Repayment form fields (Section 75)
   const [repayAmount, setRepayAmount] = useState("")
   const [repayNotes, setRepayNotes] = useState("")
+  const [repayAccountId, setRepayAccountId] = useState("")
 
   const [filterStatus, setFilterStatus] = useState<"PENDING" | "COMPLETED" | "">("PENDING")
 
@@ -189,6 +190,11 @@ export default function DebtsPage() {
       return
     }
 
+    if (!repayAccountId) {
+      toast.error("Please select a payment account.")
+      return
+    }
+
     const remainingVal = Number(selectedDebt?.remainingAmount || 0)
     if (Number(repayAmount) > remainingVal) {
       toast.error(`Repayment cannot exceed remaining debt balance (${formatMoney(remainingVal)})`)
@@ -200,6 +206,7 @@ export default function DebtsPage() {
     createRepaymentMutation.mutate(
       {
         debtId: selectedDebt.id,
+        accountId: repayAccountId,
         amount: amountNum,
         repaymentDate: new Date().toISOString(),
         note: repayNotes.trim() || undefined,
@@ -209,6 +216,7 @@ export default function DebtsPage() {
           setIsAddRepaymentOpen(false)
           setRepayAmount("")
           setRepayNotes("")
+          setRepayAccountId("")
           setLastRepaymentAmount(amountNum)
           
           // Invalidate and refresh local state
@@ -566,7 +574,19 @@ export default function DebtsPage() {
               Close
             </CustomButton>
             {selectedDebt?.status !== "COMPLETED" && (
-              <CustomButton variant="primary" size="sm" className="gap-2" onClick={() => setIsAddRepaymentOpen(true)}>
+              <CustomButton
+                variant="primary"
+                size="sm"
+                className="gap-2"
+                onClick={() => {
+                  const allowed = accounts.filter((a: any) => {
+                    if (a.isArchived) return false;
+                    return a.type === "CASH" || a.type === "BANK";
+                  });
+                  setRepayAccountId(allowed.find((a: any) => a.isDefault)?.id || allowed[0]?.id || "");
+                  setIsAddRepaymentOpen(true);
+                }}
+              >
                 <Plus className="size-4" />
                 Add Repayment
               </CustomButton>
@@ -604,17 +624,26 @@ export default function DebtsPage() {
             </div>
           ) : (
             <div className="flex flex-col gap-3 max-h-[180px] overflow-y-auto pr-1">
-              {repayments.map((repay) => (
-                <div key={repay.id} className="bg-card border border-border rounded-[10px] p-3 flex justify-between items-center shadow-2xs">
-                  <div className="flex flex-col">
-                    <span className="font-semibold text-foreground">{formatMoney(repay.amount)}</span>
-                    <span className="text-2xs text-muted-foreground mt-0.5">
-                      {format(new Date(repay.repaymentDate), "dd MMM yyyy")}
-                    </span>
+              {repayments.map((repay) => {
+                const acc = accounts.find((a: any) => a.id === repay.accountId);
+                return (
+                  <div key={repay.id} className="bg-card border border-border rounded-[10px] p-3 flex justify-between items-center shadow-2xs">
+                    <div className="flex flex-col">
+                      <span className="font-semibold text-foreground">{formatMoney(repay.amount)}</span>
+                      <span className="text-2xs text-muted-foreground mt-0.5 flex items-center gap-1.5">
+                        <span>{format(new Date(repay.repaymentDate), "dd MMM yyyy")}</span>
+                        {acc && (
+                          <>
+                            <span className="text-gray-300">•</span>
+                            <span className="font-semibold text-primary">{acc.name}</span>
+                          </>
+                        )}
+                      </span>
+                    </div>
+                    {repay.note && <span className="text-2xs text-muted-foreground italic max-w-[150px] truncate">{repay.note}</span>}
                   </div>
-                  {repay.note && <span className="text-2xs text-muted-foreground italic max-w-[150px] truncate">{repay.note}</span>}
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
 
@@ -649,6 +678,18 @@ export default function DebtsPage() {
             placeholder="0.00"
             value={repayAmount}
             onChange={(e) => setRepayAmount(e.target.value)}
+          />
+
+          <CustomSelect
+            label={selectedDebt?.type === "BORROW" ? "Pay From Account" : "Receive into Account"}
+            value={repayAccountId}
+            onChange={setRepayAccountId}
+            options={accounts
+              .filter((a: any) => {
+                if (a.isArchived) return false;
+                return a.type === "CASH" || a.type === "BANK";
+              })
+              .map((a: any) => ({ value: a.id, label: a.name }))}
           />
 
           <CustomInput

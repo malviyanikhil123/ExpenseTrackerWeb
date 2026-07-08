@@ -13,6 +13,7 @@ export const providerEnum = pgEnum("provider", [
 export const transactionTypeEnum = pgEnum("transaction_type", [
     "INCOME",
     "EXPENSE",
+    "TRANSFER",
 ]);
 
 /**

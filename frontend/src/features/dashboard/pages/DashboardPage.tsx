@@ -12,9 +12,11 @@ import {
   FolderOpen,
   ArrowUpRight,
   ArrowDownLeft,
+  ArrowLeftRight,
   Calendar,
   Wallet,
   Users,
+  CreditCard,
   PieChart as PieIcon,
   BarChart4,
 } from "lucide-react"
@@ -41,6 +43,12 @@ interface DashboardData {
   recentTransactions: any[]
   recentDebts: any[]
   monthlySummary: any[]
+  totalAssets: number
+  totalOutstanding: number
+  netWorth: number
+  monthlyIncome: number
+  monthlyExpense: number
+  cashFlow: number
 }
 
 export default function DashboardPage() {
@@ -188,32 +196,38 @@ export default function DashboardPage() {
     recentTransactions: data?.recentTransactions ?? [],
     recentDebts: data?.recentDebts ?? [],
     monthlySummary: data?.monthlySummary ?? [],
+    totalAssets: data?.totalAssets ?? 0,
+    totalOutstanding: data?.totalOutstanding ?? 0,
+    netWorth: data?.netWorth ?? 0,
+    monthlyIncome: data?.monthlyIncome ?? 0,
+    monthlyExpense: data?.monthlyExpense ?? 0,
+    cashFlow: data?.cashFlow ?? 0,
   }
 
-  const summaries = [
+  const balanceSummaries = [
     {
-      id: "balance",
-      title: "Total Balance",
-      amount: dashboardData.totalBalance,
+      id: "net_worth",
+      title: "Net Worth",
+      amount: dashboardData.netWorth,
       icon: <DollarSign className="size-5 text-secondary" />,
       color: "text-foreground",
       action: () => navigate("/accounts"),
     },
     {
-      id: "income",
-      title: "Income",
-      amount: dashboardData.totalIncome,
-      icon: <ArrowDownLeft className="size-5 text-success" />,
+      id: "assets",
+      title: "Total Assets",
+      amount: dashboardData.totalAssets,
+      icon: <Wallet className="size-5 text-success" />,
       color: "text-success",
-      action: () => navigate("/transactions", { state: { filterType: "INCOME" } }),
+      action: () => navigate("/accounts"),
     },
     {
-      id: "expense",
-      title: "Expenses",
-      amount: dashboardData.totalExpense,
-      icon: <ArrowUpRight className="size-5 text-primary" />,
-      color: "text-primary",
-      action: () => navigate("/transactions", { state: { filterType: "EXPENSE" } }),
+      id: "outstanding",
+      title: "Outstanding Credit",
+      amount: dashboardData.totalOutstanding,
+      icon: <CreditCard className="size-5 text-danger" />,
+      color: "text-danger",
+      action: () => navigate("/accounts"),
     },
     {
       id: "debts",
@@ -222,6 +236,33 @@ export default function DashboardPage() {
       icon: <Users className="size-5 text-warning" />,
       color: "text-foreground",
       action: () => navigate("/debts"),
+    },
+  ]
+
+  const flowSummaries = [
+    {
+      id: "income",
+      title: "Monthly Income",
+      amount: dashboardData.monthlyIncome,
+      icon: <ArrowDownLeft className="size-5 text-success" />,
+      color: "text-success",
+      action: () => navigate("/transactions", { state: { filterType: "INCOME" } }),
+    },
+    {
+      id: "expense",
+      title: "Monthly Expenses",
+      amount: dashboardData.monthlyExpense,
+      icon: <ArrowUpRight className="size-5 text-primary" />,
+      color: "text-primary",
+      action: () => navigate("/transactions", { state: { filterType: "EXPENSE" } }),
+    },
+    {
+      id: "cash_flow",
+      title: "Cash Flow",
+      amount: dashboardData.cashFlow,
+      icon: <ArrowLeftRight className="size-5 text-secondary" />,
+      color: dashboardData.cashFlow >= 0 ? "text-success" : "text-danger",
+      action: () => navigate("/transactions"),
     },
   ]
 
@@ -249,22 +290,46 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 select-none">
-        {summaries.map((card) => (
-          <div
-            key={card.id}
-            onClick={card.action}
-            className="bg-card border border-border rounded-[16px] p-6 shadow-card hover:-translate-y-0.5 hover:shadow-md transition-all duration-200 ease-in-out cursor-pointer flex flex-col gap-4 text-card-foreground"
-          >
-            <div className="flex justify-between items-center">
-              <span className="text-[13px] font-bold uppercase tracking-[0.08em] text-muted-foreground">{card.title}</span>
-              <div className="p-2 rounded-full bg-muted border border-border">{card.icon}</div>
+      <div className="flex flex-col gap-4">
+        <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Balance Sheet Summary</span>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 select-none">
+          {balanceSummaries.map((card) => (
+            <div
+              key={card.id}
+              onClick={card.action}
+              className="bg-card border border-border rounded-[16px] p-6 shadow-card hover:-translate-y-0.5 hover:shadow-md transition-all duration-200 ease-in-out cursor-pointer flex flex-col gap-4 text-card-foreground"
+            >
+              <div className="flex justify-between items-center">
+                <span className="text-[13px] font-bold uppercase tracking-[0.08em] text-muted-foreground">{card.title}</span>
+                <div className="p-2 rounded-full bg-muted border border-border">{card.icon}</div>
+              </div>
+              <span className={`text-[36px] font-extrabold leading-none tracking-tight ${card.color}`}>
+                {formatMoney(Math.abs(card.amount))}
+              </span>
             </div>
-            <span className={`text-[40px] font-extrabold leading-none tracking-tight ${card.color}`}>
-              {formatMoney(Math.abs(card.amount))}
-            </span>
-          </div>
-        ))}
+          ))}
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-4">
+        <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Monthly Cash Flow Performance</span>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 select-none">
+          {flowSummaries.map((card) => (
+            <div
+              key={card.id}
+              onClick={card.action}
+              className="bg-card border border-border rounded-[16px] p-6 shadow-card hover:-translate-y-0.5 hover:shadow-md transition-all duration-200 ease-in-out cursor-pointer flex flex-col gap-4 text-card-foreground"
+            >
+              <div className="flex justify-between items-center">
+                <span className="text-[13px] font-bold uppercase tracking-[0.08em] text-muted-foreground">{card.title}</span>
+                <div className="p-2 rounded-full bg-muted border border-border">{card.icon}</div>
+              </div>
+              <span className={`text-[36px] font-extrabold leading-none tracking-tight ${card.color}`}>
+                {formatMoney(Math.abs(card.amount))}
+              </span>
+            </div>
+          ))}
+        </div>
       </div>
 
       <div className="bg-card/50 p-6 rounded-[16px] border border-border flex flex-col gap-4">

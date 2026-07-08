@@ -22,6 +22,20 @@
       "when": 1783447631731,
       "tag": "0002_petite_giant_girl",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1783521081764,
+      "tag": "0003_happy_sleepwalker",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1783523591784,
+      "tag": "0004_gorgeous_james_howlett",
+      "breakpoints": true
     }
   ]
 }

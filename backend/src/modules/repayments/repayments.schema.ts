@@ -2,6 +2,7 @@ import { z } from "zod";
 
 export const createRepaymentSchema = z.object({
     debtId: z.uuid("Invalid debt id."),
+    accountId: z.uuid("Invalid account id."),
 
     amount: z
         .number({

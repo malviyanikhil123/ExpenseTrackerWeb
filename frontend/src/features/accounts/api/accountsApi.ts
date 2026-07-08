@@ -11,6 +11,12 @@ export interface Account {
   isArchived: boolean
   createdAt: string
   updatedAt: string
+  creditLimit?: number
+  statementDate?: number
+  dueDate?: number
+  linkedBankAccountId?: string
+  outstanding?: number
+  availableCredit?: number
 }
 
 export const accountsApi = {
@@ -26,6 +32,10 @@ export const accountsApi = {
     description?: string
     color?: string
     isDefault?: boolean
+    creditLimit?: number
+    statementDate?: number
+    dueDate?: number
+    linkedBankAccountId?: string
   }): Promise<Account> => {
     const res = await api.post("/accounts", data)
     return res.data.data
@@ -38,6 +48,10 @@ export const accountsApi = {
     color?: string
     isDefault?: boolean
     isArchived?: boolean
+    creditLimit?: number
+    statementDate?: number
+    dueDate?: number
+    linkedBankAccountId?: string
   }): Promise<Account> => {
     const res = await api.patch(`/accounts/${id}`, data)
     return res.data.data

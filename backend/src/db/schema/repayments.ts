@@ -7,6 +7,7 @@ import {
     uuid,
 } from "drizzle-orm/pg-core";
 
+import { accounts } from "./accounts";
 import { debts } from "./debts";
 
 export const repayments = pgTable(
@@ -18,6 +19,13 @@ export const repayments = pgTable(
             .notNull()
             .references(() => debts.id, {
                 onDelete: "cascade",
+                onUpdate: "cascade",
+            }),
+
+        accountId: uuid("account_id")
+            .notNull()
+            .references((): any => accounts.id, {
+                onDelete: "restrict",
                 onUpdate: "cascade",
             }),
 

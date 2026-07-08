@@ -17,10 +17,14 @@ export class AccountsRepository {
                 userId,
                 name: data.name,
                 type: data.type,
-                openingBalance: data.openingBalance.toFixed(2),
+                openingBalance: data.openingBalance !== undefined ? data.openingBalance.toFixed(2) : "0.00",
                 description: data.description,
                 color: data.color,
                 isDefault: data.isDefault ?? false,
+                creditLimit: data.creditLimit !== undefined ? data.creditLimit.toFixed(2) : "0.00",
+                statementDate: data.statementDate,
+                dueDate: data.dueDate,
+                linkedBankAccountId: data.linkedBankAccountId,
             })
             .returning();
 

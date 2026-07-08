@@ -10,7 +10,7 @@ export const accountTypeSchema = z.enum([
     // Keep in sync with DB enum `account_type`
 ]);
 
-export const createAccountSchema = z.object({
+export const accountBaseSchema = z.object({
     name: z
         .string()
         .trim()
@@ -19,33 +19,84 @@ export const createAccountSchema = z.object({
 
     type: accountTypeSchema,
 
-    openingBalance: z
-        .number()
-        .finite()
-        .min(0, "Opening balance cannot be negative."),
-
     description: z
         .string()
         .trim()
         .max(255, "Description must not exceed 255 characters.")
-        .optional(),
+        .optional()
+        .nullable(),
 
     color: z
         .string()
         .trim()
         .max(20, "Color must not exceed 20 characters.")
-        .optional(),
+        .optional()
+        .nullable(),
 
     isDefault: z.boolean().optional(),
 
     isArchived: z.boolean().optional(),
+
+    creditLimit: z
+        .number()
+        .min(0, "Credit limit cannot be negative.")
+        .optional()
+        .nullable(),
+
+    statementDate: z
+        .number()
+        .int()
+        .min(1)
+        .max(31)
+        .optional()
+        .nullable(),
+
+    dueDate: z
+        .number()
+        .int()
+        .min(1)
+        .max(31)
+        .optional()
+        .nullable(),
+
+    linkedBankAccountId: z
+        .string()
+        .uuid("Invalid linked bank account id.")
+        .optional()
+        .nullable(),
 });
 
-export const updateAccountSchema = createAccountSchema
-    .omit({
-        openingBalance: true,
+export const createAccountSchema = accountBaseSchema
+    .extend({
+        openingBalance: z
+            .number()
+            .finite()
+            .min(0, "Opening balance cannot be negative.")
+            .optional()
+            .default(0),
     })
-    .partial();
+    .superRefine((data, ctx) => {
+        if (data.type === "CREDIT_CARD") {
+            if (data.creditLimit === undefined || data.creditLimit <= 0) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    path: ["creditLimit"],
+                    message: "Credit limit is required and must be greater than 0 for credit cards.",
+                });
+            }
+        }
+        if (data.type === "DEBIT_CARD" || data.type === "UPI") {
+            if (!data.linkedBankAccountId) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    path: ["linkedBankAccountId"],
+                    message: "Linked bank account is required.",
+                });
+            }
+        }
+    });
+
+export const updateAccountSchema = accountBaseSchema.partial();
 
 export const accountParamsSchema = z.object({
     id: z.string().uuid("Invalid account id."),

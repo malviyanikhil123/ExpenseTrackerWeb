@@ -10,6 +10,7 @@ import {
   Edit2,
   ArrowUpRight,
   ArrowDownLeft,
+  ArrowLeftRight,
   Calendar,
   X,
   AlertCircle,
@@ -59,9 +60,10 @@ export default function TransactionsPage() {
   // Form attributes
   const [txDesc, setTxDesc] = useState("")
   const [txAmount, setTxAmount] = useState("")
-  const [txType, setTxType] = useState<"INCOME" | "EXPENSE">("EXPENSE")
+  const [txType, setTxType] = useState<"INCOME" | "EXPENSE" | "TRANSFER">("EXPENSE")
   const [txAccountId, setTxAccountId] = useState("")
   const [txCategoryId, setTxCategoryId] = useState("")
+  const [txDestinationAccountId, setTxDestinationAccountId] = useState("")
   const [txDate, setTxDate] = useState(new Date().toISOString().split("T")[0])
 
   // Pagination page state
@@ -105,12 +107,23 @@ export default function TransactionsPage() {
     currentPage * pageSize
   )
 
+  const handleTxTypeChange = (type: "INCOME" | "EXPENSE" | "TRANSFER") => {
+    setTxType(type)
+    if (type === "TRANSFER") {
+      setTxCategoryId("")
+    } else {
+      const matchedCats = categories.filter((c) => c.type === type)
+      setTxCategoryId(matchedCats[0]?.id || categories[0]?.id || "")
+    }
+  }
+
   const handleOpenCreate = () => {
     setTxDesc("")
     setTxAmount("")
     setTxType("EXPENSE")
     setTxAccountId(accounts.find((a) => a.isDefault)?.id || accounts[0]?.id || "")
-    setTxCategoryId(categories[0]?.id || "")
+    setTxCategoryId(categories.filter((c) => c.type === "EXPENSE")[0]?.id || categories[0]?.id || "")
+    setTxDestinationAccountId("")
     setTxDate(new Date().toISOString().split("T")[0])
     setIsCreateOpen(true)
   }
@@ -121,7 +134,8 @@ export default function TransactionsPage() {
     setTxAmount(String(tx.amount))
     setTxType(tx.type)
     setTxAccountId(tx.accountId)
-    setTxCategoryId(tx.categoryId)
+    setTxCategoryId(tx.categoryId || "")
+    setTxDestinationAccountId(tx.destinationAccountId || "")
     setTxDate(new Date(tx.transactionDate).toISOString().split("T")[0])
     setIsEditOpen(true)
   }
@@ -136,17 +150,27 @@ export default function TransactionsPage() {
       toast.error("Please enter a valid amount greater than 0.")
       return
     }
-    if (!txAccountId || !txCategoryId) {
-      toast.error("Please select an Account and a Category.")
+    if (!txAccountId) {
+      toast.error("Please select an Account.")
       return
     }
+    if (txType !== "TRANSFER" && !txCategoryId) {
+      toast.error("Please select a Category.")
+      return
+    }
+    if (txType === "TRANSFER" && !txDestinationAccountId) {
+      toast.error("Please select a Destination Account.")
+      return
+    }
+
     createMutation.mutate(
       {
         note: txDesc.trim() || undefined,
         amount: Number(txAmount),
         type: txType,
         accountId: txAccountId,
-        categoryId: txCategoryId,
+        categoryId: txType !== "TRANSFER" ? txCategoryId : undefined,
+        destinationAccountId: txType === "TRANSFER" ? txDestinationAccountId : undefined,
         transactionDate: new Date(txDate).toISOString(),
       },
       {
@@ -160,6 +184,15 @@ export default function TransactionsPage() {
       toast.error("Please enter a valid amount.")
       return
     }
+    if (txType !== "TRANSFER" && !txCategoryId) {
+      toast.error("Please select a Category.")
+      return
+    }
+    if (txType === "TRANSFER" && !txDestinationAccountId) {
+      toast.error("Please select a Destination Account.")
+      return
+    }
+
     updateMutation.mutate(
       {
         id: selectedTx.id,
@@ -168,7 +201,8 @@ export default function TransactionsPage() {
           amount: Number(txAmount),
           type: txType,
           accountId: txAccountId,
-          categoryId: txCategoryId,
+          categoryId: txType !== "TRANSFER" ? txCategoryId : null,
+          destinationAccountId: txType === "TRANSFER" ? txDestinationAccountId : null,
           transactionDate: new Date(txDate).toISOString(),
         },
       },
@@ -337,17 +371,21 @@ export default function TransactionsPage() {
                       {format(new Date(tx.transactionDate), "dd MMM yyyy")}
                     </td>
                     <td className="py-3.5 px-6 font-semibold text-foreground">{tx.note || "Transaction"}</td>
-                    <td className="py-3.5 px-6">{getCategoryName(tx.categoryId)}</td>
+                    <td className="py-3.5 px-6">
+                      {tx.type === "TRANSFER" ? `Transfer → ${getAccountName(tx.destinationAccountId || "")}` : getCategoryName(tx.categoryId || "")}
+                    </td>
                     <td className="py-3.5 px-6">{getAccountName(tx.accountId)}</td>
                     <td className="py-3.5 px-6">
                       <span className={cn(
                         "inline-flex items-center gap-1 text-2xs font-bold uppercase tracking-wide",
-                        tx.type === "INCOME" ? "text-success" : "text-danger"
+                        tx.type === "INCOME" ? "text-success" : tx.type === "EXPENSE" ? "text-danger" : "text-gray-500"
                       )}>
                         {tx.type === "INCOME" ? (
                           <ArrowDownLeft className="size-3.5" />
-                        ) : (
+                        ) : tx.type === "EXPENSE" ? (
                           <ArrowUpRight className="size-3.5" />
+                        ) : (
+                          <ArrowLeftRight className="size-3.5" />
                         )}
                         {tx.type}
                       </span>
@@ -390,14 +428,16 @@ export default function TransactionsPage() {
                   <div className="flex flex-col">
                     <span className="text-sm font-semibold text-foreground">{tx.note || "Transaction"}</span>
                     <span className="text-2xs font-semibold text-muted-foreground uppercase tracking-wide mt-0.5">
-                      {getCategoryName(tx.categoryId)} • {getAccountName(tx.accountId)}
+                      {tx.type === "TRANSFER"
+                        ? `Transfer → ${getAccountName(tx.destinationAccountId || "")}`
+                        : `${getCategoryName(tx.categoryId || "")} • ${getAccountName(tx.accountId)}`}
                     </span>
                   </div>
                   <span className={cn(
                     "text-sm font-bold",
-                    tx.type === "INCOME" ? "text-success" : "text-foreground"
+                    tx.type === "INCOME" ? "text-success" : tx.type === "EXPENSE" ? "text-danger" : "text-gray-500"
                   )}>
-                    {tx.type === "INCOME" ? "+" : "-"}{formatMoney(tx.amount)}
+                    {tx.type === "INCOME" ? "+" : tx.type === "EXPENSE" ? "-" : ""}{formatMoney(tx.amount)}
                   </span>
                 </div>
 
@@ -538,10 +578,10 @@ export default function TransactionsPage() {
           
           <div className="flex flex-col gap-2">
             <span className="font-semibold text-muted-foreground select-none">Transaction Flow</span>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-3 gap-3">
               <button
                 type="button"
-                onClick={() => setTxType("EXPENSE")}
+                onClick={() => handleTxTypeChange("EXPENSE")}
                 className={cn(
                   "h-10 px-4 rounded-[10px] border font-semibold select-none transition-colors cursor-pointer",
                   txType === "EXPENSE"
@@ -553,7 +593,7 @@ export default function TransactionsPage() {
               </button>
               <button
                 type="button"
-                onClick={() => setTxType("INCOME")}
+                onClick={() => handleTxTypeChange("INCOME")}
                 className={cn(
                   "h-10 px-4 rounded-[10px] border font-semibold select-none transition-colors cursor-pointer",
                   txType === "INCOME"
@@ -562,6 +602,18 @@ export default function TransactionsPage() {
                 )}
               >
                 Income
+              </button>
+              <button
+                type="button"
+                onClick={() => handleTxTypeChange("TRANSFER")}
+                className={cn(
+                  "h-10 px-4 rounded-[10px] border font-semibold select-none transition-colors cursor-pointer",
+                  txType === "TRANSFER"
+                    ? "bg-primary text-white border-primary"
+                    : "bg-card text-muted-foreground border-border hover:bg-muted"
+                )}
+              >
+                Transfer
               </button>
             </div>
           </div>
@@ -575,27 +627,38 @@ export default function TransactionsPage() {
 
           <div className="grid grid-cols-2 gap-3 text-foreground">
             <CustomSelect
-              label="Bank Account"
+              label={txType === "TRANSFER" ? "Source Account" : "Bank Account"}
               value={txAccountId}
               onChange={setTxAccountId}
               options={accounts.filter(a => !a.isArchived).map((a) => ({ value: a.id, label: a.name }))}
             />
 
-            <CustomSelect
-              label="Category type"
-              value={txCategoryId}
-              onChange={setTxCategoryId}
-              isSearchable={true}
-              options={categories.filter(c => c.type === txType).map((c) => {
-                const iconObj = icons.find((i) => i.id === c.categoryIconId)
-                const iconKey = iconObj?.iconKey || "FolderOpen"
-                return {
-                  value: c.id,
-                  label: c.name,
-                  icon: renderCategoryIcon(iconKey, c.color || "#64748b")
-                }
-              })}
-            />
+            {txType === "TRANSFER" ? (
+              <CustomSelect
+                label="Destination Account"
+                value={txDestinationAccountId}
+                onChange={setTxDestinationAccountId}
+                options={accounts
+                  .filter(a => !a.isArchived && a.id !== txAccountId && a.type !== "DEBIT_CARD" && a.type !== "UPI")
+                  .map((a) => ({ value: a.id, label: a.name }))}
+              />
+            ) : (
+              <CustomSelect
+                label="Category type"
+                value={txCategoryId}
+                onChange={setTxCategoryId}
+                isSearchable={true}
+                options={categories.filter(c => c.type === txType).map((c) => {
+                  const iconObj = icons.find((i) => i.id === c.categoryIconId)
+                  const iconKey = iconObj?.iconKey || "FolderOpen"
+                  return {
+                    value: c.id,
+                    label: c.name,
+                    icon: renderCategoryIcon(iconKey, c.color || "#64748b")
+                  }
+                })}
+              />
+            )}
           </div>
 
           <CustomDatePicker
@@ -635,10 +698,10 @@ export default function TransactionsPage() {
           
           <div className="flex flex-col gap-2">
             <span className="font-semibold text-muted-foreground select-none">Transaction Flow</span>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-3 gap-3">
               <button
                 type="button"
-                onClick={() => setTxType("EXPENSE")}
+                onClick={() => handleTxTypeChange("EXPENSE")}
                 className={cn(
                   "h-10 px-4 rounded-[10px] border font-semibold select-none transition-colors cursor-pointer",
                   txType === "EXPENSE"
@@ -650,7 +713,7 @@ export default function TransactionsPage() {
               </button>
               <button
                 type="button"
-                onClick={() => setTxType("INCOME")}
+                onClick={() => handleTxTypeChange("INCOME")}
                 className={cn(
                   "h-10 px-4 rounded-[10px] border font-semibold select-none transition-colors cursor-pointer",
                   txType === "INCOME"
@@ -659,6 +722,18 @@ export default function TransactionsPage() {
                 )}
               >
                 Income
+              </button>
+              <button
+                type="button"
+                onClick={() => handleTxTypeChange("TRANSFER")}
+                className={cn(
+                  "h-10 px-4 rounded-[10px] border font-semibold select-none transition-colors cursor-pointer",
+                  txType === "TRANSFER"
+                    ? "bg-primary text-white border-primary"
+                    : "bg-card text-muted-foreground border-border hover:bg-muted"
+                )}
+              >
+                Transfer
               </button>
             </div>
           </div>
@@ -672,27 +747,38 @@ export default function TransactionsPage() {
 
           <div className="grid grid-cols-2 gap-3 text-foreground">
             <CustomSelect
-              label="Bank Account"
+              label={txType === "TRANSFER" ? "Source Account" : "Bank Account"}
               value={txAccountId}
               onChange={setTxAccountId}
               options={accounts.filter(a => !a.isArchived || a.id === selectedTx?.accountId).map((a) => ({ value: a.id, label: a.name }))}
             />
 
-            <CustomSelect
-              label="Category type"
-              value={txCategoryId}
-              onChange={setTxCategoryId}
-              isSearchable={true}
-              options={categories.filter(c => c.type === txType).map((c) => {
-                const iconObj = icons.find((i) => i.id === c.categoryIconId)
-                const iconKey = iconObj?.iconKey || "FolderOpen"
-                return {
-                  value: c.id,
-                  label: c.name,
-                  icon: renderCategoryIcon(iconKey, c.color || "#64748b")
-                }
-              })}
-            />
+            {txType === "TRANSFER" ? (
+              <CustomSelect
+                label="Destination Account"
+                value={txDestinationAccountId}
+                onChange={setTxDestinationAccountId}
+                options={accounts
+                  .filter(a => !a.isArchived && a.id !== txAccountId && a.type !== "DEBIT_CARD" && a.type !== "UPI")
+                  .map((a) => ({ value: a.id, label: a.name }))}
+              />
+            ) : (
+              <CustomSelect
+                label="Category type"
+                value={txCategoryId}
+                onChange={setTxCategoryId}
+                isSearchable={true}
+                options={categories.filter(c => c.type === txType).map((c) => {
+                  const iconObj = icons.find((i) => i.id === c.categoryIconId)
+                  const iconKey = iconObj?.iconKey || "FolderOpen"
+                  return {
+                    value: c.id,
+                    label: c.name,
+                    icon: renderCategoryIcon(iconKey, c.color || "#64748b")
+                  }
+                })}
+              />
+            )}
           </div>
 
           <CustomDatePicker

@@ -77,7 +77,7 @@ describe("createTransactionSchema", () => {
             createTransactionSchema.parse({
                 accountId: "550e8400-e29b-41d4-a716-446655440000",
                 categoryId: "660e8400-e29b-41d4-a716-446655440000",
-                type: "TRANSFER",
+                type: "INVALID",
                 amount: 50,
                 transactionDate: "2025-01-15",
             })
