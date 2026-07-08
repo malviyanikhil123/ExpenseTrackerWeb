@@ -77,7 +77,7 @@ export const createAccountSchema = accountBaseSchema
     })
     .superRefine((data, ctx) => {
         if (data.type === "CREDIT_CARD") {
-            if (data.creditLimit === undefined || data.creditLimit <= 0) {
+            if (data.creditLimit === undefined || data.creditLimit === null || data.creditLimit <= 0) {
                 ctx.addIssue({
                     code: z.ZodIssueCode.custom,
                     path: ["creditLimit"],

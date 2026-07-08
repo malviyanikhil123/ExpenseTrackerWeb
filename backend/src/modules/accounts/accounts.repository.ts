@@ -21,7 +21,7 @@ export class AccountsRepository {
                 description: data.description,
                 color: data.color,
                 isDefault: data.isDefault ?? false,
-                creditLimit: data.creditLimit !== undefined ? data.creditLimit.toFixed(2) : "0.00",
+                creditLimit: (data.creditLimit !== undefined && data.creditLimit !== null) ? data.creditLimit.toFixed(2) : "0.00",
                 statementDate: data.statementDate,
                 dueDate: data.dueDate,
                 linkedBankAccountId: data.linkedBankAccountId,
@@ -135,10 +135,21 @@ export class AccountsRepository {
         accountId: string,
         data: UpdateAccountInput,
     ) {
+        const updateData: any = {
+            ...data,
+        };
+
+        if (data.creditLimit !== undefined) {
+            updateData.creditLimit =
+                data.creditLimit !== null
+                    ? data.creditLimit.toFixed(2)
+                    : null;
+        }
+
         const [account] = await db
             .update(accounts)
             .set({
-                ...data,
+                ...updateData,
                 updatedAt: new Date(),
             })
             .where(
