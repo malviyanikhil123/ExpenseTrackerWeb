@@ -303,8 +303,11 @@ export default function DashboardPage() {
                 <span className="text-[13px] font-bold uppercase tracking-[0.08em] text-muted-foreground">{card.title}</span>
                 <div className="p-2 rounded-full bg-muted border border-border">{card.icon}</div>
               </div>
-              <span className={`text-[36px] font-extrabold leading-none tracking-tight ${card.color}`}>
-                {formatMoney(Math.abs(card.amount))}
+              <span className={cn(
+                "text-[36px] font-extrabold leading-none tracking-tight",
+                card.id === "net_worth" && card.amount < 0 ? "text-danger" : card.color
+              )}>
+                {card.id === "net_worth" && card.amount < 0 ? "-" : ""}{formatMoney(Math.abs(card.amount))}
               </span>
             </div>
           ))}
@@ -325,7 +328,7 @@ export default function DashboardPage() {
                 <div className="p-2 rounded-full bg-muted border border-border">{card.icon}</div>
               </div>
               <span className={`text-[36px] font-extrabold leading-none tracking-tight ${card.color}`}>
-                {formatMoney(Math.abs(card.amount))}
+                {card.id === "cash_flow" && card.amount < 0 ? "-" : ""}{formatMoney(Math.abs(card.amount))}
               </span>
             </div>
           ))}
