@@ -30,9 +30,7 @@ const ACCOUNT_TYPES = [
   { value: "CASH", label: "Cash" },
   { value: "BANK", label: "Bank Account" },
   { value: "E_WALLET", label: "E-Wallet" },
-  { value: "UPI", label: "UPI ID" },
   { value: "CREDIT_CARD", label: "Credit Card" },
-  { value: "DEBIT_CARD", label: "Debit Card" },
 ]
 
 export default function AccountsPage() {

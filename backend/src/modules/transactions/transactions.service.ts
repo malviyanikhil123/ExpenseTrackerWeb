@@ -3,6 +3,7 @@ import { ApiError } from "../../lib/api-response";
 import { accountsRepository } from "../accounts/accounts.repository";
 import { accountsService } from "../accounts/accounts.service";
 import { categoriesRepository } from "../categories/categories.repository";
+import { paymentMethodsRepository } from "../payment-methods/payment-methods.repository";
 
 import { transactionsRepository } from "./transactions.repository";
 import type {
@@ -24,6 +25,13 @@ export class TransactionsService {
         if (!account) {
             throw new ApiError(404, "Account not found.");
         }
+
+        const paymentMethod = await paymentMethodsRepository.findById(data.paymentMethodId);
+        if (!paymentMethod) {
+            throw new ApiError(404, "Payment method not found.");
+        }
+
+        this.validatePaymentMethodAccountCombo(paymentMethod.code, account.type);
 
         if (data.type === "TRANSFER") {
             if (!data.destinationAccountId) {
@@ -161,6 +169,7 @@ export class TransactionsService {
 
         // Resolve updated attributes
         const accountId = data.accountId ?? transaction.accountId;
+        const paymentMethodId = data.paymentMethodId ?? transaction.paymentMethodId;
         const type = data.type ?? transaction.type;
         const amount = data.amount ?? Number(transaction.amount);
         const categoryId = data.categoryId !== undefined ? data.categoryId : transaction.categoryId;
@@ -170,6 +179,13 @@ export class TransactionsService {
         if (!account) {
             throw new ApiError(404, "Account not found.");
         }
+
+        const paymentMethod = await paymentMethodsRepository.findById(paymentMethodId);
+        if (!paymentMethod) {
+            throw new ApiError(404, "Payment method not found.");
+        }
+
+        this.validatePaymentMethodAccountCombo(paymentMethod.code, account.type);
 
         if (type === "TRANSFER") {
             if (!destinationAccountId) {
@@ -322,6 +338,37 @@ export class TransactionsService {
             userId,
             transactionId,
         );
+    }
+
+    private validatePaymentMethodAccountCombo(paymentMethodCode: string, accountType: string) {
+        if (paymentMethodCode === "CASH") {
+            if (accountType !== "CASH") {
+                throw new ApiError(400, "Cash payment method requires a CASH account.");
+            }
+        } else if (
+            paymentMethodCode === "GOOGLE_PAY" ||
+            paymentMethodCode === "PHONEPE" ||
+            paymentMethodCode === "BHIM" ||
+            paymentMethodCode === "NET_BANKING"
+        ) {
+            if (accountType !== "BANK") {
+                throw new ApiError(400, `${paymentMethodCode.replace("_", " ")} payment method requires a BANK account.`);
+            }
+        } else if (paymentMethodCode === "DEBIT_CARD") {
+            if (accountType !== "BANK") {
+                throw new ApiError(400, "Debit Card payment method requires a BANK account.");
+            }
+        } else if (paymentMethodCode === "CREDIT_CARD") {
+            if (accountType !== "CREDIT_CARD") {
+                throw new ApiError(400, "Credit Card payment method requires a CREDIT_CARD account.");
+            }
+        } else if (paymentMethodCode === "PAYTM") {
+            if (accountType !== "E_WALLET") {
+                throw new ApiError(400, "Paytm payment method requires an E_WALLET account.");
+            }
+        } else {
+            throw new ApiError(400, "Unsupported payment method.");
+        }
     }
 }
 

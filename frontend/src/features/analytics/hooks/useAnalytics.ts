@@ -1,8 +1,8 @@
 import { useQuery } from "@tanstack/react-query"
 import { analyticsApi } from "../api/analyticsApi"
-import type { AnalyticsReport } from "../api/analyticsApi"
+import type { AnalyticsReport, AnalyticsQueryFilters } from "../api/analyticsApi"
 
-export function useAnalyticsReport(params?: { startDate?: string; endDate?: string }) {
+export function useAnalyticsReport(params?: AnalyticsQueryFilters) {
   return useQuery<AnalyticsReport>({
     queryKey: ["analytics", params],
     queryFn: () => analyticsApi.getReport(params),

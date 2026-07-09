@@ -25,9 +25,16 @@ vi.mock("../categories/categories.repository", () => ({
     },
 }));
 
+vi.mock("../payment-methods/payment-methods.repository", () => ({
+    paymentMethodsRepository: {
+        findById: vi.fn(),
+    },
+}));
+
 import { transactionsRepository } from "./transactions.repository";
 import { accountsRepository } from "../accounts/accounts.repository";
 import { categoriesRepository } from "../categories/categories.repository";
+import { paymentMethodsRepository } from "../payment-methods/payment-methods.repository";
 
 const USER_ID = "user-123";
 
@@ -43,6 +50,12 @@ describe("TransactionsService", () => {
         it("should create a transaction when account, category exist and types match", async () => {
             vi.mocked(accountsRepository.findById).mockResolvedValue({
                 id: "acc-1",
+                type: "CASH",
+            } as any);
+            vi.mocked(paymentMethodsRepository.findById).mockResolvedValue({
+                id: "pm-1",
+                code: "CASH",
+                name: "Cash",
             } as any);
             vi.mocked(categoriesRepository.findById).mockResolvedValue({
                 id: "cat-1",
@@ -56,6 +69,7 @@ describe("TransactionsService", () => {
 
             const result = await service.create(USER_ID, {
                 accountId: "acc-1",
+                paymentMethodId: "pm-1",
                 categoryId: "cat-1",
                 type: "EXPENSE",
                 amount: 50,
@@ -71,6 +85,7 @@ describe("TransactionsService", () => {
             await expect(
                 service.create(USER_ID, {
                     accountId: "nonexistent",
+                    paymentMethodId: "pm-1",
                     categoryId: "cat-1",
                     type: "EXPENSE",
                     amount: 50,
@@ -82,12 +97,19 @@ describe("TransactionsService", () => {
         it("should throw 404 if category not found", async () => {
             vi.mocked(accountsRepository.findById).mockResolvedValue({
                 id: "acc-1",
+                type: "CASH",
+            } as any);
+            vi.mocked(paymentMethodsRepository.findById).mockResolvedValue({
+                id: "pm-1",
+                code: "CASH",
+                name: "Cash",
             } as any);
             vi.mocked(categoriesRepository.findById).mockResolvedValue(null);
 
             await expect(
                 service.create(USER_ID, {
                     accountId: "acc-1",
+                    paymentMethodId: "pm-1",
                     categoryId: "nonexistent",
                     type: "EXPENSE",
                     amount: 50,
@@ -99,6 +121,12 @@ describe("TransactionsService", () => {
         it("should throw 400 if category type mismatches transaction type", async () => {
             vi.mocked(accountsRepository.findById).mockResolvedValue({
                 id: "acc-1",
+                type: "CASH",
+            } as any);
+            vi.mocked(paymentMethodsRepository.findById).mockResolvedValue({
+                id: "pm-1",
+                code: "CASH",
+                name: "Cash",
             } as any);
             vi.mocked(categoriesRepository.findById).mockResolvedValue({
                 id: "cat-1",
@@ -108,6 +136,7 @@ describe("TransactionsService", () => {
             await expect(
                 service.create(USER_ID, {
                     accountId: "acc-1",
+                    paymentMethodId: "pm-1",
                     categoryId: "cat-1",
                     type: "EXPENSE", // Mismatch with INCOME category
                     amount: 50,
@@ -141,12 +170,19 @@ describe("TransactionsService", () => {
             vi.mocked(transactionsRepository.findById).mockResolvedValue({
                 id: "txn-1",
                 accountId: "acc-1",
+                paymentMethodId: "pm-1",
                 categoryId: "cat-1",
                 type: "EXPENSE",
                 amount: "50.00",
             } as any);
             vi.mocked(accountsRepository.findById).mockResolvedValue({
                 id: "acc-1",
+                type: "CASH",
+            } as any);
+            vi.mocked(paymentMethodsRepository.findById).mockResolvedValue({
+                id: "pm-1",
+                code: "CASH",
+                name: "Cash",
             } as any);
             vi.mocked(categoriesRepository.findById).mockResolvedValue({
                 id: "cat-1",
@@ -168,11 +204,18 @@ describe("TransactionsService", () => {
             vi.mocked(transactionsRepository.findById).mockResolvedValue({
                 id: "txn-1",
                 accountId: "acc-1",
+                paymentMethodId: "pm-1",
                 categoryId: "cat-1",
                 type: "EXPENSE",
             } as any);
             vi.mocked(accountsRepository.findById).mockResolvedValue({
                 id: "acc-1",
+                type: "CASH",
+            } as any);
+            vi.mocked(paymentMethodsRepository.findById).mockResolvedValue({
+                id: "pm-1",
+                code: "CASH",
+                name: "Cash",
             } as any);
             vi.mocked(categoriesRepository.findById).mockResolvedValue({
                 id: "cat-2",
@@ -192,6 +235,7 @@ describe("TransactionsService", () => {
             vi.mocked(transactionsRepository.findById).mockResolvedValue({
                 id: "txn-1",
                 accountId: "acc-1",
+                paymentMethodId: "pm-1",
                 type: "EXPENSE",
                 amount: "50.00",
             } as any);

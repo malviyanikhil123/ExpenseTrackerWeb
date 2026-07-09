@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useLocation } from "react-router-dom"
 import { format } from "date-fns"
 import {
@@ -28,6 +28,7 @@ import {
 import { useCategoriesList, useCategoryIcons } from "../../categories/hooks/useCategories"
 import * as Icons from "lucide-react"
 import { useAccountsList } from "../../accounts/hooks/useAccounts"
+import { usePaymentMethodsList } from "../../payment-methods/hooks/usePaymentMethods"
 
 import { CustomButton } from "../../../components/buttons/CustomButton"
 import { CustomInput, CurrencyInput } from "../../../components/inputs/CustomInput"
@@ -47,6 +48,7 @@ export default function TransactionsPage() {
   const [filterType, setFilterType] = useState<"INCOME" | "EXPENSE" | undefined>(initialTypeFilter)
   const [filterAccountId, setFilterAccountId] = useState<string>("")
   const [filterCategoryId, setFilterCategoryId] = useState<string>("")
+  const [filterPaymentMethodId, setFilterPaymentMethodId] = useState<string>("")
   const [filterStartDate, setFilterStartDate] = useState("")
   const [filterEndDate, setFilterEndDate] = useState("")
 
@@ -61,6 +63,7 @@ export default function TransactionsPage() {
   const [txDesc, setTxDesc] = useState("")
   const [txAmount, setTxAmount] = useState("")
   const [txType, setTxType] = useState<"INCOME" | "EXPENSE" | "TRANSFER">("EXPENSE")
+  const [txPaymentMethodId, setTxPaymentMethodId] = useState("")
   const [txAccountId, setTxAccountId] = useState("")
   const [txCategoryId, setTxCategoryId] = useState("")
   const [txDestinationAccountId, setTxDestinationAccountId] = useState("")
@@ -74,17 +77,53 @@ export default function TransactionsPage() {
   const { data: categories = [] } = useCategoriesList()
   const { data: accounts = [] } = useAccountsList()
   const { data: icons = [] } = useCategoryIcons()
+  const { data: paymentMethods = [] } = usePaymentMethodsList()
 
   const renderCategoryIcon = (iconName: string, color?: string) => {
     const IconComp = (Icons as any)[iconName]
     if (!IconComp) return <Icons.FolderOpen className="size-4" style={{ color }} />
     return <IconComp className="size-4" style={{ color }} />
   }
+
+  const getFilteredAccounts = (pmCode: string) => {
+    if (pmCode === "CASH") {
+      return accounts.filter((a) => a.type === "CASH" && !a.isArchived)
+    }
+    if (
+      pmCode === "GOOGLE_PAY" ||
+      pmCode === "PHONEPE" ||
+      pmCode === "BHIM" ||
+      pmCode === "NET_BANKING" ||
+      pmCode === "DEBIT_CARD"
+    ) {
+      return accounts.filter((a) => a.type === "BANK" && !a.isArchived)
+    }
+    if (pmCode === "CREDIT_CARD") {
+      return accounts.filter((a) => a.type === "CREDIT_CARD" && !a.isArchived)
+    }
+    if (pmCode === "PAYTM") {
+      return accounts.filter((a) => a.type === "E_WALLET" && !a.isArchived)
+    }
+    return accounts.filter((a) => !a.isArchived)
+  }
+
+  // Dynamic Account Auto-Selection Effect
+  useEffect(() => {
+    if (!txPaymentMethodId) return
+    const selectedPm = paymentMethods.find((p) => p.id === txPaymentMethodId)
+    if (!selectedPm) return
+    const filtered = getFilteredAccounts(selectedPm.code)
+    const isValid = filtered.some((a) => a.id === txAccountId)
+    if (!isValid && filtered.length > 0) {
+      setTxAccountId(filtered[0].id)
+    }
+  }, [txPaymentMethodId, paymentMethods, accounts])
   
   const queryFilters = {
     type: filterType,
     accountId: filterAccountId || undefined,
     categoryId: filterCategoryId || undefined,
+    paymentMethodId: filterPaymentMethodId || undefined,
     startDate: filterStartDate ? new Date(filterStartDate).toISOString() : undefined,
     endDate: filterEndDate ? new Date(filterEndDate).toISOString() : undefined,
   }
@@ -121,7 +160,10 @@ export default function TransactionsPage() {
     setTxDesc("")
     setTxAmount("")
     setTxType("EXPENSE")
-    setTxAccountId(accounts.find((a) => a.isDefault)?.id || accounts[0]?.id || "")
+    const defaultPm = paymentMethods.find((pm) => pm.code === "CASH") || paymentMethods[0]
+    setTxPaymentMethodId(defaultPm?.id || "")
+    const filteredAccs = defaultPm ? getFilteredAccounts(defaultPm.code) : accounts
+    setTxAccountId(filteredAccs.find((a) => a.isDefault)?.id || filteredAccs[0]?.id || "")
     setTxCategoryId(categories.filter((c) => c.type === "EXPENSE")[0]?.id || categories[0]?.id || "")
     setTxDestinationAccountId("")
     setTxDate(new Date().toISOString().split("T")[0])
@@ -133,6 +175,7 @@ export default function TransactionsPage() {
     setTxDesc(tx.note || "")
     setTxAmount(String(tx.amount))
     setTxType(tx.type)
+    setTxPaymentMethodId(tx.paymentMethodId)
     setTxAccountId(tx.accountId)
     setTxCategoryId(tx.categoryId || "")
     setTxDestinationAccountId(tx.destinationAccountId || "")
@@ -148,6 +191,10 @@ export default function TransactionsPage() {
   const handleCreate = () => {
     if (!txAmount || Number(txAmount) <= 0) {
       toast.error("Please enter a valid amount greater than 0.")
+      return
+    }
+    if (!txPaymentMethodId) {
+      toast.error("Please select a Payment Method.")
       return
     }
     if (!txAccountId) {
@@ -168,6 +215,7 @@ export default function TransactionsPage() {
         note: txDesc.trim() || undefined,
         amount: Number(txAmount),
         type: txType,
+        paymentMethodId: txPaymentMethodId,
         accountId: txAccountId,
         categoryId: txType !== "TRANSFER" ? txCategoryId : undefined,
         destinationAccountId: txType === "TRANSFER" ? txDestinationAccountId : undefined,
@@ -182,6 +230,10 @@ export default function TransactionsPage() {
   const handleEdit = () => {
     if (!txAmount || Number(txAmount) <= 0) {
       toast.error("Please enter a valid amount.")
+      return
+    }
+    if (!txPaymentMethodId) {
+      toast.error("Please select a Payment Method.")
       return
     }
     if (txType !== "TRANSFER" && !txCategoryId) {
@@ -200,6 +252,7 @@ export default function TransactionsPage() {
           note: txDesc.trim() || undefined,
           amount: Number(txAmount),
           type: txType,
+          paymentMethodId: txPaymentMethodId,
           accountId: txAccountId,
           categoryId: txType !== "TRANSFER" ? txCategoryId : null,
           destinationAccountId: txType === "TRANSFER" ? txDestinationAccountId : null,
@@ -293,7 +346,7 @@ export default function TransactionsPage() {
             >
               <SlidersHorizontal className="size-3.5 text-muted-foreground" />
               Filters
-              {(filterType || filterAccountId || filterCategoryId || filterStartDate || filterEndDate) && (
+              {(filterType || filterAccountId || filterCategoryId || filterPaymentMethodId || filterStartDate || filterEndDate) && (
                 <div className="size-2 rounded-full bg-primary" />
               )}
             </CustomButton>
@@ -301,7 +354,7 @@ export default function TransactionsPage() {
         </div>
 
         {/* Filter Chips list */}
-        {(filterType || filterAccountId || filterCategoryId || filterStartDate || filterEndDate) && (
+        {(filterType || filterAccountId || filterCategoryId || filterPaymentMethodId || filterStartDate || filterEndDate) && (
           <div className="flex flex-wrap gap-2 items-center -mt-2">
             <span className="text-2xs font-semibold text-gray-400 uppercase tracking-wider">Active:</span>
             {filterType && (
@@ -314,6 +367,12 @@ export default function TransactionsPage() {
               <Badge variant="info" className="gap-1">
                 Account: {getAccountName(filterAccountId)}
                 <X className="size-3 cursor-pointer" onClick={() => setFilterAccountId("")} />
+              </Badge>
+            )}
+            {filterPaymentMethodId && (
+              <Badge variant="info" className="gap-1">
+                Payment Method: {paymentMethods.find((p) => p.id === filterPaymentMethodId)?.name || "Unknown"}
+                <X className="size-3 cursor-pointer" onClick={() => setFilterPaymentMethodId("")} />
               </Badge>
             )}
             {filterCategoryId && (
@@ -358,6 +417,7 @@ export default function TransactionsPage() {
                   <th className="py-4 px-6">Date</th>
                   <th className="py-4 px-6">Description</th>
                   <th className="py-4 px-6">Category</th>
+                  <th className="py-4 px-6">Payment Method</th>
                   <th className="py-4 px-6">Account</th>
                   <th className="py-4 px-6">Type</th>
                   <th className="py-4 px-6 text-right">Amount</th>
@@ -374,6 +434,7 @@ export default function TransactionsPage() {
                     <td className="py-3.5 px-6">
                       {tx.type === "TRANSFER" ? `Transfer → ${getAccountName(tx.destinationAccountId || "")}` : getCategoryName(tx.categoryId || "")}
                     </td>
+                    <td className="py-3.5 px-6 font-medium text-foreground">{tx.paymentMethod?.name || "Cash"}</td>
                     <td className="py-3.5 px-6">{getAccountName(tx.accountId)}</td>
                     <td className="py-3.5 px-6">
                       <span className={cn(
@@ -429,8 +490,8 @@ export default function TransactionsPage() {
                     <span className="text-sm font-semibold text-foreground">{tx.note || "Transaction"}</span>
                     <span className="text-2xs font-semibold text-muted-foreground uppercase tracking-wide mt-0.5">
                       {tx.type === "TRANSFER"
-                        ? `Transfer → ${getAccountName(tx.destinationAccountId || "")}`
-                        : `${getCategoryName(tx.categoryId || "")} • ${getAccountName(tx.accountId)}`}
+                        ? `Transfer → ${getAccountName(tx.destinationAccountId || "")} via ${tx.paymentMethod?.name || "Cash"}`
+                        : `${getCategoryName(tx.categoryId || "")} • ${getAccountName(tx.accountId)} (${tx.paymentMethod?.name || "Cash"})`}
                     </span>
                   </div>
                   <span className={cn(
@@ -519,6 +580,16 @@ export default function TransactionsPage() {
             options={[
               { value: "", label: "All Accounts" },
               ...accounts.map((a) => ({ value: a.id, label: a.name })),
+            ]}
+          />
+
+          <CustomSelect
+            label="Payment Method"
+            value={filterPaymentMethodId}
+            onChange={setFilterPaymentMethodId}
+            options={[
+              { value: "", label: "All Payment Methods" },
+              ...paymentMethods.map((pm) => ({ value: pm.id, label: pm.name })),
             ]}
           />
 
@@ -627,12 +698,25 @@ export default function TransactionsPage() {
 
           <div className="grid grid-cols-2 gap-3 text-foreground">
             <CustomSelect
+              label="Payment Method"
+              value={txPaymentMethodId}
+              onChange={setTxPaymentMethodId}
+              options={paymentMethods.map((pm) => ({ value: pm.id, label: pm.name }))}
+            />
+
+            <CustomSelect
               label={txType === "TRANSFER" ? "Source Account" : "Bank Account"}
               value={txAccountId}
               onChange={setTxAccountId}
-              options={accounts.filter(a => !a.isArchived).map((a) => ({ value: a.id, label: a.name }))}
+              options={(() => {
+                const pm = paymentMethods.find((p) => p.id === txPaymentMethodId)
+                const list = pm ? getFilteredAccounts(pm.code) : accounts.filter((a) => !a.isArchived)
+                return list.map((a) => ({ value: a.id, label: a.name }))
+              })()}
             />
+          </div>
 
+          <div className="grid grid-cols-2 gap-3 text-foreground">
             {txType === "TRANSFER" ? (
               <CustomSelect
                 label="Destination Account"
@@ -659,13 +743,13 @@ export default function TransactionsPage() {
                 })}
               />
             )}
-          </div>
 
-          <CustomDatePicker
-            label="Transaction Date"
-            value={txDate}
-            onChange={setTxDate}
-          />
+            <CustomDatePicker
+              label="Transaction Date"
+              value={txDate}
+              onChange={setTxDate}
+            />
+          </div>
 
           <CustomInput
             label="Description Note (Optional)"
@@ -747,12 +831,30 @@ export default function TransactionsPage() {
 
           <div className="grid grid-cols-2 gap-3 text-foreground">
             <CustomSelect
+              label="Payment Method"
+              value={txPaymentMethodId}
+              onChange={setTxPaymentMethodId}
+              options={paymentMethods.map((pm) => ({ value: pm.id, label: pm.name }))}
+            />
+
+            <CustomSelect
               label={txType === "TRANSFER" ? "Source Account" : "Bank Account"}
               value={txAccountId}
               onChange={setTxAccountId}
-              options={accounts.filter(a => !a.isArchived || a.id === selectedTx?.accountId).map((a) => ({ value: a.id, label: a.name }))}
+              options={(() => {
+                const pm = paymentMethods.find((p) => p.id === txPaymentMethodId)
+                const list = pm ? getFilteredAccounts(pm.code) : accounts.filter((a) => !a.isArchived)
+                // include currently selected account even if archived just in case
+                if (selectedTx && !list.some((a) => a.id === selectedTx.accountId)) {
+                  const accObj = accounts.find((a) => a.id === selectedTx.accountId)
+                  if (accObj) list.push(accObj)
+                }
+                return list.map((a) => ({ value: a.id, label: a.name }))
+              })()}
             />
+          </div>
 
+          <div className="grid grid-cols-2 gap-3 text-foreground">
             {txType === "TRANSFER" ? (
               <CustomSelect
                 label="Destination Account"
@@ -779,13 +881,13 @@ export default function TransactionsPage() {
                 })}
               />
             )}
-          </div>
 
-          <CustomDatePicker
-            label="Transaction Date"
-            value={txDate}
-            onChange={setTxDate}
-          />
+            <CustomDatePicker
+              label="Transaction Date"
+              value={txDate}
+              onChange={setTxDate}
+            />
+          </div>
 
           <CustomInput
             label="Description Note (Optional)"

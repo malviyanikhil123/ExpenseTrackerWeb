@@ -11,6 +11,7 @@ import { users } from "../schema/users";
 import { categoryGroups } from "../schema/categoryGroups";
 import { categoryIcons } from "../schema/categoryIcons";
 import { categories } from "../schema/categories";
+import { paymentMethods } from "../schema/paymentMethods";
 
 const SEED_USER_EMAIL = "seed@expensetracker.local";
 const SEED_USER_PASSWORD = "Password123!";
@@ -47,6 +48,24 @@ async function seed() {
     if (!seedUser) {
         throw new Error("Unable to create or load the seed user.");
     }
+
+    // Seed Payment Methods
+    const paymentMethodsData = [
+        { name: "Cash", code: "CASH", icon: "Wallet", isActive: true },
+        { name: "Google Pay", code: "GOOGLE_PAY", icon: "Smartphone", isActive: true },
+        { name: "PhonePe", code: "PHONEPE", icon: "Smartphone", isActive: true },
+        { name: "Paytm", code: "PAYTM", icon: "Smartphone", isActive: true },
+        { name: "BHIM", code: "BHIM", icon: "Smartphone", isActive: true },
+        { name: "Debit Card", code: "DEBIT_CARD", icon: "CreditCard", isActive: true },
+        { name: "Credit Card", code: "CREDIT_CARD", icon: "CreditCard", isActive: true },
+        { name: "Net Banking", code: "NET_BANKING", icon: "Globe", isActive: true }
+    ];
+
+    await db.insert(paymentMethods)
+        .values(paymentMethodsData)
+        .onConflictDoNothing();
+
+    console.log("✅ Payment Methods Seeded");
 
     // Seed Category Groups
     const groupsSeedData = await seedCategoryGroups();

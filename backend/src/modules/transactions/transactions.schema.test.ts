@@ -10,6 +10,7 @@ describe("createTransactionSchema", () => {
     it("should validate a correct create transaction payload", () => {
         const data = {
             accountId: "550e8400-e29b-41d4-a716-446655440000",
+            paymentMethodId: "770e8400-e29b-41d4-a716-446655440000",
             categoryId: "660e8400-e29b-41d4-a716-446655440000",
             type: "EXPENSE" as const,
             amount: 50.5,
@@ -24,6 +25,7 @@ describe("createTransactionSchema", () => {
     it("should accept optional fields", () => {
         const data = {
             accountId: "550e8400-e29b-41d4-a716-446655440000",
+            paymentMethodId: "770e8400-e29b-41d4-a716-446655440000",
             categoryId: "660e8400-e29b-41d4-a716-446655440000",
             type: "INCOME" as const,
             amount: 1000,
@@ -40,6 +42,7 @@ describe("createTransactionSchema", () => {
         expect(() =>
             createTransactionSchema.parse({
                 accountId: "550e8400-e29b-41d4-a716-446655440000",
+                paymentMethodId: "770e8400-e29b-41d4-a716-446655440000",
                 categoryId: "660e8400-e29b-41d4-a716-446655440000",
                 type: "EXPENSE",
                 amount: 0,
@@ -52,6 +55,7 @@ describe("createTransactionSchema", () => {
         expect(() =>
             createTransactionSchema.parse({
                 accountId: "550e8400-e29b-41d4-a716-446655440000",
+                paymentMethodId: "770e8400-e29b-41d4-a716-446655440000",
                 categoryId: "660e8400-e29b-41d4-a716-446655440000",
                 type: "EXPENSE",
                 amount: -10,
@@ -64,6 +68,7 @@ describe("createTransactionSchema", () => {
         expect(() =>
             createTransactionSchema.parse({
                 accountId: "not-uuid",
+                paymentMethodId: "770e8400-e29b-41d4-a716-446655440000",
                 categoryId: "660e8400-e29b-41d4-a716-446655440000",
                 type: "EXPENSE",
                 amount: 50,
@@ -76,6 +81,7 @@ describe("createTransactionSchema", () => {
         expect(() =>
             createTransactionSchema.parse({
                 accountId: "550e8400-e29b-41d4-a716-446655440000",
+                paymentMethodId: "770e8400-e29b-41d4-a716-446655440000",
                 categoryId: "660e8400-e29b-41d4-a716-446655440000",
                 type: "INVALID",
                 amount: 50,
@@ -88,6 +94,7 @@ describe("createTransactionSchema", () => {
         expect(() =>
             createTransactionSchema.parse({
                 accountId: "550e8400-e29b-41d4-a716-446655440000",
+                paymentMethodId: "770e8400-e29b-41d4-a716-446655440000",
                 categoryId: "660e8400-e29b-41d4-a716-446655440000",
                 type: "EXPENSE",
                 amount: 50,
@@ -101,6 +108,7 @@ describe("createTransactionSchema", () => {
         expect(() =>
             createTransactionSchema.parse({
                 accountId: "550e8400-e29b-41d4-a716-446655440000",
+                paymentMethodId: "770e8400-e29b-41d4-a716-446655440000",
                 categoryId: "660e8400-e29b-41d4-a716-446655440000",
                 type: "EXPENSE",
                 amount: 50,

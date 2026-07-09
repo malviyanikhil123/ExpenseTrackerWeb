@@ -11,6 +11,7 @@ import { users } from "./users";
 import { accounts } from "./accounts";
 import { categories } from "./categories";
 import { transactionTypeEnum } from "./enums";
+import { paymentMethods } from "./paymentMethods";
 
 export const transactions = pgTable(
     "transactions",
@@ -27,6 +28,13 @@ export const transactions = pgTable(
         accountId: uuid("account_id")
             .notNull()
             .references(() => accounts.id, {
+                onDelete: "restrict",
+                onUpdate: "cascade",
+            }),
+
+        paymentMethodId: uuid("payment_method_id")
+            .notNull()
+            .references(() => paymentMethods.id, {
                 onDelete: "restrict",
                 onUpdate: "cascade",
             }),
@@ -82,6 +90,8 @@ export const transactions = pgTable(
         index("transactions_user_id_idx").on(table.userId),
 
         index("transactions_account_id_idx").on(table.accountId),
+
+        index("transactions_payment_method_id_idx").on(table.paymentMethodId),
 
         index("transactions_category_id_idx").on(table.categoryId),
 

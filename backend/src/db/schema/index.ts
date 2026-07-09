@@ -9,3 +9,4 @@ export * from "./repayments";
 export * from "./refreshTokens";
 export * from "./userSettings";
 export * from "./enums";
+export * from "./paymentMethods";

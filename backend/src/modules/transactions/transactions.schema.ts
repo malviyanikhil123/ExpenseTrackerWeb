@@ -9,6 +9,8 @@ export const transactionTypeSchema = z.enum([
 export const createTransactionSchema = z.object({
     accountId: z.string().uuid("Invalid account id."),
 
+    paymentMethodId: z.string().uuid("Invalid payment method id."),
+
     categoryId: z.string().uuid("Invalid category id.").optional().nullable(),
 
     destinationAccountId: z.string().uuid("Invalid destination account id.").optional().nullable(),
@@ -67,6 +69,7 @@ export const createTransactionSchema = z.object({
 
 export const updateTransactionSchema = z.object({
     accountId: z.string().uuid("Invalid account id.").optional(),
+    paymentMethodId: z.string().uuid("Invalid payment method id.").optional(),
     categoryId: z.string().uuid("Invalid category id.").optional().nullable(),
     destinationAccountId: z.string().uuid("Invalid destination account id.").optional().nullable(),
     type: transactionTypeSchema.optional(),
@@ -86,6 +89,8 @@ export const transactionQuerySchema = z.object({
     accountId: z.string().uuid().optional(),
 
     categoryId: z.string().uuid().optional(),
+
+    paymentMethodId: z.string().uuid().optional(),
 
     startDate: z.coerce.date().optional(),
 

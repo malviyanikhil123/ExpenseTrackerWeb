@@ -21,6 +21,7 @@ export class AnalyticsService {
             categoryBreakdown,
             monthlyTrend,
             activeAccounts,
+            paymentMethodBreakdown,
         ] = await Promise.all([
             transactionsRepository.getIncomeVsExpense(
                 userId,
@@ -37,6 +38,10 @@ export class AnalyticsService {
             accountsService.findAll(
                 userId,
                 { archived: false },
+            ),
+            transactionsRepository.getExpenseByPaymentMethod(
+                userId,
+                resolvedQuery,
             ),
         ]);
 
@@ -58,6 +63,7 @@ export class AnalyticsService {
             monthlyTrend,
             categoryBreakdown,
             accountBreakdown,
+            paymentMethodBreakdown,
         };
     }
 

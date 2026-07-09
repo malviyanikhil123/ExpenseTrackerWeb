@@ -11,6 +11,8 @@ import {
 import { db } from "../../db";
 import { transactions } from "../../db/schema/transactions";
 import { categories } from "../../db/schema/categories";
+import { accounts } from "../../db/schema/accounts";
+import { paymentMethods } from "../../db/schema/paymentMethods";
 
 import type {
     CreateTransactionInput,
@@ -28,6 +30,7 @@ export class TransactionsRepository {
             .values({
                 userId,
                 accountId: data.accountId,
+                paymentMethodId: data.paymentMethodId,
                 categoryId: data.categoryId ?? null,
                 destinationAccountId: data.destinationAccountId ?? null,
                 type: data.type,
@@ -45,9 +48,15 @@ export class TransactionsRepository {
         userId: string,
         transactionId: string,
     ) {
-        const [transaction] = await db
-            .select()
+        const [row] = await db
+            .select({
+                transaction: transactions,
+                account: accounts,
+                paymentMethod: paymentMethods,
+            })
             .from(transactions)
+            .innerJoin(accounts, eq(transactions.accountId, accounts.id))
+            .innerJoin(paymentMethods, eq(transactions.paymentMethodId, paymentMethods.id))
             .where(
                 and(
                     eq(transactions.id, transactionId),
@@ -57,16 +66,28 @@ export class TransactionsRepository {
             )
             .limit(1);
 
-        return transaction ?? null;
+        if (!row) return null;
+
+        return {
+            ...row.transaction,
+            account: row.account,
+            paymentMethod: row.paymentMethod,
+        };
     }
 
     async findAll(
         userId: string,
         query: TransactionQueryInput,
     ) {
-        return db
-            .select()
+        const rows = await db
+            .select({
+                transaction: transactions,
+                account: accounts,
+                paymentMethod: paymentMethods,
+            })
             .from(transactions)
+            .innerJoin(accounts, eq(transactions.accountId, accounts.id))
+            .innerJoin(paymentMethods, eq(transactions.paymentMethodId, paymentMethods.id))
             .where(
                 and(
                     eq(transactions.userId, userId),
@@ -83,6 +104,9 @@ export class TransactionsRepository {
                             query.categoryId,
                         )
                         : undefined,
+                    query.paymentMethodId
+                        ? eq(transactions.paymentMethodId, query.paymentMethodId)
+                        : undefined,
                     query.startDate
                         ? gte(
                             transactions.transactionDate,
@@ -98,6 +122,12 @@ export class TransactionsRepository {
                 ),
             )
             .orderBy(desc(transactions.transactionDate));
+
+        return rows.map(r => ({
+            ...r.transaction,
+            account: r.account,
+            paymentMethod: r.paymentMethod,
+        }));
     }
 
     async update(
@@ -110,6 +140,9 @@ export class TransactionsRepository {
             .set({
                 ...(data.accountId && {
                     accountId: data.accountId,
+                }),
+                ...(data.paymentMethodId && {
+                    paymentMethodId: data.paymentMethodId,
                 }),
                 ...(data.categoryId !== undefined && {
                     categoryId: data.categoryId,
@@ -168,16 +201,29 @@ export class TransactionsRepository {
         return transaction ?? null;
     }
 
-    async getTotalIncome(userId: string, query: any) {
+    private getCommonFilters(userId: string, query: any) {
         const filters = [eq(transactions.userId, userId), isNull(transactions.deletedAt)];
 
         if (query.startDate) {
             filters.push(gte(transactions.transactionDate, query.startDate));
         }
-
         if (query.endDate) {
             filters.push(lte(transactions.transactionDate, query.endDate));
         }
+        if (query.accountId) {
+            filters.push(eq(transactions.accountId, query.accountId));
+        }
+        if (query.categoryId) {
+            filters.push(eq(transactions.categoryId, query.categoryId));
+        }
+        if (query.paymentMethodId) {
+            filters.push(eq(transactions.paymentMethodId, query.paymentMethodId));
+        }
+        return filters;
+    }
+
+    async getTotalIncome(userId: string, query: any) {
+        const filters = this.getCommonFilters(userId, query);
 
         const rows = await db
             .select({ amount: transactions.amount })
@@ -188,15 +234,7 @@ export class TransactionsRepository {
     }
 
     async getTotalExpense(userId: string, query: any) {
-        const filters = [eq(transactions.userId, userId), isNull(transactions.deletedAt)];
-
-        if (query.startDate) {
-            filters.push(gte(transactions.transactionDate, query.startDate));
-        }
-
-        if (query.endDate) {
-            filters.push(lte(transactions.transactionDate, query.endDate));
-        }
+        const filters = this.getCommonFilters(userId, query);
 
         const rows = await db
             .select({ amount: transactions.amount })
@@ -219,17 +257,12 @@ export class TransactionsRepository {
         // Simple implementation: return empty summary if no date range provided
         if (!query.startDate || !query.endDate) return [];
 
+        const filters = this.getCommonFilters(userId, query);
+
         const rows = await db
             .select({ amount: transactions.amount, date: transactions.transactionDate })
             .from(transactions)
-            .where(
-                and(
-                    eq(transactions.userId, userId),
-                    isNull(transactions.deletedAt),
-                    gte(transactions.transactionDate, query.startDate),
-                    lte(transactions.transactionDate, query.endDate),
-                ),
-            );
+            .where(and(...filters));
 
         const map: Record<string, number> = {};
 
@@ -249,9 +282,8 @@ export class TransactionsRepository {
     }
 
     async getIncomeByCategory(userId: string, query: any) {
-        const filters = [eq(transactions.userId, userId), isNull(transactions.deletedAt), eq(transactions.type, "INCOME")];
-        if (query.startDate) filters.push(gte(transactions.transactionDate, query.startDate));
-        if (query.endDate) filters.push(lte(transactions.transactionDate, query.endDate));
+        const filters = this.getCommonFilters(userId, query);
+        filters.push(eq(transactions.type, "INCOME"));
 
         const rows = await db
             .select({ categoryId: transactions.categoryId, amount: transactions.amount })
@@ -268,9 +300,8 @@ export class TransactionsRepository {
     }
 
     async getExpenseByCategory(userId: string, query: any) {
-        const filters = [eq(transactions.userId, userId), isNull(transactions.deletedAt), eq(transactions.type, "EXPENSE")];
-        if (query.startDate) filters.push(gte(transactions.transactionDate, query.startDate));
-        if (query.endDate) filters.push(lte(transactions.transactionDate, query.endDate));
+        const filters = this.getCommonFilters(userId, query);
+        filters.push(eq(transactions.type, "EXPENSE"));
 
         const rows = await db
             .select({
@@ -299,9 +330,7 @@ export class TransactionsRepository {
     }
 
     async getMonthlyTrend(userId: string, query: any) {
-        const filters = [eq(transactions.userId, userId), isNull(transactions.deletedAt)];
-        if (query.startDate) filters.push(gte(transactions.transactionDate, query.startDate));
-        if (query.endDate) filters.push(lte(transactions.transactionDate, query.endDate));
+        const filters = this.getCommonFilters(userId, query);
 
         const rows = await db
             .select({
@@ -332,6 +361,40 @@ export class TransactionsRepository {
             month,
             income: data.income,
             expense: data.expense,
+        }));
+    }
+
+    async getExpenseByPaymentMethod(userId: string, query: any) {
+        const filters = this.getCommonFilters(userId, query);
+        filters.push(eq(transactions.type, "EXPENSE"));
+
+        const rows = await db
+            .select({
+                paymentMethodId: transactions.paymentMethodId,
+                paymentMethodName: paymentMethods.name,
+                paymentMethodCode: paymentMethods.code,
+                amount: transactions.amount,
+            })
+            .from(transactions)
+            .leftJoin(paymentMethods, eq(transactions.paymentMethodId, paymentMethods.id))
+            .where(and(...filters));
+
+        const map: Record<string, { name: string; code: string; amount: number }> = {};
+        for (const r of rows) {
+            const id = r.paymentMethodId ? String(r.paymentMethodId) : "unknown";
+            const name = r.paymentMethodName || "Unknown";
+            const code = r.paymentMethodCode || "UNKNOWN";
+            if (!map[id]) {
+                map[id] = { name, code, amount: 0 };
+            }
+            map[id].amount += Number(r.amount ?? 0);
+        }
+
+        return Object.entries(map).map(([paymentMethodId, val]) => ({
+            paymentMethodId,
+            paymentMethodName: val.name,
+            paymentMethodCode: val.code,
+            amount: val.amount,
         }));
     }
 }

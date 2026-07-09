@@ -3,6 +3,7 @@ import { api } from "../../../lib/api"
 export interface Transaction {
   id: string
   accountId: string
+  paymentMethodId: string
   categoryId?: string | null
   type: "INCOME" | "EXPENSE" | "TRANSFER"
   amount: number
@@ -12,12 +13,24 @@ export interface Transaction {
   destinationAccountId?: string | null
   createdAt: string
   updatedAt: string
+  paymentMethod?: {
+    id: string
+    name: string
+    code: string
+    icon?: string
+  }
+  account?: {
+    id: string
+    name: string
+    type: string
+  }
 }
 
 export interface TransactionsQueryFilters {
   type?: "INCOME" | "EXPENSE" | "TRANSFER"
   accountId?: string
   categoryId?: string
+  paymentMethodId?: string
   startDate?: string
   endDate?: string
 }
@@ -30,6 +43,7 @@ export const transactionsApi = {
 
   create: async (data: {
     accountId: string
+    paymentMethodId: string
     categoryId?: string
     type: "INCOME" | "EXPENSE" | "TRANSFER"
     amount: number
@@ -44,6 +58,7 @@ export const transactionsApi = {
 
   update: async (id: string, data: Partial<{
     accountId: string
+    paymentMethodId: string
     categoryId?: string
     type: "INCOME" | "EXPENSE" | "TRANSFER"
     amount: number

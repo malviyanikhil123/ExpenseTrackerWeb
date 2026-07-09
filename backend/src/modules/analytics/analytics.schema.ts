@@ -14,6 +14,12 @@ export const analyticsQuerySchema = z
         startDate: z.coerce.date().optional(),
 
         endDate: z.coerce.date().optional(),
+
+        accountId: z.string().uuid().optional(),
+
+        categoryId: z.string().uuid().optional(),
+
+        paymentMethodId: z.string().uuid().optional(),
     })
     .superRefine((data, ctx) => {
         if (data.period === "CUSTOM") {

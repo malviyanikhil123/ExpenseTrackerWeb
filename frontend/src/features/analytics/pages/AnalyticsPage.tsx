@@ -1,5 +1,15 @@
 import { useState } from "react"
-import { AlertCircle, Calendar, FolderOpen, TrendingUp, ArrowUpRight, ArrowDownLeft, Wallet, PiggyBank, PieChart as PieIcon, BarChart3, LineChart as LineIcon } from "lucide-react"
+import {
+  AlertCircle,
+  FolderOpen,
+  ArrowUpRight,
+  ArrowDownLeft,
+  Wallet,
+  PiggyBank,
+  PieChart as PieIcon,
+  BarChart3,
+  LineChart as LineIcon,
+} from "lucide-react"
 import {
   ResponsiveContainer,
   AreaChart,
@@ -20,6 +30,10 @@ import { useAnalyticsReport } from "../hooks/useAnalytics"
 import { CustomButton } from "../../../components/buttons/CustomButton"
 import { useCurrency } from "../../../hooks/useCurrency"
 import { CustomDatePicker } from "../../../components/inputs/CustomDatePicker"
+import { CustomSelect } from "../../../components/inputs/CustomSelect"
+import { useAccountsList } from "../../accounts/hooks/useAccounts"
+import { useCategoriesList } from "../../categories/hooks/useCategories"
+import { usePaymentMethodsList } from "../../payment-methods/hooks/usePaymentMethods"
 
 const COLOR_SCHEME = [
   "var(--chart-expenses)",
@@ -33,11 +47,22 @@ const COLOR_SCHEME = [
 export default function AnalyticsPage() {
   const [filterStartDate, setFilterStartDate] = useState("")
   const [filterEndDate, setFilterEndDate] = useState("")
+  const [filterAccountId, setFilterAccountId] = useState("")
+  const [filterCategoryId, setFilterCategoryId] = useState("")
+  const [filterPaymentMethodId, setFilterPaymentMethodId] = useState("")
+
   const { format: formatMoney } = useCurrency()
-  
+
+  const { data: accounts = [] } = useAccountsList()
+  const { data: categories = [] } = useCategoriesList()
+  const { data: paymentMethods = [] } = usePaymentMethodsList()
+
   const queryParams = {
     startDate: filterStartDate ? new Date(filterStartDate).toISOString() : undefined,
     endDate: filterEndDate ? new Date(filterEndDate).toISOString() : undefined,
+    accountId: filterAccountId || undefined,
+    categoryId: filterCategoryId || undefined,
+    paymentMethodId: filterPaymentMethodId || undefined,
   }
 
   const { data, isLoading, isError, refetch } = useAnalyticsReport(queryParams)
@@ -67,6 +92,7 @@ export default function AnalyticsPage() {
     monthlyTrend: data?.monthlyTrend ?? [],
     categoryBreakdown: data?.categoryBreakdown ?? [],
     accountBreakdown: data?.accountBreakdown ?? [],
+    paymentMethodBreakdown: data?.paymentMethodBreakdown ?? [],
   }
 
   const cards = [
@@ -131,49 +157,124 @@ export default function AnalyticsPage() {
         { name: "Robinhood", amount: 4800, color: "var(--chart-savings)" },
       ]
 
+  const pmPieData = report.paymentMethodBreakdown.length > 0
+    ? report.paymentMethodBreakdown.map((pm: any, index: number) => ({
+        name: pm.paymentMethodName,
+        value: Number(pm.amount),
+        color: COLOR_SCHEME[index % COLOR_SCHEME.length],
+      }))
+    : [
+        { name: "Cash", value: 5000, color: "var(--chart-expenses)" },
+        { name: "Google Pay", value: 15000, color: "var(--chart-income)" },
+        { name: "Credit Card", value: 12000, color: "var(--chart-savings)" },
+      ]
+
+  const pmBarData = report.paymentMethodBreakdown.length > 0
+    ? report.paymentMethodBreakdown.map((pm: any, index: number) => ({
+        name: pm.paymentMethodName,
+        amount: Number(pm.amount),
+        color: COLOR_SCHEME[index % COLOR_SCHEME.length],
+      }))
+    : [
+        { name: "Cash", amount: 5000, color: "var(--chart-expenses)" },
+        { name: "Google Pay", amount: 15000, color: "var(--chart-income)" },
+        { name: "Credit Card", amount: 12000, color: "var(--chart-savings)" },
+      ]
+
+  const sortedPMs = [...report.paymentMethodBreakdown].sort((a, b) => b.amount - a.amount)
+  const mostUsedPM = sortedPMs[0] ? `${sortedPMs[0].paymentMethodName} (${formatMoney(sortedPMs[0].amount)})` : "None"
+
   const hasData = report.income > 0 || report.expense > 0
 
   return (
     <div className="flex flex-col gap-6 pb-12 select-none">
       
       {/* Header (Section 76) */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-border pb-5">
-        <div className="flex flex-col gap-1.5">
-          <h1 className="text-[32px] font-bold leading-[40px] text-foreground">Analytics</h1>
-          <p className="text-[14px] font-normal text-muted-foreground">Examine monthly cash flows, visual savings trends, and allocations.</p>
+      <div className="flex flex-col gap-1.5 border-b border-border pb-5">
+        <h1 className="text-[32px] font-bold leading-[40px] text-foreground">Analytics</h1>
+        <p className="text-[14px] font-normal text-muted-foreground">Examine monthly cash flows, visual savings trends, and allocations.</p>
+      </div>
+
+      {/* Analytics Filters Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3 bg-card/50 p-4 rounded-[16px] border border-border">
+        <div className="flex flex-col gap-1 text-xs">
+          <span className="font-semibold text-muted-foreground mb-1 select-none">Start Date</span>
+          <CustomDatePicker
+            value={filterStartDate}
+            onChange={setFilterStartDate}
+            placeholder="From Date"
+          />
         </div>
 
-        {/* Date Filter Panel */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-          <div className="w-36 sm:w-40">
-            <CustomDatePicker
-              value={filterStartDate}
-              onChange={setFilterStartDate}
-              placeholder="Start Date"
-            />
-          </div>
-          <span className="text-xs font-semibold text-muted-foreground self-center hidden sm:inline">to</span>
-          <div className="w-36 sm:w-40">
-            <CustomDatePicker
-              value={filterEndDate}
-              onChange={setFilterEndDate}
-              placeholder="End Date"
-              align="right"
-            />
-          </div>
-          {(filterStartDate || filterEndDate) && (
-            <button
-              onClick={() => { setFilterStartDate(""); setFilterEndDate(""); }}
-              className="text-xs font-bold text-danger hover:underline ml-1.5"
-            >
-              Reset
-            </button>
-          )}
+        <div className="flex flex-col gap-1 text-xs">
+          <span className="font-semibold text-muted-foreground mb-1 select-none">End Date</span>
+          <CustomDatePicker
+            value={filterEndDate}
+            onChange={setFilterEndDate}
+            placeholder="To Date"
+            align="right"
+          />
+        </div>
+
+        <div className="flex flex-col gap-1 text-xs">
+          <span className="font-semibold text-muted-foreground mb-1 select-none">Account</span>
+          <CustomSelect
+            value={filterAccountId}
+            onChange={setFilterAccountId}
+            placeholder="All Accounts"
+            options={[
+              { value: "", label: "All Accounts" },
+              ...accounts.map((a) => ({ value: a.id, label: a.name })),
+            ]}
+          />
+        </div>
+
+        <div className="flex flex-col gap-1 text-xs">
+          <span className="font-semibold text-muted-foreground mb-1 select-none">Payment Method</span>
+          <CustomSelect
+            value={filterPaymentMethodId}
+            onChange={setFilterPaymentMethodId}
+            placeholder="All Methods"
+            options={[
+              { value: "", label: "All Payment Methods" },
+              ...paymentMethods.map((pm) => ({ value: pm.id, label: pm.name })),
+            ]}
+          />
+        </div>
+
+        <div className="flex flex-col gap-1 text-xs">
+          <span className="font-semibold text-muted-foreground mb-1 select-none">Category</span>
+          <CustomSelect
+            value={filterCategoryId}
+            onChange={setFilterCategoryId}
+            placeholder="All Categories"
+            options={[
+              { value: "", label: "All Categories" },
+              ...categories.map((c) => ({ value: c.id, label: c.name })),
+            ]}
+          />
         </div>
       </div>
 
+      {(filterStartDate || filterEndDate || filterAccountId || filterPaymentMethodId || filterCategoryId) && (
+        <div className="flex justify-end -mt-3">
+          <button
+            onClick={() => {
+              setFilterStartDate("")
+              setFilterEndDate("")
+              setFilterAccountId("")
+              setFilterPaymentMethodId("")
+              setFilterCategoryId("")
+            }}
+            className="text-xs font-bold text-danger hover:underline"
+          >
+            Clear All Filters
+          </button>
+        </div>
+      )}
+
       {/* Summary metrics cards (Section 76) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mt-2">
         {cards.map((card, i) => (
           <div key={i} className="bg-card border border-border rounded-[16px] p-6 shadow-card hover:-translate-y-0.5 hover:shadow-md transition-all duration-200 ease-in-out flex flex-col gap-4 text-card-foreground">
             <div className="flex justify-between items-center">
@@ -249,7 +350,7 @@ export default function AnalyticsPage() {
                         paddingAngle={3}
                         dataKey="value"
                       >
-                        {categoryPieData.map((entry, index) => (
+                        {categoryPieData.map((entry: any, index: number) => (
                           <Cell key={`cell-${index}`} fill={entry.color} />
                         ))}
                       </Pie>
@@ -258,7 +359,7 @@ export default function AnalyticsPage() {
                   </ResponsiveContainer>
                 </div>
                  <div className="flex flex-col gap-2">
-                  {categoryPieData.map((d, i) => (
+                  {categoryPieData.map((d: any, i: number) => (
                     <div key={i} className="flex items-center gap-2 text-xs text-muted-foreground">
                       <div className="size-3 rounded-full" style={{ backgroundColor: d.color }} />
                       <span className="font-semibold">{d.name} ({formatMoney(d.value)})</span>
@@ -283,12 +384,88 @@ export default function AnalyticsPage() {
                   <YAxis stroke="#9ca3af" fontSize={11} tickLine={false} axisLine={false} />
                   <Tooltip cursor={{ fill: "rgba(0,0,0,0.02)" }} />
                   <Bar dataKey="amount" radius={[8, 8, 0, 0]} maxBarSize={50}>
-                    {accountBarData.map((entry, idx) => (
+                    {accountBarData.map((entry: any, idx: number) => (
                       <Cell key={idx} fill={entry.color} />
                     ))}
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>
+            </div>
+          </div>
+
+          {/* Payment Method Usage section */}
+          <div className="col-span-1 lg:col-span-2 border-t border-border pt-8 mt-4">
+            <h2 className="text-xl font-bold text-foreground mb-1 select-none">Payment Method Usage</h2>
+            <p className="text-xs text-muted-foreground mb-6">Analyze distributions and preferences of transaction payment routes.</p>
+            
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* Payment Method Distribution Donut */}
+              <div className="bg-card border border-border rounded-[16px] p-6 shadow-card flex flex-col gap-4 text-card-foreground">
+                <div className="flex items-center gap-2 border-b border-border pb-3">
+                  <PieIcon className="size-5 text-secondary" />
+                  <h3 className="text-sm font-semibold text-foreground">Payment Method Distribution</h3>
+                </div>
+                <div className="h-[260px] w-full flex items-center justify-center">
+                  <div className="flex items-center justify-between w-full px-4">
+                    <div className="h-[200px] w-[200px]">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                          <Pie
+                            data={pmPieData}
+                            cx="50%"
+                            cy="50%"
+                            innerRadius={45}
+                            outerRadius={75}
+                            paddingAngle={3}
+                            dataKey="value"
+                          >
+                            {pmPieData.map((entry: any, index: number) => (
+                              <Cell key={`cell-${index}`} fill={entry.color} />
+                            ))}
+                          </Pie>
+                          <Tooltip />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      {pmPieData.map((d: any, i: number) => (
+                        <div key={i} className="flex items-center gap-2 text-xs text-muted-foreground">
+                          <div className="size-3 rounded-full" style={{ backgroundColor: d.color }} />
+                          <span className="font-semibold">{d.name} ({formatMoney(d.value)})</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Payment Method Breakdown Bar */}
+              <div className="bg-card border border-border rounded-[16px] p-6 shadow-card flex flex-col gap-4 text-card-foreground">
+                <div className="flex items-center justify-between border-b border-border pb-3">
+                  <div className="flex items-center gap-2">
+                    <BarChart3 className="size-5 text-secondary" />
+                    <h3 className="text-sm font-semibold text-foreground">Monthly Payment Method Breakdown</h3>
+                  </div>
+                  <div className="text-2xs font-bold text-muted-foreground bg-muted border border-border px-2.5 py-1 rounded-full">
+                    Most Used: {mostUsedPM}
+                  </div>
+                </div>
+                <div className="h-[260px] w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={pmBarData}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
+                      <XAxis dataKey="name" stroke="#9ca3af" fontSize={11} tickLine={false} />
+                      <YAxis stroke="#9ca3af" fontSize={11} tickLine={false} axisLine={false} />
+                      <Tooltip cursor={{ fill: "rgba(0,0,0,0.02)" }} />
+                      <Bar dataKey="amount" radius={[8, 8, 0, 0]} maxBarSize={50}>
+                        {pmBarData.map((entry: any, idx: number) => (
+                          <Cell key={idx} fill={entry.color} />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
             </div>
           </div>
 

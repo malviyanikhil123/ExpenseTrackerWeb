@@ -9,6 +9,7 @@ import { repaymentsRoutes } from "../modules/repayments/repayments.routes";
 import { dashboardRoutes } from "../modules/dashboard/dashboard.routes";
 import { analyticsRoutes } from "../modules/analytics/analytics.routes";
 import { profileRoutes } from "../modules/profile/profile.routes";
+import { paymentMethodsRoutes } from "../modules/payment-methods/payment-methods.routes";
 
 export async function registerRoutes(app: FastifyInstance) {
     app.register(authRoutes, {
@@ -45,5 +46,9 @@ export async function registerRoutes(app: FastifyInstance) {
 
     app.register(profileRoutes, {
         prefix: "/profile",
+    });
+
+    app.register(paymentMethodsRoutes, {
+        prefix: "/payment-methods",
     });
 }
