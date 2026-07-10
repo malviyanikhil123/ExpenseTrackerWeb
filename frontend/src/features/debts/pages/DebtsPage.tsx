@@ -97,6 +97,7 @@ export default function DebtsPage() {
     setDebtAmount(String(debt.totalAmount))
     setDebtNotes(debt.notes || "")
     setDebtDueDate(debt.dueDate ? new Date(debt.dueDate).toISOString().split("T")[0] : "")
+    setDebtAccountId(debt.accountId || "")
     setIsEditOpen(true)
   }
 
@@ -170,6 +171,7 @@ export default function DebtsPage() {
           totalAmount: Number(debtAmount),
           dueDate: debtDueDate ? new Date(debtDueDate).toISOString() : undefined,
           notes: debtNotes.trim() || undefined,
+          accountId: debtAccountId,
         },
       },
       {
@@ -484,7 +486,7 @@ export default function DebtsPage() {
           />
 
           <CustomSelect
-            label="Link Bank Account"
+            label="Associated Account (Bank / Card / Cash)"
             value={debtAccountId}
             onChange={setDebtAccountId}
             options={accounts.filter(a => !a.isArchived).map((a) => ({ value: a.id, label: a.name }))}
@@ -544,6 +546,13 @@ export default function DebtsPage() {
             placeholder="0.00"
             value={debtAmount}
             onChange={(e) => setDebtAmount(e.target.value)}
+          />
+
+          <CustomSelect
+            label="Associated Account (Bank / Card / Cash)"
+            value={debtAccountId}
+            onChange={setDebtAccountId}
+            options={accounts.filter(a => !a.isArchived).map((a) => ({ value: a.id, label: a.name }))}
           />
 
           <CustomDatePicker

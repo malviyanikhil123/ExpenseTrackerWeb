@@ -11,6 +11,7 @@ export interface Debt {
   dueDate?: string
   status: "PENDING" | "COMPLETED"
   notes?: string
+  accountId: string
   createdAt: string
   updatedAt: string
 }
@@ -59,6 +60,7 @@ export const debtsApi = {
     debtDate: string
     dueDate?: string
     notes?: string
+    accountId: string
   }>): Promise<Debt> => {
     const res = await api.patch(`/debts/${id}`, data)
     return res.data.data

@@ -228,7 +228,7 @@ export default function AccountsPage() {
 
   return (
     <div className="flex flex-col gap-6 pb-12 select-none">
-      
+
       {/* Header (Section 72) */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-border pb-5">
         <div className="flex flex-col gap-1.5">
@@ -292,7 +292,7 @@ export default function AccountsPage() {
                 <div className="flex items-center gap-1.5">
                   {acc.isDefault && <Badge variant="info">Default</Badge>}
                   {acc.isArchived && <Badge variant="default">Archived</Badge>}
-                  
+
                   <DropdownMenu
                     trigger={
                       <button
@@ -310,12 +310,12 @@ export default function AccountsPage() {
                       },
                       ...(!acc.isDefault && !acc.isArchived
                         ? [
-                            {
-                              label: "Set Default",
-                              icon: <Bookmark className="size-3.5" />,
-                              onClick: () => handleSetDefault(acc),
-                            },
-                          ]
+                          {
+                            label: "Set Default",
+                            icon: <Bookmark className="size-3.5" />,
+                            onClick: () => handleSetDefault(acc),
+                          },
+                        ]
                         : []),
                       {
                         label: acc.isArchived ? "Unarchive" : "Archive",

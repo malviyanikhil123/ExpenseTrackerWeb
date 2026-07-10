@@ -101,7 +101,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
 
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-background text-foreground font-sans">
-      
+
       {/* 1. Sidebar - Fixed on Desktop & Tablet (Section 21) */}
       <div className="hidden md:block select-none shrink-0 h-full">
         <Sidebar
@@ -137,10 +137,10 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
 
       {/* 3. Main Frame: Header + independent content scroller */}
       <div className="flex-1 flex flex-col min-w-0 h-full relative">
-        
+
         {/* Sticky Header (Section 23) */}
         <header className="h-[72px] border-b border-border bg-card text-card-foreground sticky top-0 z-10 px-4 md:px-6 flex items-center justify-between shrink-0">
-          
+
           <div className="flex items-center gap-3">
             {/* Mobile Hamburger toggle */}
             <button
@@ -244,7 +244,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
                                 {debt.type === "BORROW" ? "Borrowed" : "Lent"}
                               </span>
                             </div>
-                            
+
                             <p className="text-xs text-muted-foreground font-medium leading-relaxed">
                               {debt.type === "BORROW" ? (
                                 <>You borrowed <span className="font-bold text-foreground">{formattedAmount}</span></>
@@ -299,10 +299,10 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
                     <span className="text-sm font-semibold text-foreground">{userDisplayName}</span>
                     <span className="text-xs text-muted-foreground truncate">{userEmail}</span>
                   </div>
-                  
+
                   <div className="py-1">
                     <button
-                       type="button"
+                      type="button"
                       onClick={() => onNavSelect("profile")}
                       className="w-full h-10 px-4 text-left text-sm text-foreground/90 hover:bg-muted flex items-center gap-2.5"
                     >
@@ -343,3 +343,5 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
     </div>
   )
 }
+
+

@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react"
 import { Calendar, ChevronLeft, ChevronRight, X } from "lucide-react"
+import { createPortal } from "react-dom"
 import { cn } from "@/lib/utils"
 
 export interface DatePickerProps {
@@ -23,6 +24,7 @@ export const CustomDatePicker: React.FC<DatePickerProps> = ({
 }) => {
   const [isOpen, setIsOpen] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
+  const calendarRef = useRef<HTMLDivElement>(null)
 
   // Current calendar view (month and year)
   const [currentDate, setCurrentDate] = useState(() => {
@@ -44,9 +46,13 @@ export const CustomDatePicker: React.FC<DatePickerProps> = ({
   // Handle clicking outside to close popover
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setIsOpen(false)
+      if (containerRef.current && containerRef.current.contains(e.target as Node)) {
+        return
       }
+      if (calendarRef.current && calendarRef.current.contains(e.target as Node)) {
+        return
+      }
+      setIsOpen(false)
     }
     document.addEventListener("mousedown", handleClickOutside)
     return () => document.removeEventListener("mousedown", handleClickOutside)
@@ -143,69 +149,87 @@ export const CustomDatePicker: React.FC<DatePickerProps> = ({
 
       {error && <span className="text-xs text-danger font-semibold leading-none">{error}</span>}
 
-      {/* Calendar Dropdown Popover */}
-      {isOpen && (
-        <div className={cn(
-          "absolute top-[calc(100%+6px)] z-50 w-[290px] p-4 bg-[#FAF7F1] border border-border rounded-[16px] shadow-modal animate-dropdown select-none",
-          align === "right" ? "left-0 sm:left-auto sm:right-0" : "left-0"
-        )}>
-          {/* Header */}
-          <div className="flex items-center justify-between mb-4">
-            <button
-              type="button"
-              onClick={handlePrevMonth}
-              className="p-1.5 rounded-full hover:bg-muted text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
-            >
-              <ChevronLeft className="size-4" />
-            </button>
-            <span className="text-[14px] font-bold text-foreground">
-              {monthNames[month]} {year}
-            </span>
-            <button
-              type="button"
-              onClick={handleNextMonth}
-              className="p-1.5 rounded-full hover:bg-muted text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
-            >
-              <ChevronRight className="size-4" />
-            </button>
-          </div>
+      {/* Calendar Modal */}
+      {isOpen && createPortal(
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          {/* Backdrop overlay */}
+          <div
+            className="fixed inset-0 bg-[#4E220F]/30 backdrop-blur-[2px] transition-opacity duration-200"
+            onClick={() => setIsOpen(false)}
+          />
 
-          {/* Weekday Labels */}
-          <div className="grid grid-cols-7 gap-1 text-center mb-1.5 text-2xs font-semibold text-muted-foreground tracking-wider uppercase">
-            <span>Su</span>
-            <span>Mo</span>
-            <span>Tu</span>
-            <span>We</span>
-            <span>Th</span>
-            <span>Fr</span>
-            <span>Sa</span>
-          </div>
+          {/* Modal Container */}
+          <div ref={calendarRef} className="relative z-10 w-[310px] bg-[#FAF7F1] border border-border rounded-[16px] p-5 shadow-modal animate-in fade-in zoom-in-95 duration-150 select-none flex flex-col gap-4 text-foreground">
+            {/* Header */}
+            <div className="flex items-center justify-between">
+              <button
+                type="button"
+                onClick={handlePrevMonth}
+                className="p-1.5 rounded-full hover:bg-muted text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+              >
+                <ChevronLeft className="size-4" />
+              </button>
+              <span className="text-[15px] font-bold text-foreground">
+                {monthNames[month]} {year}
+              </span>
+              <button
+                type="button"
+                onClick={handleNextMonth}
+                className="p-1.5 rounded-full hover:bg-muted text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+              >
+                <ChevronRight className="size-4" />
+              </button>
+            </div>
 
-          {/* Days Grid */}
-          <div className="grid grid-cols-7 gap-1 text-center">
-            {calendarCells.map((day, idx) => {
-              if (day === null) {
-                return <div key={`empty-${idx}`} />
-              }
-              return (
-                <button
-                  key={`day-${day}`}
-                  type="button"
-                  onClick={() => handleSelectDay(day)}
-                  className={cn(
-                    "h-8 w-8 text-xs font-semibold rounded-full flex items-center justify-center transition-colors cursor-pointer outline-none",
-                    isToday(day) && "text-primary border border-primary/30",
-                    isSelected(day)
-                      ? "bg-primary text-primary-foreground hover:bg-primary"
-                      : "text-foreground hover:bg-muted",
-                  )}
-                >
-                  {day}
-                </button>
-              )
-            })}
+            {/* Weekday Labels */}
+            <div className="grid grid-cols-7 gap-1 text-center text-2xs font-semibold text-muted-foreground tracking-wider uppercase">
+              <span>Su</span>
+              <span>Mo</span>
+              <span>Tu</span>
+              <span>We</span>
+              <span>Th</span>
+              <span>Fr</span>
+              <span>Sa</span>
+            </div>
+
+            {/* Days Grid */}
+            <div className="grid grid-cols-7 gap-1 text-center">
+              {calendarCells.map((day, idx) => {
+                if (day === null) {
+                  return <div key={`empty-${idx}`} />
+                }
+                return (
+                  <button
+                    key={`day-${day}`}
+                    type="button"
+                    onClick={() => handleSelectDay(day)}
+                    className={cn(
+                      "h-8 w-8 text-xs font-semibold rounded-full flex items-center justify-center transition-colors cursor-pointer outline-none mx-auto",
+                      isToday(day) && "text-primary border border-primary/30",
+                      isSelected(day)
+                        ? "bg-primary text-primary-foreground hover:bg-primary"
+                        : "text-foreground hover:bg-muted"
+                    )}
+                  >
+                    {day}
+                  </button>
+                )
+              })}
+            </div>
+
+            {/* Footer close button */}
+            <div className="flex justify-end gap-2 border-t border-border/60 pt-3">
+              <button
+                type="button"
+                onClick={() => setIsOpen(false)}
+                className="px-4 py-2 bg-muted text-foreground hover:bg-muted/80 rounded-[10px] text-xs font-bold transition-colors cursor-pointer"
+              >
+                Close
+              </button>
+            </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   )

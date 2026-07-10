@@ -80,7 +80,7 @@ export default function DashboardPage() {
   const [txType, setTxType] = useState<"INCOME" | "EXPENSE">("EXPENSE")
   const [txAccountId, setTxAccountId] = useState("")
   const [txCategoryId, setTxCategoryId] = useState("")
-  
+
   const [accName, setAccName] = useState("")
   const [accBalance, setAccBalance] = useState("")
 
@@ -95,10 +95,10 @@ export default function DashboardPage() {
     setTxType("EXPENSE")
     const defAcc = accounts.find((a) => a.isDefault)?.id || accounts[0]?.id || ""
     setTxAccountId(defAcc)
-    
+
     const matchedCats = categories.filter((c) => c.type === "EXPENSE")
     setTxCategoryId(matchedCats[0]?.id || categories[0]?.id || "")
-    
+
     setIsTxDialogOpen(true)
   }
 
