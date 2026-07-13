@@ -24,6 +24,14 @@ export class DebtsService {
       throw new ApiError(404, "Account not found.");
     }
 
+    // BORROW: you receive money — credit card cannot receive money
+    if (data.type === "BORROW" && account.type === "CREDIT_CARD") {
+      throw new ApiError(
+        400,
+        "Cannot borrow money into a Credit Card account. Use Cash or Bank instead.",
+      );
+    }
+
     const debt = await debtsRepository.create(userId, data);
 
     return {

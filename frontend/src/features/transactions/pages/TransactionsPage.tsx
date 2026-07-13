@@ -555,7 +555,7 @@ export default function TransactionsPage() {
               Reset Filters
             </CustomButton>
             <CustomButton variant="primary" size="sm" onClick={() => setIsFilterPanelOpen(false)}>
-              Apply Query
+              Apply Filter
             </CustomButton>
           </>
         }

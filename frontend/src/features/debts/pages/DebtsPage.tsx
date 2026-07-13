@@ -489,7 +489,14 @@ export default function DebtsPage() {
             label="Associated Account (Bank / Card / Cash)"
             value={debtAccountId}
             onChange={setDebtAccountId}
-            options={accounts.filter(a => !a.isArchived).map((a) => ({ value: a.id, label: a.name }))}
+            options={accounts
+              .filter((a) => {
+                if (a.isArchived) return false;
+                // BORROW = receiving money, credit card cannot receive money
+                if (activeTab === "BORROW" && a.type === "CREDIT_CARD") return false;
+                return true;
+              })
+              .map((a) => ({ value: a.id, label: a.name }))}
           />
 
           <CustomDatePicker
@@ -552,7 +559,14 @@ export default function DebtsPage() {
             label="Associated Account (Bank / Card / Cash)"
             value={debtAccountId}
             onChange={setDebtAccountId}
-            options={accounts.filter(a => !a.isArchived).map((a) => ({ value: a.id, label: a.name }))}
+            options={accounts
+              .filter((a) => {
+                if (a.isArchived) return false;
+                // BORROW = receiving money, credit card cannot receive money
+                if (selectedDebt?.type === "BORROW" && a.type === "CREDIT_CARD") return false;
+                return true;
+              })
+              .map((a) => ({ value: a.id, label: a.name }))}
           />
 
           <CustomDatePicker
@@ -590,7 +604,13 @@ export default function DebtsPage() {
                 onClick={() => {
                   const allowed = accounts.filter((a: any) => {
                     if (a.isArchived) return false;
-                    return a.type === "CASH" || a.type === "BANK";
+                    if (selectedDebt?.type === "BORROW") {
+                      // Borrow repayment = paying money back, allow CASH, BANK, and CREDIT_CARD
+                      return a.type === "CASH" || a.type === "BANK" || a.type === "CREDIT_CARD";
+                    } else {
+                      // Lent repayment = receiving money back, only CASH and BANK
+                      return a.type === "CASH" || a.type === "BANK";
+                    }
                   });
                   setRepayAccountId(allowed.find((a: any) => a.isDefault)?.id || allowed[0]?.id || "");
                   setIsAddRepaymentOpen(true);
@@ -696,7 +716,13 @@ export default function DebtsPage() {
             options={accounts
               .filter((a: any) => {
                 if (a.isArchived) return false;
-                return a.type === "CASH" || a.type === "BANK";
+                if (selectedDebt?.type === "BORROW") {
+                  // Borrow repayment = paying money back, allow CASH, BANK, and CREDIT_CARD
+                  return a.type === "CASH" || a.type === "BANK" || a.type === "CREDIT_CARD";
+                } else {
+                  // Lent repayment = receiving money back, only CASH and BANK
+                  return a.type === "CASH" || a.type === "BANK";
+                }
               })
               .map((a: any) => ({ value: a.id, label: a.name }))}
           />

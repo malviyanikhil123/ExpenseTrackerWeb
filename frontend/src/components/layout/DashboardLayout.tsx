@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect } from "react"
-import { Menu, User, Settings, LogOut, ChevronRight, Bell } from "lucide-react"
+import { User, Settings, LogOut, ChevronRight, Bell } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Sidebar } from "./Sidebar"
-import { CustomDrawer } from "../drawers/CustomDrawer"
+import { MobileBottomNav } from "./MobileBottomNav"
 import { AvatarComponent } from "../ui/AvatarComponent"
 import type { Debt } from "../../features/debts/api/debtsApi"
 
@@ -35,10 +35,10 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   debts = [],
 }) => {
   const [isCollapsed, setIsCollapsed] = useState(false)
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false)
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false)
   const notificationsRef = useRef<HTMLDivElement>(null)
+  const mainContentRef = useRef<HTMLElement>(null)
 
   // Toggle profile menu dropdown
   const handleProfileClick = (e: React.MouseEvent) => {
@@ -113,27 +113,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
         />
       </div>
 
-      {/* 2. Sidebar Drawer - Slide in for Mobile navigation (Section 34) */}
-      <div className="md:hidden">
-        <CustomDrawer
-          isOpen={isMobileMenuOpen}
-          onClose={() => setIsMobileMenuOpen(false)}
-          title="Navigation"
-        >
-          <div className="h-full flex flex-col justify-between -mx-6 -my-6 bg-gray-50/50">
-            <Sidebar
-              activeId={activeNavId}
-              onItemSelect={(id) => {
-                onNavSelect(id)
-                setIsMobileMenuOpen(false)
-              }}
-              isCollapsed={false}
-              onLogout={onLogout}
-              className="border-r-0 h-[calc(85vh-72px)]"
-            />
-          </div>
-        </CustomDrawer>
-      </div>
+
 
       {/* 3. Main Frame: Header + independent content scroller */}
       <div className="flex-1 flex flex-col min-w-0 h-full relative">
@@ -142,14 +122,6 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
         <header className="h-[72px] border-b border-border bg-card text-card-foreground sticky top-0 z-10 px-4 md:px-6 flex items-center justify-between shrink-0">
 
           <div className="flex items-center gap-3">
-            {/* Mobile Hamburger toggle */}
-            <button
-              type="button"
-              onClick={() => setIsMobileMenuOpen(true)}
-              className="md:hidden p-2 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <Menu className="size-5.5" />
-            </button>
 
             {/* Breadcrumb - Desktop only (Section 24) */}
             {breadcrumbs.length > 0 && (
@@ -336,9 +308,16 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
         </header>
 
         {/* independent page content container scrollable */}
-        <main className="flex-1 overflow-y-auto bg-background p-4 md:p-6 lg:p-8">
+        <main ref={mainContentRef} className="flex-1 overflow-y-auto bg-background p-4 md:p-6 lg:p-8 pb-24 md:pb-6 lg:pb-8">
           {children}
         </main>
+
+        {/* Mobile Bottom Navigation */}
+        <MobileBottomNav
+          activeId={activeNavId}
+          onNavSelect={onNavSelect}
+          scrollContainerRef={mainContentRef}
+        />
       </div>
     </div>
   )

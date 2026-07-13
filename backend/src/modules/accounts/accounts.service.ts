@@ -297,9 +297,14 @@ export class AccountsService {
                 const bal = balances.get(d.accountId);
                 if (bal) {
                     if (d.type === "LENT") {
-                        bal.balance -= total;
+                        // Lending money: money leaves the account
+                        if (acc.type === "CREDIT_CARD") {
+                            bal.outstanding += total;
+                        } else {
+                            bal.balance -= total;
+                        }
                     } else {
-                        // BORROW
+                        // BORROW: money enters the account (credit card cannot receive borrowed money)
                         bal.balance += total;
                     }
                 }
@@ -324,8 +329,12 @@ export class AccountsService {
                             bal.balance += amt;
                         }
                     } else {
-                        // Borrower pays money back: decreases balance
-                        bal.balance -= amt;
+                        // Borrower pays money back: money leaves the account
+                        if (repAcc.type === "CREDIT_CARD") {
+                            bal.outstanding += amt;
+                        } else {
+                            bal.balance -= amt;
+                        }
                     }
                 }
             }

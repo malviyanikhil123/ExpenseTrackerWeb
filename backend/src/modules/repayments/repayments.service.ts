@@ -32,26 +32,36 @@ export class RepaymentsService {
 
         // Enforce account type rules
         if (debt.type === "BORROW") {
-            if (account.type !== "CASH" && account.type !== "BANK") {
+            // Borrow repayment = paying money back, so CASH, BANK, and CREDIT_CARD are allowed
+            if (account.type !== "CASH" && account.type !== "BANK" && account.type !== "CREDIT_CARD") {
                 throw new ApiError(
                     400,
-                    "Borrow repayment must use CASH or BANK accounts.",
+                    "Borrow repayment must use CASH, BANK, or CREDIT_CARD accounts.",
                 );
             }
 
             // Spend limits check: BORROW repayment leaves the user's account
             const [populatedAcc] = await accountsService.populateAccountsBalances(userId, [account]);
-            if (data.amount > Number(populatedAcc.openingBalance || 0)) {
-                throw new ApiError(400, "Repayment exceeds available balance.");
+            if (account.type === "CREDIT_CARD") {
+                // For credit card, check available credit
+                const availableCredit = Number(populatedAcc.availableCredit || 0);
+                if (data.amount > availableCredit) {
+                    throw new ApiError(400, "Repayment exceeds available credit limit.");
+                }
+            } else {
+                if (data.amount > Number(populatedAcc.openingBalance || 0)) {
+                    throw new ApiError(400, "Repayment exceeds available balance.");
+                }
             }
         } else if (debt.type === "LENT") {
+            // Lent repayment = receiving money back, credit card cannot receive money
             if (
                 account.type !== "CASH" &&
                 account.type !== "BANK"
             ) {
                 throw new ApiError(
                     400,
-                    "Lent repayment must use CASH or BANK accounts.",
+                    "Lent repayment must use CASH or BANK accounts (you are receiving money back).",
                 );
             }
         }
@@ -170,22 +180,34 @@ export class RepaymentsService {
 
         // Enforce account type rules
         if (debt.type === "BORROW") {
-            if (account.type !== "CASH" && account.type !== "BANK") {
+            if (account.type !== "CASH" && account.type !== "BANK" && account.type !== "CREDIT_CARD") {
                 throw new ApiError(
                     400,
-                    "Borrow repayment must use CASH or BANK accounts.",
+                    "Borrow repayment must use CASH, BANK, or CREDIT_CARD accounts.",
                 );
             }
 
             // Spend limits check
             const [populatedAcc] = await accountsService.populateAccountsBalances(userId, [account]);
-            // Re-add old repayment if updating the same account to calculate available limit accurately
-            let currentAvailable = Number(populatedAcc.openingBalance || 0);
-            if (account.id === repayment.accountId) {
-                currentAvailable += Number(repayment.amount);
-            }
-            if (newAmount > currentAvailable) {
-                throw new ApiError(400, "Repayment exceeds available balance.");
+            if (account.type === "CREDIT_CARD") {
+                const availableCredit = Number(populatedAcc.availableCredit || 0);
+                // Re-add old repayment if updating the same account
+                let currentAvailable = availableCredit;
+                if (account.id === repayment.accountId) {
+                    currentAvailable += Number(repayment.amount);
+                }
+                if (newAmount > currentAvailable) {
+                    throw new ApiError(400, "Repayment exceeds available credit limit.");
+                }
+            } else {
+                // Re-add old repayment if updating the same account to calculate available limit accurately
+                let currentAvailable = Number(populatedAcc.openingBalance || 0);
+                if (account.id === repayment.accountId) {
+                    currentAvailable += Number(repayment.amount);
+                }
+                if (newAmount > currentAvailable) {
+                    throw new ApiError(400, "Repayment exceeds available balance.");
+                }
             }
         } else if (debt.type === "LENT") {
             if (

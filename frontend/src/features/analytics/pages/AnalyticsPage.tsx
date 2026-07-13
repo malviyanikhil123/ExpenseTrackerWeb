@@ -9,6 +9,8 @@ import {
   PieChart as PieIcon,
   BarChart3,
   LineChart as LineIcon,
+  SlidersHorizontal,
+  X,
 } from "lucide-react"
 import {
   ResponsiveContainer,
@@ -50,6 +52,7 @@ export default function AnalyticsPage() {
   const [filterAccountId, setFilterAccountId] = useState("")
   const [filterCategoryId, setFilterCategoryId] = useState("")
   const [filterPaymentMethodId, setFilterPaymentMethodId] = useState("")
+  const [isFilterOpen, setIsFilterOpen] = useState(false)
 
   const { format: formatMoney } = useCurrency()
 
@@ -195,83 +198,183 @@ export default function AnalyticsPage() {
         <p className="text-[14px] font-normal text-muted-foreground">Examine monthly cash flows, visual savings trends, and allocations.</p>
       </div>
 
-      {/* Analytics Filters Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3 bg-card/50 p-4 rounded-[16px] border border-border">
-        <div className="flex flex-col gap-1 text-xs">
-          <span className="font-semibold text-muted-foreground mb-1 select-none">Start Date</span>
-          <CustomDatePicker
-            value={filterStartDate}
-            onChange={setFilterStartDate}
-            placeholder="From Date"
-          />
-        </div>
+      {/* Active filter count */}
+      {(() => {
+        const activeFilterCount = [filterStartDate, filterEndDate, filterAccountId, filterPaymentMethodId, filterCategoryId].filter(Boolean).length
 
-        <div className="flex flex-col gap-1 text-xs">
-          <span className="font-semibold text-muted-foreground mb-1 select-none">End Date</span>
-          <CustomDatePicker
-            value={filterEndDate}
-            onChange={setFilterEndDate}
-            placeholder="To Date"
-            align="right"
-          />
-        </div>
+        const filterContent = (
+          <>
+            <div className="flex flex-col gap-1 text-xs">
+              <span className="font-semibold text-muted-foreground mb-1 select-none">Start Date</span>
+              <CustomDatePicker
+                value={filterStartDate}
+                onChange={setFilterStartDate}
+                placeholder="From Date"
+              />
+            </div>
 
-        <div className="flex flex-col gap-1 text-xs">
-          <span className="font-semibold text-muted-foreground mb-1 select-none">Account</span>
-          <CustomSelect
-            value={filterAccountId}
-            onChange={setFilterAccountId}
-            placeholder="All Accounts"
-            options={[
-              { value: "", label: "All Accounts" },
-              ...accounts.map((a) => ({ value: a.id, label: a.name })),
-            ]}
-          />
-        </div>
+            <div className="flex flex-col gap-1 text-xs">
+              <span className="font-semibold text-muted-foreground mb-1 select-none">End Date</span>
+              <CustomDatePicker
+                value={filterEndDate}
+                onChange={setFilterEndDate}
+                placeholder="To Date"
+                align="right"
+              />
+            </div>
 
-        <div className="flex flex-col gap-1 text-xs">
-          <span className="font-semibold text-muted-foreground mb-1 select-none">Payment Method</span>
-          <CustomSelect
-            value={filterPaymentMethodId}
-            onChange={setFilterPaymentMethodId}
-            placeholder="All Methods"
-            options={[
-              { value: "", label: "All Payment Methods" },
-              ...paymentMethods.map((pm) => ({ value: pm.id, label: pm.name })),
-            ]}
-          />
-        </div>
+            <div className="flex flex-col gap-1 text-xs">
+              <span className="font-semibold text-muted-foreground mb-1 select-none">Account</span>
+              <CustomSelect
+                value={filterAccountId}
+                onChange={setFilterAccountId}
+                placeholder="All Accounts"
+                options={[
+                  { value: "", label: "All Accounts" },
+                  ...accounts.map((a) => ({ value: a.id, label: a.name })),
+                ]}
+              />
+            </div>
 
-        <div className="flex flex-col gap-1 text-xs">
-          <span className="font-semibold text-muted-foreground mb-1 select-none">Category</span>
-          <CustomSelect
-            value={filterCategoryId}
-            onChange={setFilterCategoryId}
-            placeholder="All Categories"
-            options={[
-              { value: "", label: "All Categories" },
-              ...categories.map((c) => ({ value: c.id, label: c.name })),
-            ]}
-          />
-        </div>
-      </div>
+            <div className="flex flex-col gap-1 text-xs">
+              <span className="font-semibold text-muted-foreground mb-1 select-none">Payment Method</span>
+              <CustomSelect
+                value={filterPaymentMethodId}
+                onChange={setFilterPaymentMethodId}
+                placeholder="All Methods"
+                options={[
+                  { value: "", label: "All Payment Methods" },
+                  ...paymentMethods.map((pm) => ({ value: pm.id, label: pm.name })),
+                ]}
+              />
+            </div>
 
-      {(filterStartDate || filterEndDate || filterAccountId || filterPaymentMethodId || filterCategoryId) && (
-        <div className="flex justify-end -mt-3">
-          <button
-            onClick={() => {
-              setFilterStartDate("")
-              setFilterEndDate("")
-              setFilterAccountId("")
-              setFilterPaymentMethodId("")
-              setFilterCategoryId("")
-            }}
-            className="text-xs font-bold text-danger hover:underline"
-          >
-            Clear All Filters
-          </button>
-        </div>
-      )}
+            <div className="flex flex-col gap-1 text-xs">
+              <span className="font-semibold text-muted-foreground mb-1 select-none">Category</span>
+              <CustomSelect
+                value={filterCategoryId}
+                onChange={setFilterCategoryId}
+                placeholder="All Categories"
+                options={[
+                  { value: "", label: "All Categories" },
+                  ...categories.map((c) => ({ value: c.id, label: c.name })),
+                ]}
+              />
+            </div>
+          </>
+        )
+
+        return (
+          <>
+            {/* Desktop: inline filters (hidden on mobile) */}
+            <div className="hidden md:grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3 bg-card/50 p-4 rounded-[16px] border border-border">
+              {filterContent}
+            </div>
+
+            {/* Mobile: filter button */}
+            <div className="md:hidden">
+              <button
+                type="button"
+                onClick={() => setIsFilterOpen(true)}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-[12px] border border-border bg-card text-foreground text-xs font-semibold hover:bg-muted transition-colors cursor-pointer"
+              >
+                <SlidersHorizontal className="size-4" />
+                Filters
+                {activeFilterCount > 0 && (
+                  <span className="ml-1 min-w-5 h-5 px-1.5 rounded-full bg-primary text-primary-foreground text-[10px] font-bold flex items-center justify-center">
+                    {activeFilterCount}
+                  </span>
+                )}
+              </button>
+            </div>
+
+            {/* Mobile: filter drawer overlay */}
+            {isFilterOpen && (
+              <div className="md:hidden fixed inset-0 z-[60]">
+                {/* Backdrop */}
+                <div
+                  className="absolute inset-0 bg-black/30 backdrop-blur-sm"
+                  onClick={() => setIsFilterOpen(false)}
+                />
+                {/* Drawer panel */}
+                <div
+                  className="absolute bottom-0 left-0 right-0 bg-card rounded-t-[24px] border-t border-border shadow-modal p-6 flex flex-col gap-4 animate-slide-up"
+                  style={{
+                    maxHeight: "85vh",
+                    animation: "slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards",
+                  }}
+                >
+                  {/* Drawer handle */}
+                  <div className="flex justify-center -mt-2 mb-1">
+                    <div className="w-10 h-1 rounded-full bg-muted-foreground/20" />
+                  </div>
+
+                  {/* Header */}
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-base font-bold text-foreground">Filters</h3>
+                    <button
+                      type="button"
+                      onClick={() => setIsFilterOpen(false)}
+                      className="p-1.5 rounded-full hover:bg-muted text-muted-foreground transition-colors cursor-pointer"
+                    >
+                      <X className="size-5" />
+                    </button>
+                  </div>
+
+                  {/* Filter fields */}
+                  <div className="flex flex-col gap-4 overflow-y-auto scrollbar-none">
+                    {filterContent}
+                  </div>
+
+                  {/* Action buttons */}
+                  <div className="flex gap-3 pt-2 border-t border-border mt-1">
+                    {activeFilterCount > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setFilterStartDate("")
+                          setFilterEndDate("")
+                          setFilterAccountId("")
+                          setFilterPaymentMethodId("")
+                          setFilterCategoryId("")
+                        }}
+                        className="flex-1 py-2.5 rounded-[10px] border border-danger/20 text-danger text-xs font-bold hover:bg-danger/5 transition-colors cursor-pointer"
+                      >
+                        Clear All
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => setIsFilterOpen(false)}
+                      className="flex-1 py-2.5 rounded-[10px] bg-primary text-primary-foreground text-xs font-bold hover:bg-primary/90 transition-colors cursor-pointer"
+                    >
+                      Apply Filters
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Clear filters link (desktop) */}
+            {activeFilterCount > 0 && (
+              <div className="hidden md:flex justify-end -mt-3">
+                <button
+                  onClick={() => {
+                    setFilterStartDate("")
+                    setFilterEndDate("")
+                    setFilterAccountId("")
+                    setFilterPaymentMethodId("")
+                    setFilterCategoryId("")
+                  }}
+                  className="text-xs font-bold text-danger hover:underline"
+                >
+                  Clear All Filters
+                </button>
+              </div>
+            )}
+          </>
+        )
+      })()}
 
       {/* Summary metrics cards (Section 76) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mt-2">
