@@ -129,6 +129,7 @@ export const CustomDatePicker: React.FC<DatePickerProps> = ({
           error && "border-danger ring-danger/20"
         )}
         onClick={() => setIsOpen(!isOpen)}
+        onMouseDown={(e) => e.stopPropagation()}
       >
         <span className={cn("text-[15px] font-medium", !value && "text-muted-foreground")}>
           {getDisplayDate() || placeholder}
@@ -151,7 +152,10 @@ export const CustomDatePicker: React.FC<DatePickerProps> = ({
 
       {/* Calendar Modal */}
       {isOpen && createPortal(
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+        <div
+          className="fixed inset-0 z-[200] flex items-center justify-center p-4"
+          onMouseDown={(e) => e.stopPropagation()}
+        >
           {/* Backdrop overlay */}
           <div
             className="fixed inset-0 bg-[#4E220F]/30 backdrop-blur-[2px] transition-opacity duration-200"
