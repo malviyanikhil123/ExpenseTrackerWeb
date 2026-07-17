@@ -12,12 +12,14 @@ export interface AnalyticsReport {
 }
 
 export interface AnalyticsQueryFilters {
+  period?: "WEEK" | "MONTH" | "YEAR" | "CUSTOM"
   startDate?: string
   endDate?: string
   accountId?: string
   categoryId?: string
   paymentMethodId?: string
 }
+
 
 export const analyticsApi = {
   getReport: async (params?: AnalyticsQueryFilters): Promise<AnalyticsReport> => {
