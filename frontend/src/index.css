@@ -1,109 +1,147 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
-@import "@fontsource/inter";
+@import "@fontsource-variable/geist";
 
 @custom-variant dark (&:is(.dark *));
 
+/* ─────────────────────────────────────────
+   LIGHT MODE — existing green brand
+───────────────────────────────────────── */
 :root {
-  /* Primary & Secondary Theme Colors */
-  --primary: #9D6638;
+  /* Primary & Secondary */
+  --primary: #006c49;
   --primary-foreground: #ffffff;
-  --secondary: #B0BA99;
-  --secondary-foreground: #4E220F;
+  --secondary: #515f74;
+  --secondary-foreground: #0d1c2f;
 
-  /* Status Colors */
-  --success: #53724D;
-  --warning: #9D6638;
-  --danger: #B13E2E;
-  --info: #4A6B73;
+  /* Status */
+  --success: #10b981;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --info: #3b82f6;
 
-  /* Background Colors */
-  --background: #F7F1DE;
-  --foreground: #4E220F;
+  /* Backgrounds */
+  --background: #f8fafc;
+  --foreground: #0b1c30;
 
   /* Card */
-  --card: #FAF7F1;
-  --card-foreground: #4E220F;
+  --card: #ffffff;
+  --card-foreground: #0b1c30;
 
   /* Sidebar */
-  --sidebar: #4E220F;
-  --sidebar-foreground: #F7F1DE;
-  --sidebar-border: rgba(247, 241, 222, 0.1);
+  --sidebar: #f8f9ff;
+  --sidebar-foreground: #0b1c30;
+  --sidebar-border: rgba(0, 0, 0, 0.05);
 
   /* Popover */
-  --popover: #FBF8F2;
-  --popover-foreground: #4E220F;
+  --popover: #ffffff;
+  --popover-foreground: #0b1c30;
 
   /* Inputs & Borders */
-  --border: #E7DDCE;
-  --input: #FCFAF6;
+  --border: #e2e8f0;
+  --input: #eff4ff;
   --ring: var(--primary);
 
-  /* Muted states */
-  --muted: #E8E1D5;
-  --muted-foreground: #5C4E43;
+  /* Muted */
+  --muted: #eff4ff;
+  --muted-foreground: #515f74;
 
-  /* Accent states */
-  --accent: #F7F1DE;
-  --accent-foreground: #4E220F;
+  /* Accent */
+  --accent: #eff4ff;
+  --accent-foreground: #006c49;
 
-  /* Destructive states */
+  /* Destructive */
   --destructive: var(--danger);
   --destructive-foreground: #ffffff;
 
-  /* Border Radii */
+  /* Radii */
   --radius: 12px;
 
   /* Shadows */
-  --shadow-card: 0 4px 12px rgba(78, 34, 15, 0.06);
-  --shadow-dropdown: 0 8px 24px rgba(78, 34, 15, 0.08);
-  --shadow-modal: 0 16px 40px rgba(78, 34, 15, 0.10);
+  --shadow-card: 0 4px 12px rgba(0, 0, 0, 0.04);
+  --shadow-dropdown: 0 8px 24px rgba(0, 0, 0, 0.06);
+  --shadow-modal: 0 16px 40px rgba(0, 0, 0, 0.08);
 
-  /* Chart Colors */
-  --chart-expenses: #9D6638;
-  --chart-income: #B0BA99;
-  --chart-savings: #53724D;
-  --chart-transfers: #D9C4A8;
+  /* Charts */
+  --chart-expenses: #006c49;
+  --chart-income: #10b981;
+  --chart-savings: #515f74;
+  --chart-transfers: #cbd5e1;
 }
 
+/* ─────────────────────────────────────────
+   DARK MODE — palette from design image
+   Primary  : #3B82F6  (blue)
+   Secondary: #94A3B8  (slate)
+   Tertiary : #10B981  (emerald)
+   Neutral  : #111827  (darkest surface)
+───────────────────────────────────────── */
 .dark {
-  /* Force same values to disable dark mode changes */
-  --primary: #9D6638;
+  /* Primary & Secondary */
+  --primary: #3b82f6;
   --primary-foreground: #ffffff;
-  --secondary: #B0BA99;
-  --secondary-foreground: #4E220F;
-  --success: #53724D;
-  --warning: #9D6638;
-  --danger: #B13E2E;
-  --info: #4A6B73;
-  --background: #F7F1DE;
-  --foreground: #4E220F;
-  --card: #FAF7F1;
-  --card-foreground: #4E220F;
-  --sidebar: #4E220F;
-  --sidebar-foreground: #F7F1DE;
-  --sidebar-border: rgba(247, 241, 222, 0.1);
-  --popover: #FBF8F2;
-  --popover-foreground: #4E220F;
-  --border: #E7DDCE;
-  --input: #FCFAF6;
-  --ring: var(--primary);
-  --muted: #E8E1D5;
-  --muted-foreground: #5C4E43;
-  --accent: #F7F1DE;
-  --accent-foreground: #4E220F;
-  --destructive: var(--danger);
+  --secondary: #94a3b8;
+  --secondary-foreground: #f1f5f9;
+
+  /* Status */
+  --success: #10b981;
+  --warning: #f59e0b;
+  --danger: #f87171;
+  --info: #60a5fa;
+
+  /* Backgrounds — layered dark navy */
+  --background: #0f172a;
+  --foreground: #f1f5f9;
+
+  /* Card — one step lighter */
+  --card: #1e293b;
+  --card-foreground: #f1f5f9;
+
+  /* Sidebar — neutral #111827 from image */
+  --sidebar: #111827;
+  --sidebar-foreground: #e2e8f0;
+  --sidebar-border: rgba(255, 255, 255, 0.06);
+
+  /* Popover / dropdown */
+  --popover: #1e293b;
+  --popover-foreground: #f1f5f9;
+
+  /* Inputs & Borders */
+  --border: rgba(148, 163, 184, 0.15);
+  --input: #1e293b;
+  --ring: #3b82f6;
+
+  /* Muted */
+  --muted: #1e293b;
+  --muted-foreground: #94a3b8;
+
+  /* Accent */
+  --accent: #1e3a5f;
+  --accent-foreground: #93c5fd;
+
+  /* Destructive */
+  --destructive: #ef4444;
   --destructive-foreground: #ffffff;
+
+  /* Radii */
   --radius: 12px;
-  --shadow-card: 0 4px 12px rgba(78, 34, 15, 0.06);
-  --shadow-dropdown: 0 8px 24px rgba(78, 34, 15, 0.08);
-  --shadow-modal: 0 16px 40px rgba(78, 34, 15, 0.10);
+
+  /* Shadows — deeper on dark */
+  --shadow-card: 0 4px 16px rgba(0, 0, 0, 0.4);
+  --shadow-dropdown: 0 8px 32px rgba(0, 0, 0, 0.5);
+  --shadow-modal: 0 20px 60px rgba(0, 0, 0, 0.6);
+
+  /* Charts */
+  --chart-expenses: #3b82f6;
+  --chart-income: #10b981;
+  --chart-savings: #94a3b8;
+  --chart-transfers: #475569;
 }
 
 @theme inline {
-  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
-  --font-heading: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-sans: 'Geist', system-ui, -apple-system, sans-serif;
+  --font-heading: 'Geist', system-ui, -apple-system, sans-serif;
 
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
@@ -121,7 +159,7 @@
   --color-info-bg: #EEF6F6;
 
   --color-background: var(--background);
-  --color-background-secondary: #FCF8EF;
+  --color-background-secondary: #f0fdf9;
   --color-foreground: var(--foreground);
 
   --color-card: var(--card);
@@ -215,39 +253,66 @@ body {
   animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-/* Hide scrollbar for Chrome, Safari and Opera */
+/* ── Scrollbar: hidden utility ── */
 .scrollbar-none::-webkit-scrollbar {
   display: none;
 }
 
-/* Hide scrollbar for IE, Edge and Firefox */
 .scrollbar-none {
   -ms-overflow-style: none;
-  /* IE and Edge */
   scrollbar-width: none;
-  /* Firefox */
 }
 
-/* Custom scrollbar utility & Global Scrollbars Override */
+/* ── Light Mode Scrollbars ── */
 *::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 
 *::-webkit-scrollbar-track {
-  background: #F2EBDE;
+  background: #f0fdf9;
 }
 
 *::-webkit-scrollbar-thumb {
-  background: #D8C8B3;
+  background: #a7d9c5;
   border-radius: 9999px;
 }
 
 *::-webkit-scrollbar-thumb:hover {
-  background: #C8B49A;
+  background: #006c49;
 }
 
 * {
   scrollbar-width: thin;
-  scrollbar-color: #D8C8B3 #F2EBDE;
+  scrollbar-color: #a7d9c5 #f0fdf9;
+}
+
+/* ── Dark Mode Scrollbars ── */
+.dark *::-webkit-scrollbar-track {
+  background: #1e293b;
+}
+
+.dark *::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 9999px;
+}
+
+.dark *::-webkit-scrollbar-thumb:hover {
+  background: #3b82f6;
+}
+
+.dark * {
+  scrollbar-color: #334155 #1e293b;
+}
+
+/* Recharts Outline / Border Reset */
+.recharts-wrapper *:focus,
+.recharts-surface *:focus,
+.recharts-sector:focus,
+path:focus {
+  outline: none !important;
+}
+
+.recharts-sector {
+  outline: none !important;
 }

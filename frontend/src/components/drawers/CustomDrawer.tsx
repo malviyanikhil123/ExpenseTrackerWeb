@@ -49,7 +49,7 @@ export const CustomDrawer: React.FC<DrawerProps> = ({
     <div className="fixed inset-0 z-50 flex items-end md:items-stretch justify-end p-0">
       {/* Backdrop overlay */}
       <div
-        className="fixed inset-0 bg-[#4E220F]/30 backdrop-blur-[2px] transition-opacity duration-200"
+        className="fixed inset-0 bg-[#0b1c30]/30 backdrop-blur-[2px] transition-opacity duration-200"
         onClick={onClose}
       />
 

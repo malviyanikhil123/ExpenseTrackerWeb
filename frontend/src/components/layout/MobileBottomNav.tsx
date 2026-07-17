@@ -68,10 +68,10 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
       <div
         className="pointer-events-auto flex items-center justify-around w-full py-2 px-2 rounded-full border border-white/[0.08]"
         style={{
-          background: "rgba(78, 34, 15, 0.55)",
+          background: "rgba(11, 28, 48, 0.75)",
           backdropFilter: "blur(20px) saturate(1.4)",
           WebkitBackdropFilter: "blur(20px) saturate(1.4)",
-          boxShadow: "0 8px 32px rgba(78, 34, 15, 0.35), inset 0 1px 0 rgba(255,255,255,0.06)",
+          boxShadow: "0 8px 32px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255,255,255,0.06)",
           marginBottom: "12px",
           transition: "transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1)",
           transform: isVisible ? "translateY(0)" : "translateY(calc(100% + 24px))",
@@ -94,7 +94,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
                 borderRadius: "50%",
                 transition: "all 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
                 background: isActive
-                  ? "rgba(157, 102, 56, 0.9)"
+                  ? "rgba(0, 108, 73, 0.9)"
                   : "transparent",
               }}
               aria-label={item.label}
@@ -105,8 +105,8 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
                   width: "20px",
                   height: "20px",
                   color: isActive
-                    ? "#FAF7F1"
-                    : "rgba(247, 241, 222, 0.5)",
+                    ? "#ffffff"
+                    : "rgba(255, 255, 255, 0.5)",
                   strokeWidth: isActive ? 2.2 : 1.8,
                 }}
               />
@@ -118,7 +118,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
                   style={{
                     width: "4px",
                     height: "4px",
-                    background: "#FAF7F1",
+                    background: "#ffffff",
                   }}
                 />
               )}

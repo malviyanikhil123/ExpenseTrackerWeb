@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react"
-import { User, Settings, LogOut, ChevronRight, Bell } from "lucide-react"
+import { User, Settings, LogOut, ChevronRight, Bell, Search, Menu } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Sidebar } from "./Sidebar"
 import { MobileBottomNav } from "./MobileBottomNav"
@@ -34,7 +34,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   userAvatarUrl,
   debts = [],
 }) => {
-  const [isCollapsed, setIsCollapsed] = useState(false)
+  const [isCollapsed, setIsCollapsed] = useState(true)
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false)
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false)
   const notificationsRef = useRef<HTMLDivElement>(null)
@@ -119,53 +119,44 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
       <div className="flex-1 flex flex-col min-w-0 h-full relative">
 
         {/* Sticky Header (Section 23) */}
-        <header className="h-[72px] border-b border-border bg-card text-card-foreground sticky top-0 z-10 px-4 md:px-6 flex items-center justify-between shrink-0">
+        <header className="h-16 border-b border-sidebar-border/30 bg-background/80 backdrop-blur-md sticky top-0 z-10 px-6 flex items-center justify-between shrink-0 select-none shadow-sm gap-4">
 
-          <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => setIsCollapsed(!isCollapsed)}
+            className="hidden md:flex p-1.5 rounded-lg hover:bg-muted text-secondary transition-colors cursor-pointer items-center justify-center outline-none"
+          >
+            <Menu className="size-5" />
+          </button>
 
-            {/* Breadcrumb - Desktop only (Section 24) */}
-            {breadcrumbs.length > 0 && (
-              <nav className="hidden sm:flex items-center gap-1.5 text-[15px] font-semibold text-muted-foreground">
-                {breadcrumbs.map((crumb, idx) => {
-                  const isLast = idx === breadcrumbs.length - 1
-                  return (
-                    <React.Fragment key={idx}>
-                      {idx > 0 && <ChevronRight className="size-3.5 text-muted-foreground select-none" />}
-                      {isLast ? (
-                        <span className="font-semibold text-foreground leading-none select-none">
-                          {crumb.label}
-                        </span>
-                      ) : (
-                        <span className="hover:text-foreground transition-colors select-none leading-none cursor-pointer">
-                          {crumb.label}
-                        </span>
-                      )}
-                    </React.Fragment>
-                  )
-                })}
-              </nav>
-            )}
+          <div className="flex items-center flex-1">
+            <div className="relative w-full max-w-md focus-within:ring-2 focus-within:ring-primary/20 rounded-full transition-all">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-secondary opacity-60 size-4" />
+              <input
+                className="w-full pl-10 pr-4 py-2 bg-muted border-none rounded-full text-[14px] focus:ring-0 focus:outline-none placeholder:text-muted-foreground text-foreground"
+                placeholder="Search insights or transactions..."
+                type="text"
+              />
+            </div>
           </div>
 
           {/* Header Actions & Profile Dropdown */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-4">
             {/* Notifications Bell Dropdown */}
             <div className="relative flex" ref={notificationsRef}>
               <button
                 type="button"
                 onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
-                className="p-2 rounded-full hover:bg-muted text-primary hover:text-primary-hover transition-colors relative cursor-pointer outline-none flex items-center justify-center"
+                className="hover:bg-muted rounded-full p-2 relative text-secondary transition-colors outline-none cursor-pointer flex items-center justify-center"
               >
-                <Bell className="size-5 text-primary" />
+                <Bell className="size-5" />
                 {notificationDebts.length > 0 && (
-                  <span className="absolute -top-1.5 -right-1.5 min-w-4.5 h-4.5 px-1 rounded-full bg-danger text-[9px] font-extrabold text-white flex items-center justify-center ring-2 ring-card select-none">
-                    {notificationDebts.length}
-                  </span>
+                  <span className="absolute top-1 right-1 w-2 h-2 bg-[#a43a3a] rounded-full"></span>
                 )}
               </button>
 
               {isNotificationsOpen && (
-                <div className="absolute right-0 top-[calc(100%+6px)] w-[320px] sm:w-[360px] bg-[#FAF7F1] border border-border rounded-[16px] shadow-dropdown py-3 px-4 z-40 animate-dropdown origin-top-right">
+                <div className="absolute right-0 top-[calc(100%+6px)] w-[320px] sm:w-[360px] bg-popover border border-border rounded-[16px] shadow-dropdown py-3 px-4 z-40 animate-dropdown origin-top-right">
                   <div className="flex items-center justify-between border-b border-border pb-2 mb-2">
                     <span className="text-sm font-bold text-foreground">Notifications</span>
                     {notificationDebts.length > 0 && (
@@ -252,17 +243,17 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
               <button
                 type="button"
                 onClick={handleProfileClick}
-                className="flex items-center gap-3 pl-1 pr-2 py-1 rounded-full hover:bg-muted transition-colors outline-none"
+                className="flex items-center gap-3 border-l border-sidebar-border/30 pl-4 ml-1 select-none focus:outline-none cursor-pointer"
               >
-                <AvatarComponent
-                  src={userAvatarUrl}
-                  initials={userDisplayName}
-                  size="sm"
-                  className="size-8 cursor-pointer"
+                <div className="text-right hidden lg:block">
+                  <p className="text-[14px] font-bold text-foreground leading-tight">{userDisplayName}</p>
+                  <p className="text-[12px] text-secondary font-medium mt-0.5">Premium Plan</p>
+                </div>
+                <img
+                  className="w-10 h-10 rounded-full object-cover shadow-sm border border-sidebar-border/20"
+                  src={userAvatarUrl || "https://lh3.googleusercontent.com/aida-public/AB6AXuA5SQtaRmQCwwuYxCrwC8fdmKpAMQZMg12EkDF4kOOfIXRCCDLxMMJ_DOt7NiGkl1R4CQH2FK0GDQoOcMliNsrjl17ZKnDai0WibCEvxbDpRX41d-28Fqr1RZM1hZPQqthRTRQp23azqEV9GwnAmyvIDgtDM5Qi-Alb5DzmulTdxj-5yCmh-68H1XG3PIGerC2ZfXf-ChFmELJseZETzCBaS8OKY476bRd8lagTYOyk3_grLM6tkSmS"}
+                  alt="User Avatar"
                 />
-                <span className="hidden sm:inline text-[15px] font-semibold text-foreground">
-                  {userDisplayName}
-                </span>
               </button>
 
               {isProfileMenuOpen && (

@@ -124,7 +124,7 @@ export const CustomDatePicker: React.FC<DatePickerProps> = ({
 
       <div
         className={cn(
-          "relative flex items-center justify-between w-full h-10 px-3.5 py-2 text-[15px] font-medium bg-input text-foreground border border-border rounded-[12px] outline-none transition-all duration-200 cursor-pointer hover:border-[#D8C8B3]",
+          "relative flex items-center justify-between w-full h-10 px-3.5 py-2 text-[15px] font-medium bg-input text-foreground border border-border rounded-[12px] outline-none transition-all duration-200 cursor-pointer hover:border-[#cbd5e1]",
           isOpen && "ring-2 ring-offset-1 ring-primary/20 border-primary",
           error && "border-danger ring-danger/20"
         )}
@@ -158,12 +158,12 @@ export const CustomDatePicker: React.FC<DatePickerProps> = ({
         >
           {/* Backdrop overlay */}
           <div
-            className="fixed inset-0 bg-[#4E220F]/30 backdrop-blur-[2px] transition-opacity duration-200"
+            className="fixed inset-0 bg-[#0b1c30]/30 backdrop-blur-[2px] transition-opacity duration-200"
             onClick={() => setIsOpen(false)}
           />
 
           {/* Modal Container */}
-          <div ref={calendarRef} className="relative z-10 w-[310px] bg-[#FAF7F1] border border-border rounded-[16px] p-5 shadow-modal animate-in fade-in zoom-in-95 duration-150 select-none flex flex-col gap-4 text-foreground">
+          <div ref={calendarRef} className="relative z-10 w-[310px] bg-popover border border-border rounded-[16px] p-5 shadow-modal animate-in fade-in zoom-in-95 duration-150 select-none flex flex-col gap-4 text-foreground">
             {/* Header */}
             <div className="flex items-center justify-between">
               <button

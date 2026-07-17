@@ -59,14 +59,14 @@ export const CustomDialog: React.FC<DialogProps> = ({
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
       {/* Backdrop overlay */}
       <div
-        className="fixed inset-0 bg-[#4E220F]/30 backdrop-blur-[2px] transition-opacity duration-200"
+        className="fixed inset-0 bg-[#0b1c30]/30 backdrop-blur-[2px] transition-opacity duration-200"
         onClick={onClose}
       />
 
       {/* Responsive Sheet / Modal container (Section 33) */}
       <div
         className={cn(
-          "relative z-10 w-full bg-[#FBF8F2] border border-border flex flex-col focus:outline-none shadow-modal transition-all duration-200 text-card-foreground",
+          "relative z-10 w-full bg-card border border-border flex flex-col focus:outline-none shadow-modal transition-all duration-200 text-card-foreground",
           // Mobile: bottom sheet, full width, rounded top
           "rounded-t-[16px] max-h-[85vh] sm:rounded-b-[16px]",
           // Desktop: centered, size constraints, custom border radius (16px)

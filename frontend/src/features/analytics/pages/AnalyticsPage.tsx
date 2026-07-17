@@ -46,6 +46,22 @@ const COLOR_SCHEME = [
   "var(--muted-foreground)",
 ]
 
+const CustomChartTooltip = ({ active, payload, label }: any) => {
+  if (!active || !payload || !payload.length) return null
+  return (
+    <div className="bg-popover border border-border rounded-[10px] shadow-lg px-3 py-2 text-xs font-sans">
+      {label && <p className="text-muted-foreground font-semibold mb-1">{label}</p>}
+      {payload.map((entry: any, i: number) => (
+        <div key={i} className="flex items-center gap-2">
+          <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: entry.color || entry.fill }} />
+          <span className="text-foreground font-medium capitalize">{entry.name}:</span>
+          <span className="text-foreground font-bold">{typeof entry.value === 'number' ? entry.value.toLocaleString() : entry.value}</span>
+        </div>
+      ))}
+    </div>
+  )
+}
+
 export default function AnalyticsPage() {
   const [filterStartDate, setFilterStartDate] = useState("")
   const [filterEndDate, setFilterEndDate] = useState("")
@@ -137,52 +153,52 @@ export default function AnalyticsPage() {
 
   const categoryPieData = report.categoryBreakdown.length > 0
     ? report.categoryBreakdown.map((c: any, index: number) => ({
-        name: c.categoryName,
-        value: Number(c.amount),
-        color: COLOR_SCHEME[index % COLOR_SCHEME.length],
-      }))
+      name: c.categoryName,
+      value: Number(c.amount),
+      color: COLOR_SCHEME[index % COLOR_SCHEME.length],
+    }))
     : [
-        { name: "Food & Drinks", value: 350, color: "var(--chart-expenses)" },
-        { name: "Transport", value: 120, color: "var(--chart-income)" },
-        { name: "Bills", value: 200, color: "var(--chart-savings)" },
-        { name: "Others", value: 90, color: "var(--chart-transfers)" },
-      ]
+      { name: "Food & Drinks", value: 350, color: "var(--chart-expenses)" },
+      { name: "Transport", value: 120, color: "var(--chart-income)" },
+      { name: "Bills", value: 200, color: "var(--chart-savings)" },
+      { name: "Others", value: 90, color: "var(--chart-transfers)" },
+    ]
 
   const accountBarData = report.accountBreakdown.length > 0
     ? report.accountBreakdown.map((a: any, index: number) => ({
-        name: a.accountName,
-        amount: Number(a.balance),
-        color: COLOR_SCHEME[index % COLOR_SCHEME.length],
-      }))
+      name: a.accountName,
+      amount: Number(a.balance),
+      color: COLOR_SCHEME[index % COLOR_SCHEME.length],
+    }))
     : [
-        { name: "Chase Bank", amount: 5400, color: "var(--chart-expenses)" },
-        { name: "Cash Wallet", amount: 620, color: "var(--chart-income)" },
-        { name: "Robinhood", amount: 4800, color: "var(--chart-savings)" },
-      ]
+      { name: "Chase Bank", amount: 5400, color: "var(--chart-expenses)" },
+      { name: "Cash Wallet", amount: 620, color: "var(--chart-income)" },
+      { name: "Robinhood", amount: 4800, color: "var(--chart-savings)" },
+    ]
 
   const pmPieData = report.paymentMethodBreakdown.length > 0
     ? report.paymentMethodBreakdown.map((pm: any, index: number) => ({
-        name: pm.paymentMethodName,
-        value: Number(pm.amount),
-        color: COLOR_SCHEME[index % COLOR_SCHEME.length],
-      }))
+      name: pm.paymentMethodName,
+      value: Number(pm.amount),
+      color: COLOR_SCHEME[index % COLOR_SCHEME.length],
+    }))
     : [
-        { name: "Cash", value: 5000, color: "var(--chart-expenses)" },
-        { name: "Google Pay", value: 15000, color: "var(--chart-income)" },
-        { name: "Credit Card", value: 12000, color: "var(--chart-savings)" },
-      ]
+      { name: "Cash", value: 5000, color: "var(--chart-expenses)" },
+      { name: "Google Pay", value: 15000, color: "var(--chart-income)" },
+      { name: "Credit Card", value: 12000, color: "var(--chart-savings)" },
+    ]
 
   const pmBarData = report.paymentMethodBreakdown.length > 0
     ? report.paymentMethodBreakdown.map((pm: any, index: number) => ({
-        name: pm.paymentMethodName,
-        amount: Number(pm.amount),
-        color: COLOR_SCHEME[index % COLOR_SCHEME.length],
-      }))
+      name: pm.paymentMethodName,
+      amount: Number(pm.amount),
+      color: COLOR_SCHEME[index % COLOR_SCHEME.length],
+    }))
     : [
-        { name: "Cash", amount: 5000, color: "var(--chart-expenses)" },
-        { name: "Google Pay", amount: 15000, color: "var(--chart-income)" },
-        { name: "Credit Card", amount: 12000, color: "var(--chart-savings)" },
-      ]
+      { name: "Cash", amount: 5000, color: "var(--chart-expenses)" },
+      { name: "Google Pay", amount: 15000, color: "var(--chart-income)" },
+      { name: "Credit Card", amount: 12000, color: "var(--chart-savings)" },
+    ]
 
   const sortedPMs = [...report.paymentMethodBreakdown].sort((a, b) => b.amount - a.amount)
   const mostUsedPM = sortedPMs[0] ? `${sortedPMs[0].paymentMethodName} (${formatMoney(sortedPMs[0].amount)})` : "None"
@@ -191,7 +207,7 @@ export default function AnalyticsPage() {
 
   return (
     <div className="flex flex-col gap-6 pb-12 select-none">
-      
+
       {/* Header (Section 76) */}
       <div className="flex flex-col gap-1.5 border-b border-border pb-5">
         <h1 className="text-[32px] font-bold leading-[40px] text-foreground">Analytics</h1>
@@ -384,7 +400,7 @@ export default function AnalyticsPage() {
               <span className="text-[13px] font-bold uppercase tracking-[0.08em] text-muted-foreground">{card.title}</span>
               <div className="p-2 rounded-full bg-muted border border-border">{card.icon}</div>
             </div>
-             <span className={`text-[40px] font-extrabold leading-none tracking-tight ${card.color}`}>
+            <span className={`text-[40px] font-extrabold leading-none tracking-tight ${card.color}`}>
               {card.isPercent ? `${card.amount.toFixed(0)}%` : formatMoney(card.amount)}
             </span>
           </div>
@@ -401,33 +417,52 @@ export default function AnalyticsPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-4">
-          
+
           {/* Cashflow Monthly Trend (Line/Area Chart) */}
           <div className="bg-card border border-border rounded-[16px] p-6 shadow-card flex flex-col gap-4 text-card-foreground">
-            <div className="flex items-center gap-2 border-b border-border pb-3">
-              <LineIcon className="size-5 text-secondary" />
-              <h3 className="text-sm font-semibold text-foreground">Monthly Cash Flow Trend</h3>
+            <div className="flex justify-between items-center border-b border-border pb-3">
+              <div className="flex items-center gap-2">
+                <LineIcon className="size-5 text-secondary" />
+                <h3 className="text-sm font-semibold text-foreground">Cash Flow Trends</h3>
+              </div>
+              <div className="flex items-center gap-4 text-[11px] font-semibold text-muted-foreground">
+                <div className="flex items-center gap-1.5">
+                  <span className="w-2.5 h-2.5 rounded-full bg-primary" />
+                  <span>Inflow</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="w-2.5 h-2.5 rounded-full bg-success border-2 border-dashed border-success/40" />
+                  <span>Outflow</span>
+                </div>
+              </div>
             </div>
             <div className="h-[260px] w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={trendData}>
+                <AreaChart data={trendData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                   <defs>
+                    {/* Glow effect filters */}
+                    <filter id="glowInc" x="-20%" y="-20%" width="140%" height="140%">
+                      <feDropShadow dx="0" dy="4" stdDeviation="6" floodColor="var(--primary)" floodOpacity="0.25" />
+                    </filter>
+                    <filter id="glowExp" x="-20%" y="-20%" width="140%" height="140%">
+                      <feDropShadow dx="0" dy="4" stdDeviation="6" floodColor="var(--success)" floodOpacity="0.15" />
+                    </filter>
+
                     <linearGradient id="colorInc" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="var(--chart-income)" stopOpacity={0.15}/>
-                      <stop offset="95%" stopColor="var(--chart-income)" stopOpacity={0}/>
+                      <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.12} />
+                      <stop offset="95%" stopColor="var(--primary)" stopOpacity={0} />
                     </linearGradient>
                     <linearGradient id="colorExp" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="var(--chart-expenses)" stopOpacity={0.15}/>
-                      <stop offset="95%" stopColor="var(--chart-expenses)" stopOpacity={0}/>
+                      <stop offset="5%" stopColor="var(--success)" stopOpacity={0.05} />
+                      <stop offset="95%" stopColor="var(--success)" stopOpacity={0} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
-                  <XAxis dataKey="month" stroke="var(--muted-foreground)" fontSize={11} fontWeight={600} tickLine={false} />
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" strokeOpacity={0.4} />
+                  <XAxis dataKey="month" stroke="var(--muted-foreground)" fontSize={11} fontWeight={600} tickLine={false} axisLine={false} />
                   <YAxis stroke="var(--muted-foreground)" fontSize={11} fontWeight={600} tickLine={false} axisLine={false} />
-                  <Tooltip />
-                  <Legend iconSize={8} wrapperStyle={{ fontSize: 11, fontWeight: 600 }} />
-                  <Area type="monotone" dataKey="income" stroke="var(--chart-income)" strokeWidth={2} fillOpacity={1} fill="url(#colorInc)" />
-                  <Area type="monotone" dataKey="expense" stroke="var(--chart-expenses)" strokeWidth={2} fillOpacity={1} fill="url(#colorExp)" />
+                  <Tooltip content={<CustomChartTooltip />} />
+                  <Area type="natural" dataKey="income" name="Inflow" stroke="var(--primary)" strokeWidth={3.5} filter="url(#glowInc)" fillOpacity={1} fill="url(#colorInc)" />
+                  <Area type="natural" dataKey="expense" name="Outflow" stroke="var(--success)" strokeWidth={2.5} strokeDasharray="5 5" filter="url(#glowExp)" fillOpacity={1} fill="url(#colorExp)" />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
@@ -457,11 +492,11 @@ export default function AnalyticsPage() {
                           <Cell key={`cell-${index}`} fill={entry.color} />
                         ))}
                       </Pie>
-                      <Tooltip />
+                      <Tooltip content={<CustomChartTooltip />} />
                     </PieChart>
                   </ResponsiveContainer>
                 </div>
-                 <div className="flex flex-col gap-2">
+                <div className="flex flex-col gap-2">
                   {categoryPieData.map((d: any, i: number) => (
                     <div key={i} className="flex items-center gap-2 text-xs text-muted-foreground">
                       <div className="size-3 rounded-full" style={{ backgroundColor: d.color }} />
@@ -482,10 +517,10 @@ export default function AnalyticsPage() {
             <div className="h-[260px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={accountBarData}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
-                  <XAxis dataKey="name" stroke="#9ca3af" fontSize={11} tickLine={false} />
-                  <YAxis stroke="#9ca3af" fontSize={11} tickLine={false} axisLine={false} />
-                  <Tooltip cursor={{ fill: "rgba(0,0,0,0.02)" }} />
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
+                  <XAxis dataKey="name" stroke="var(--muted-foreground)" fontSize={11} tickLine={false} />
+                  <YAxis stroke="var(--muted-foreground)" fontSize={11} tickLine={false} axisLine={false} />
+                  <Tooltip content={<CustomChartTooltip />} cursor={{ fill: "rgba(148,163,184,0.08)" }} />
                   <Bar dataKey="amount" radius={[8, 8, 0, 0]} maxBarSize={50}>
                     {accountBarData.map((entry: any, idx: number) => (
                       <Cell key={idx} fill={entry.color} />
@@ -500,7 +535,7 @@ export default function AnalyticsPage() {
           <div className="col-span-1 lg:col-span-2 border-t border-border pt-8 mt-4">
             <h2 className="text-xl font-bold text-foreground mb-1 select-none">Payment Method Usage</h2>
             <p className="text-xs text-muted-foreground mb-6">Analyze distributions and preferences of transaction payment routes.</p>
-            
+
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               {/* Payment Method Distribution Donut */}
               <div className="bg-card border border-border rounded-[16px] p-6 shadow-card flex flex-col gap-4 text-card-foreground">
@@ -526,7 +561,7 @@ export default function AnalyticsPage() {
                               <Cell key={`cell-${index}`} fill={entry.color} />
                             ))}
                           </Pie>
-                          <Tooltip />
+                          <Tooltip content={<CustomChartTooltip />} />
                         </PieChart>
                       </ResponsiveContainer>
                     </div>
@@ -556,10 +591,10 @@ export default function AnalyticsPage() {
                 <div className="h-[260px] w-full">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={pmBarData}>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
-                      <XAxis dataKey="name" stroke="#9ca3af" fontSize={11} tickLine={false} />
-                      <YAxis stroke="#9ca3af" fontSize={11} tickLine={false} axisLine={false} />
-                      <Tooltip cursor={{ fill: "rgba(0,0,0,0.02)" }} />
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
+                      <XAxis dataKey="name" stroke="var(--muted-foreground)" fontSize={11} tickLine={false} />
+                      <YAxis stroke="var(--muted-foreground)" fontSize={11} tickLine={false} axisLine={false} />
+                      <Tooltip content={<CustomChartTooltip />} cursor={{ fill: "rgba(148,163,184,0.08)" }} />
                       <Bar dataKey="amount" radius={[8, 8, 0, 0]} maxBarSize={50}>
                         {pmBarData.map((entry: any, idx: number) => (
                           <Cell key={idx} fill={entry.color} />

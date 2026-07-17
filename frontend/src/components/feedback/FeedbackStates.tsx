@@ -21,7 +21,7 @@ export const Badge: React.FC<BadgeProps> = ({
     danger: "bg-danger-bg text-danger border-transparent",
     info: "bg-info-bg text-info border-transparent",
     sage: "bg-success-bg text-success border-success-border",
-    brown: "bg-[#F7F1DE] text-[#9D6638] border-border",
+    brown: "bg-[#eff4ff] text-[#006c49] border-border",
   }
 
   return (

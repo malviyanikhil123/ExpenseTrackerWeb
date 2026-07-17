@@ -26,7 +26,7 @@ export const CustomInput = React.forwardRef<HTMLInputElement, InputProps>(
           type={type}
           className={cn(
             "w-full h-10 px-3.5 py-2 text-[15px] font-medium bg-input text-foreground border border-border rounded-[12px] outline-none transition-all duration-200",
-            "placeholder:text-muted-foreground hover:border-[#D8C8B3] focus:ring-2 focus:ring-offset-1 focus:ring-primary/20 disabled:opacity-50",
+            "placeholder:text-muted-foreground hover:border-[#cbd5e1] focus:ring-2 focus:ring-offset-1 focus:ring-primary/20 disabled:opacity-50",
             error
               ? "border-danger hover:border-danger focus:border-danger focus:ring-danger/20"
               : isSuccess
@@ -60,7 +60,7 @@ export const SearchInput = React.forwardRef<HTMLInputElement, SearchInputProps>(
           type="text"
           className={cn(
             "w-full h-10 pl-10 pr-10 py-2 text-[15px] font-medium bg-input text-foreground border border-border rounded-[12px] outline-none transition-all duration-200",
-            "placeholder:text-muted-foreground hover:border-[#D8C8B3] focus:ring-2 focus:ring-offset-1 focus:ring-primary/20 focus:border-primary",
+            "placeholder:text-muted-foreground hover:border-[#cbd5e1] focus:ring-2 focus:ring-offset-1 focus:ring-primary/20 focus:border-primary",
             className
           )}
           {...props}
@@ -109,7 +109,7 @@ export const CurrencyInput = React.forwardRef<HTMLInputElement, CurrencyInputPro
             step="0.01"
             className={cn(
               "w-full h-10 pl-8 pr-3 py-2 text-[15px] font-medium bg-input text-foreground border border-border rounded-[12px] outline-none transition-all duration-200",
-              "placeholder:text-muted-foreground hover:border-[#D8C8B3] focus:ring-2 focus:ring-offset-1 focus:ring-primary/20 disabled:opacity-50",
+              "placeholder:text-muted-foreground hover:border-[#cbd5e1] focus:ring-2 focus:ring-offset-1 focus:ring-primary/20 disabled:opacity-50",
               error
                 ? "border-danger hover:border-danger focus:border-danger focus:ring-danger/20"
                 : isSuccess

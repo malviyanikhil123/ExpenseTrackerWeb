@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react"
-import { Plus, Search, MoreVertical, Edit2, Trash2, FolderOpen, AlertCircle, Info, ChevronDown, X } from "lucide-react"
+import { Plus, Search, MoreVertical, Edit2, Trash2, FolderOpen, AlertCircle, Info, ChevronDown, ChevronUp, X } from "lucide-react"
 import * as Icons from "lucide-react"
 import { toast } from "sonner"
 
@@ -10,19 +10,21 @@ import {
   useUpdateCategory,
   useDeleteCategory,
 } from "../hooks/useCategories"
+import { useTransactionsList } from "../../transactions/hooks/useTransactions"
+import { useCurrency } from "../../../hooks/useCurrency"
 import { CustomButton } from "../../../components/buttons/CustomButton"
 import { CustomInput } from "../../../components/inputs/CustomInput"
 import { CustomDialog } from "../../../components/dialogs/CustomDialog"
 import { DropdownMenu } from "../../../components/ui/dropdown-menu"
 
 const COLOR_PALETTE = [
-  "#9D6638", // Brown
-  "#B0BA99", // Sage Green
-  "#4E220F", // Dark Brown
-  "#53724D", // Success Text Green
-  "#6B5A4C", // Secondary Text
-  "#8A7D72", // Muted Text
-  "#D9C4A8", // Transfers Light Brown
+  "#006c49", // Primary Emerald
+  "#10b981", // Success Green
+  "#0b1c30", // Slate Navy
+  "#515f74", // Secondary Gray
+  "#0891b2", // Cyan
+  "#7c3aed", // Purple
+  "#e11d48", // Rose
 ]
 
 export default function CategoriesPage() {
@@ -31,16 +33,19 @@ export default function CategoriesPage() {
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [isEditOpen, setIsEditOpen] = useState(false)
   const [isDeleteOpen, setIsDeleteOpen] = useState(false)
-  
+  const [expensePage, setExpensePage] = useState(1)
+  const [incomePage, setIncomePage] = useState(1)
+  const [showAllHierarchy, setShowAllHierarchy] = useState(false)
+
   const [selectedCategory, setSelectedCategory] = useState<any>(null)
-  
+
   const [catName, setCatName] = useState("")
   const [catColor, setCatColor] = useState(COLOR_PALETTE[0])
   const [selectedIconId, setSelectedIconId] = useState("")
   const [showAllIcons, setShowAllIcons] = useState(false)
   const [iconSearchQuery, setIconSearchQuery] = useState("")
   const [isIconDropdownOpen, setIsIconDropdownOpen] = useState(false)
-  
+
   const createIconDropdownRef = useRef<HTMLDivElement>(null)
   const editIconDropdownRef = useRef<HTMLDivElement>(null)
 
@@ -57,8 +62,10 @@ export default function CategoriesPage() {
     return () => document.removeEventListener("mousedown", handleClickOutside)
   }, [])
 
-  const { data: categories = [], isLoading, isError, refetch } = useCategoriesList(activeTab)
+  const { data: categories = [], isLoading, isError, refetch } = useCategoriesList()
   const { data: icons = [] } = useCategoryIcons()
+  const { data: transactions = [] } = useTransactionsList()
+  const { format: formatMoney } = useCurrency()
 
   // Deduplicate icons by iconKey to show each visual icon exactly once
   const uniqueIcons: typeof icons = []
@@ -84,13 +91,15 @@ export default function CategoriesPage() {
     cat.name.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
-  const handleOpenCreate = () => {
+  const handleOpenCreate = (type?: "EXPENSE" | "INCOME") => {
+    const selectedType = type || activeTab
+    setActiveTab(selectedType)
     setCatName("")
     setCatColor(COLOR_PALETTE[0])
     setShowAllIcons(false)
-    
-    // Auto-select first icon that matches active tab type
-    const tabIcons = icons.filter((i) => i.type === activeTab)
+
+    // Auto-select first icon that matches selected type
+    const tabIcons = icons.filter((i) => i.type === selectedType)
     setSelectedIconId(tabIcons[0]?.id || "")
     setIsCreateOpen(true)
   }
@@ -180,125 +189,440 @@ export default function CategoriesPage() {
     )
   }
 
+  // Calculate spent map
+  const categorySpentMap: Record<string, number> = {};
+  transactions.forEach(t => {
+    if (t.categoryId) {
+      categorySpentMap[t.categoryId] = (categorySpentMap[t.categoryId] || 0) + Number(t.amount);
+    }
+  });
+
+  const expenseCategories = filteredCategories
+    .filter(c => c.type === 'EXPENSE')
+    .sort((a, b) => (categorySpentMap[b.id] || 0) - (categorySpentMap[a.id] || 0));
+
+  const incomeCategories = filteredCategories
+    .filter(c => c.type === 'INCOME')
+    .sort((a, b) => (categorySpentMap[b.id] || 0) - (categorySpentMap[a.id] || 0));
+
+  const ITEMS_PER_PAGE = 5;
+  const totalExpensePages = Math.ceil(expenseCategories.length / ITEMS_PER_PAGE) || 1;
+  const clampedExpensePage = Math.min(expensePage, totalExpensePages);
+  const paginatedExpenseCategories = expenseCategories.slice((clampedExpensePage - 1) * ITEMS_PER_PAGE, clampedExpensePage * ITEMS_PER_PAGE);
+
+  const INCOME_ITEMS_PER_PAGE = 5;
+  const totalIncomePages = Math.ceil(incomeCategories.length / INCOME_ITEMS_PER_PAGE) || 1;
+  const clampedIncomePage = Math.min(incomePage, totalIncomePages);
+  const paginatedIncomeCategories = incomeCategories.slice((clampedIncomePage - 1) * INCOME_ITEMS_PER_PAGE, clampedIncomePage * INCOME_ITEMS_PER_PAGE);
+
+  const currentMonth = new Date().getMonth();
+  const currentYear = new Date().getFullYear();
+
+  const thisMonthTxs = transactions.filter(t => {
+    const d = new Date(t.transactionDate);
+    return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+  });
+
+  const lastMonth = currentMonth === 0 ? 11 : currentMonth - 1;
+  const lastMonthYear = currentMonth === 0 ? currentYear - 1 : currentYear;
+  const lastMonthTxs = transactions.filter(t => {
+    const d = new Date(t.transactionDate);
+    return d.getMonth() === lastMonth && d.getFullYear() === lastMonthYear;
+  });
+
+  // Calculate deep analysis values
+  const totalExpenseSpent = transactions.filter(t => t.type === 'EXPENSE').reduce((sum, t) => sum + Number(t.amount), 0) || 1;
+  
+  const housingSpent = transactions.filter(t => {
+    const name = (t.category?.name || "").toLowerCase();
+    return t.type === 'EXPENSE' && (name.includes('housing') || name.includes('rent') || name.includes('utilities') || name.includes('home'));
+  }).reduce((sum, t) => sum + Number(t.amount), 0);
+  const housingPct = Math.round((housingSpent / totalExpenseSpent) * 100);
+
+  const lifestyleSpent = transactions.filter(t => {
+    const name = (t.category?.name || "").toLowerCase();
+    return t.type === 'EXPENSE' && (name.includes('food') || name.includes('dining') || name.includes('entertain') || name.includes('lifestyle') || name.includes('shop'));
+  }).reduce((sum, t) => sum + Number(t.amount), 0);
+  const lifestylePct = Math.round((lifestyleSpent / totalExpenseSpent) * 100);
+
+  let smartInsightText = "Consolidating similar small subscriptions into one family plan could save up to ₹1,200/mo.";
+  if (housingPct > 40) {
+    smartInsightText = "Your housing expenses represent a significant portion of your total budget. Consider evaluating utility packages to optimize.";
+  } else if (lifestylePct > 30) {
+    smartInsightText = "Lifestyle and dining expenses are higher than recommended. Try planning meals or setting weekly caps.";
+  }
+
+  // Calculate category monthly trend
+  const getCategoryTrend = (catId: string) => {
+    const thisMonthSum = thisMonthTxs.filter(t => t.categoryId === catId).reduce((sum, t) => sum + Number(t.amount), 0);
+    const lastMonthSum = lastMonthTxs.filter(t => t.categoryId === catId).reduce((sum, t) => sum + Number(t.amount), 0);
+    if (lastMonthSum > 0) {
+      const change = Math.round(((thisMonthSum - lastMonthSum) / lastMonthSum) * 100);
+      return {
+        label: change >= 0 ? `+${change}%` : `${change}%`,
+        style: change >= 0 ? "bg-[#a43a3a]/10 text-[#a43a3a]" : "bg-primary/10 text-primary"
+      };
+    }
+    return { label: "0%", style: "bg-secondary/15 text-secondary" };
+  };
+
   return (
-    <div className="flex flex-col gap-6 pb-12 select-none">
+    <div className="flex flex-col gap-8 pb-12 select-none text-left font-sans">
       
-      {/* Header (Section 71) */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-border pb-5">
-        <div className="flex flex-col gap-1.5">
-          <h1 className="text-[32px] font-bold leading-[40px] text-foreground">Categories</h1>
-          <p className="text-[14px] font-normal text-muted-foreground">Manage transaction classifications.</p>
+      {/* Header section */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-border pb-5 font-sans">
+        <div className="flex flex-col gap-1">
+          <h1 className="text-[32px] font-bold leading-[40px] text-foreground">Categories Management</h1>
+          <p className="text-[14px] text-secondary">Organize and analyze your spending and income streams.</p>
         </div>
-        <CustomButton variant="primary" size="md" className="gap-2 w-full sm:w-auto" onClick={handleOpenCreate}>
-          <Plus className="size-4" />
-          Add Category
-        </CustomButton>
       </div>
 
-      {/* Tabs & Search controls */}
-      <div className="flex flex-col md:flex-row gap-4 justify-between items-stretch md:items-center bg-card/50 p-4 rounded-[16px] border border-border">
+      {/* Main Bento Grid */}
+      <div className="grid grid-cols-12 gap-6">
         
-        {/* Tab switch group */}
-        <div className="flex bg-muted p-1.5 rounded-[12px] self-start md:self-auto w-full md:w-auto">
-          <button
-            type="button"
-            onClick={() => setActiveTab("EXPENSE")}
-            className={cn(
-              "flex-1 md:flex-none px-5 py-2 rounded-[8px] text-[15px] font-semibold select-none transition-colors cursor-pointer",
-              activeTab === "EXPENSE" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
-            )}
-          >
-            Expense Categories
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab("INCOME")}
-            className={cn(
-              "flex-1 md:flex-none px-5 py-2 rounded-[8px] text-[15px] font-semibold select-none transition-colors cursor-pointer",
-              activeTab === "INCOME" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
-            )}
-          >
-            Income Categories
-          </button>
-        </div>
-
-        {/* Search */}
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-3.5 top-3 size-4 text-muted-foreground" />
-          <input
-            type="text"
-            placeholder="Search by category name..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="h-10 w-full pl-10 pr-4 bg-card text-foreground border border-border rounded-[12px] text-[15px] font-medium placeholder-muted-foreground outline-none focus:border-primary transition-colors font-sans"
-          />
-        </div>
-
-      </div>
-
-      {/* Category List / Grid (Section 71) */}
-      {filteredCategories.length === 0 ? (
-        <div className="h-64 flex flex-col items-center justify-center text-center text-xs text-muted-foreground gap-2 border border-dashed border-border bg-card rounded-[16px]">
-          <FolderOpen className="size-10" />
-          <span>No categories found in this group.</span>
-          <CustomButton variant="outline" size="sm" className="mt-2" onClick={handleOpenCreate}>
-            Create Category
-          </CustomButton>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
-          {filteredCategories.map((cat) => {
-            const iconObj = icons.find((i) => i.id === cat.categoryIconId)
-            const iconName = iconObj?.iconKey || "FolderOpen"
-
-            return (
-              <div
-                key={cat.id}
-                className="bg-card border border-border rounded-[12px] p-5 shadow-card flex items-center justify-between hover:shadow-md transition-shadow relative text-card-foreground"
+        {/* Left Column: Hierarchy & Deep Analysis */}
+        <section className="col-span-12 lg:col-span-4 space-y-6">
+          
+          {/* Hierarchy tree view card */}
+          <div className="bg-card border border-border shadow-sm rounded-xl p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-[20px] font-bold text-foreground">Hierarchy</h3>
+              <button 
+                onClick={() => handleOpenCreate()}
+                className="text-primary hover:bg-primary-container/10 p-1.5 rounded-full transition-colors cursor-pointer border-none bg-transparent flex items-center justify-center"
               >
-                <div className="flex items-center gap-4">
-                  <div
-                    className="size-10 rounded-[10px] flex items-center justify-center"
-                    style={{ backgroundColor: `${cat.color || COLOR_PALETTE[0]}10` }}
-                  >
-                    {renderIcon(iconName, cat.color || COLOR_PALETTE[0])}
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="text-sm font-semibold text-foreground">{cat.name}</span>
-                    <span className="text-2xs font-medium text-muted-foreground uppercase tracking-wider mt-0.5">
-                      {cat.type}
-                    </span>
+                <Plus className="size-5" />
+              </button>
+            </div>
+            
+            <div className="space-y-3">
+              {expenseCategories.length === 0 ? (
+                <p className="text-xs text-secondary italic">No classifications defined.</p>
+              ) : (
+                (showAllHierarchy ? expenseCategories : expenseCategories.slice(0, 8)).map((cat) => {
+                  const iconObj = icons.find((i) => i.id === cat.categoryIconId)
+                  const iconKey = iconObj?.iconKey || "FolderOpen"
+                  return (
+                    <div key={cat.id} className="flex items-center gap-2.5 p-2.5 hover:bg-muted/60 rounded-lg transition-colors cursor-pointer group">
+                      <Icons.ChevronRight className="size-4 text-secondary group-hover:text-primary" />
+                      <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-card shadow-sm border border-border">
+                        {renderIcon(iconKey, cat.color)}
+                      </div>
+                      <span className="font-semibold text-foreground text-[14px] flex-1">{cat.name}</span>
+                      <span className="text-[12px] text-secondary font-medium">Active</span>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+            {expenseCategories.length > 8 && (
+              <button
+                onClick={() => setShowAllHierarchy(prev => !prev)}
+                className="mt-3 w-full py-2 rounded-lg text-[13px] font-bold text-primary bg-primary/5 hover:bg-primary/10 transition-colors cursor-pointer border-none flex items-center justify-center gap-1.5"
+              >
+                {showAllHierarchy ? (
+                  <><ChevronUp className="size-4" /> Show less</>
+                ) : (
+                  <><ChevronDown className="size-4" /> Show {expenseCategories.length - 8} more</>
+                )}
+              </button>
+            )}
+          </div>
+
+          {/* Deep Category Analysis */}
+          <div className="bg-card border border-border shadow-sm rounded-xl p-6 overflow-hidden relative min-h-[300px]">
+            <h3 className="text-[20px] font-bold text-foreground mb-1">Deep Analysis</h3>
+            <p className="text-[13px] text-secondary mb-6">Visualizing categorical growth trends over the last quarter.</p>
+            <div className="space-y-6 relative z-10">
+              <div>
+                <div className="flex justify-between mb-2">
+                  <span className="text-[14px] font-semibold text-foreground">Housing Efficiency</span>
+                  <span className="text-[14px] font-bold text-primary">{housingPct}%</span>
+                </div>
+                <div className="w-full bg-muted h-2 rounded-full overflow-hidden">
+                  <div className="bg-primary h-full rounded-full" style={{ width: `${housingPct || 0}%` }}></div>
+                </div>
+              </div>
+              <div>
+                <div className="flex justify-between mb-2">
+                  <span className="text-[14px] font-semibold text-foreground">Lifestyle Spend</span>
+                  <span className="text-[14px] font-bold text-[#a43a3a]">{lifestylePct}%</span>
+                </div>
+                <div className="w-full bg-muted h-2 rounded-full overflow-hidden">
+                  <div className="bg-[#a43a3a] h-full rounded-full" style={{ width: `${lifestylePct || 0}%` }}></div>
+                </div>
+              </div>
+              <div className="bg-primary/5 p-4 rounded-lg border border-primary/10 font-sans">
+                <div className="flex items-start gap-3">
+                  <Icons.Sparkles className="size-5 text-primary flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-[14px] font-bold text-foreground">Smart Insight</p>
+                    <p className="text-[13px] text-secondary leading-relaxed mt-0.5">{smartInsightText}</p>
                   </div>
                 </div>
-
-                <DropdownMenu
-                  trigger={
-                    <button
-                      type="button"
-                      className="p-1.5 rounded-full hover:bg-muted text-muted-foreground hover:text-foreground transition-colors cursor-pointer outline-none"
-                    >
-                      <MoreVertical className="size-4" />
-                    </button>
-                  }
-                  items={[
-                    {
-                      label: "Edit Category",
-                      icon: <Edit2 className="size-3.5" />,
-                      onClick: () => handleOpenEdit(cat),
-                    },
-                    {
-                      label: "Delete",
-                      icon: <Trash2 className="size-3.5" />,
-                      onClick: () => handleOpenDelete(cat),
-                      isDestructive: true,
-                    },
-                  ]}
-                />
               </div>
-            )
-          })}
-        </div>
-      )}
+            </div>
+            
+            {/* Background design icon */}
+            <div className="absolute -bottom-10 -right-10 opacity-5 pointer-events-none">
+              <Icons.BarChart4 className="size-48 text-primary" />
+            </div>
+          </div>
+        </section>
+
+        {/* Right Column: Grid Lists */}
+        <section className="col-span-12 lg:col-span-8 space-y-6">
+          
+          {/* Search box card */}
+          <div className="bg-card border border-border shadow-sm rounded-xl p-4 flex items-center">
+            <div className="relative w-full">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-secondary opacity-60 size-4" />
+              <input
+                type="text"
+                placeholder="Search categories by name..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-9 pr-4 py-2 bg-input border border-border rounded-lg text-[14px] focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-foreground font-sans font-medium"
+              />
+            </div>
+          </div>
+
+          {/* Expense Categories */}
+          <div>
+            <div className="flex justify-between items-end mb-4">
+              <h3 className="text-[20px] font-bold text-foreground">Expense Categories</h3>
+              <a className="text-primary font-bold text-[14px] hover:underline cursor-pointer font-sans">Manage All</a>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+              {/* Add Expense Placeholder Card */}
+              <button 
+                onClick={() => handleOpenCreate("EXPENSE")}
+                className="border-2 border-dashed border-border/80 hover:border-primary rounded-xl p-5 flex flex-col items-center justify-center gap-2 text-secondary hover:text-primary transition-all group h-48 cursor-pointer bg-card"
+              >
+                <Icons.PlusCircle className="size-8 group-hover:scale-110 transition-transform" />
+                <span className="font-bold text-[14px]">Add Expense Category</span>
+              </button>
+
+              {paginatedExpenseCategories.map((cat) => {
+                const iconObj = icons.find((i) => i.id === cat.categoryIconId)
+                const iconName = iconObj?.iconKey || "FolderOpen"
+                const spentValue = categorySpentMap[cat.id] || 0
+                const trend = getCategoryTrend(cat.id)
+
+                return (
+                  <div key={cat.id} className="bg-card border border-border rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow group flex flex-col justify-between h-48 relative text-left font-sans">
+                    <div className="flex justify-between items-start mb-4">
+                      <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center group-hover:bg-primary/10 transition-colors">
+                        {renderIcon(iconName, cat.color)}
+                      </div>
+                      
+                      <DropdownMenu
+                        trigger={
+                          <button
+                            type="button"
+                            className="p-1.5 rounded-full hover:bg-black/5 text-secondary transition-colors cursor-pointer outline-none border-none bg-transparent flex items-center justify-center"
+                          >
+                            <MoreVertical className="size-4" />
+                          </button>
+                        }
+                        items={[
+                          {
+                            label: "Edit Category",
+                            icon: <Edit2 className="size-3.5" />,
+                            onClick: () => handleOpenEdit(cat),
+                          },
+                          {
+                            label: "Delete",
+                            icon: <Trash2 className="size-3.5" />,
+                            onClick: () => handleOpenDelete(cat),
+                            isDestructive: true,
+                          },
+                        ]}
+                      />
+                    </div>
+                    
+                    <div>
+                      <h4 className="text-[17px] font-bold text-foreground mb-1 leading-snug">{cat.name}</h4>
+                      <p className="text-[12px] text-secondary leading-snug line-clamp-1">Daily essentials & classifications</p>
+                    </div>
+                    
+                    <div className="flex justify-between items-center mt-3 pt-3 border-t border-border/40 font-sans">
+                      <span className="text-[20px] font-bold text-primary">{formatMoney(spentValue)}</span>
+                      <span className={cn("px-2 py-0.5 rounded text-[11px] font-bold", trend.style)}>{trend.label}</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {totalExpensePages > 1 && (
+              <div className="flex items-center justify-between mt-6 bg-card border border-border rounded-xl p-4 font-sans select-none">
+                <span className="text-[13px] text-secondary font-medium">
+                  Showing {Math.min(expenseCategories.length, (clampedExpensePage - 1) * ITEMS_PER_PAGE + 1)} to {Math.min(expenseCategories.length, clampedExpensePage * ITEMS_PER_PAGE)} of {expenseCategories.length} categories
+                </span>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setExpensePage(prev => Math.max(1, prev - 1))}
+                    disabled={clampedExpensePage === 1}
+                    className="px-3 py-1.5 rounded-lg border border-border text-[13px] font-bold text-secondary disabled:opacity-50 hover:bg-muted/60 transition-colors cursor-pointer bg-card"
+                  >
+                    Previous
+                  </button>
+                  <div className="flex gap-1">
+                    {Array.from({ length: totalExpensePages }, (_, i) => i + 1).map((p) => (
+                      <button
+                        key={p}
+                        onClick={() => setExpensePage(p)}
+                        className={cn(
+                          "size-8 rounded-lg text-[13px] font-bold transition-all cursor-pointer border-none flex items-center justify-center",
+                          clampedExpensePage === p ? "bg-primary text-white" : "bg-muted text-secondary hover:bg-muted/80"
+                        )}
+                      >
+                        {p}
+                      </button>
+                    ))}
+                  </div>
+                  <button
+                    onClick={() => setExpensePage(prev => Math.min(totalExpensePages, prev + 1))}
+                    disabled={clampedExpensePage === totalExpensePages}
+                    className="px-3 py-1.5 rounded-lg border border-border text-[13px] font-bold text-secondary disabled:opacity-50 hover:bg-muted/60 transition-colors cursor-pointer bg-card"
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Income Categories */}
+          <div>
+            <div className="flex justify-between items-end mb-4">
+              <h3 className="text-[20px] font-bold text-foreground">Income Categories</h3>
+              <a className="text-primary font-bold text-[14px] hover:underline cursor-pointer font-sans font-medium">Manage All</a>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+              {/* Add Income Placeholder Card */}
+              <button 
+                onClick={() => handleOpenCreate("INCOME")}
+                className="border-2 border-dashed border-border/80 hover:border-primary rounded-xl p-5 flex flex-col items-center justify-center gap-2 text-secondary hover:text-primary transition-all group h-48 cursor-pointer bg-card"
+              >
+                <Icons.PlusCircle className="size-8 group-hover:scale-110 transition-transform" />
+                <span className="font-bold text-[14px]">Add Income Category</span>
+              </button>
+
+              {paginatedIncomeCategories.map((cat) => {
+                const iconObj = icons.find((i) => i.id === cat.categoryIconId)
+                const iconName = iconObj?.iconKey || "FolderOpen"
+                const incomeValue = categorySpentMap[cat.id] || 0
+
+                return (
+                  <div key={cat.id} className="bg-primary/5 border border-primary/20 hover:bg-primary/10 rounded-xl p-5 shadow-sm hover:shadow-md transition-all group flex flex-col justify-between h-48 relative text-left font-sans">
+                    <div className="flex justify-between items-start mb-4">
+                      <div className="w-12 h-12 rounded-xl bg-card border border-border flex items-center justify-center shadow-sm">
+                        {renderIcon(iconName, cat.color)}
+                      </div>
+                      
+                      <DropdownMenu
+                        trigger={
+                          <button
+                            type="button"
+                            className="p-1.5 rounded-full hover:bg-black/5 text-secondary transition-colors cursor-pointer outline-none border-none bg-transparent flex items-center justify-center"
+                          >
+                            <MoreVertical className="size-4" />
+                          </button>
+                        }
+                        items={[
+                          {
+                            label: "Edit Category",
+                            icon: <Edit2 className="size-3.5" />,
+                            onClick: () => handleOpenEdit(cat),
+                          },
+                          {
+                            label: "Delete",
+                            icon: <Trash2 className="size-3.5" />,
+                            onClick: () => handleOpenDelete(cat),
+                            isDestructive: true,
+                          },
+                        ]}
+                      />
+                    </div>
+                    
+                    <div>
+                      <h4 className="text-[17px] font-bold text-foreground mb-1 leading-snug">{cat.name}</h4>
+                      <p className="text-[12px] text-secondary leading-snug line-clamp-1">Deposits & salary streams</p>
+                    </div>
+                    
+                    <div className="flex justify-between items-center mt-3 pt-3 border-t border-border/40 font-sans">
+                      <span className="text-[20px] font-bold text-primary">{formatMoney(incomeValue)}</span>
+                      <Icons.TrendingUp className="size-5 text-primary" />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {totalIncomePages > 1 && (
+              <div className="flex items-center justify-between mt-6 bg-card border border-border rounded-xl p-4 font-sans select-none">
+                <span className="text-[13px] text-secondary font-medium">
+                  Showing {Math.min(incomeCategories.length, (clampedIncomePage - 1) * INCOME_ITEMS_PER_PAGE + 1)} to {Math.min(incomeCategories.length, clampedIncomePage * INCOME_ITEMS_PER_PAGE)} of {incomeCategories.length} categories
+                </span>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setIncomePage(prev => Math.max(1, prev - 1))}
+                    disabled={clampedIncomePage === 1}
+                    className="px-3 py-1.5 rounded-lg border border-border text-[13px] font-bold text-secondary disabled:opacity-50 hover:bg-muted/60 transition-colors cursor-pointer bg-card"
+                  >
+                    Previous
+                  </button>
+                  <div className="flex gap-1">
+                    {Array.from({ length: totalIncomePages }, (_, i) => i + 1).map((p) => (
+                      <button
+                        key={p}
+                        onClick={() => setIncomePage(p)}
+                        className={cn(
+                          "size-8 rounded-lg text-[13px] font-bold transition-all cursor-pointer border-none flex items-center justify-center",
+                          clampedIncomePage === p ? "bg-primary text-white" : "bg-[#eff4ff] text-secondary hover:bg-[#eff4ff]/80"
+                        )}
+                      >
+                        {p}
+                      </button>
+                    ))}
+                  </div>
+                  <button
+                    onClick={() => setIncomePage(prev => Math.min(totalIncomePages, prev + 1))}
+                    disabled={clampedIncomePage === totalIncomePages}
+                    className="px-3 py-1.5 rounded-lg border border-border text-[13px] font-bold text-secondary disabled:opacity-50 hover:bg-muted/60 transition-colors cursor-pointer bg-card"
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Visual Accent Banner */}
+          <div className="relative overflow-hidden rounded-2xl bg-[#0b1c30] p-8 text-left text-white shadow-sm font-sans">
+            <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+              <div className="max-w-md">
+                <h3 className="text-[24px] font-bold text-white mb-2">Master Your Flow</h3>
+                <p className="text-[13px] text-secondary opacity-80 leading-relaxed">Correctly categorizing your transactions is the first step toward high-fidelity financial planning. Use our auto-rule engine to save 4 hours a month.</p>
+                <button className="mt-5 bg-primary text-white border-none px-6 py-2 rounded-full font-bold text-[13px] hover:brightness-110 active:scale-95 transition-all cursor-pointer">
+                  Set Automation Rules
+                </button>
+              </div>
+              <div className="hidden md:flex w-36 h-36 border-4 border-primary/20 rounded-2xl items-center justify-center relative overflow-hidden flex-shrink-0">
+                <Icons.Cpu className="size-16 text-white opacity-80" />
+              </div>
+            </div>
+            
+            {/* Decorative background gradient */}
+            <div className="absolute top-0 right-0 w-1/3 h-full bg-gradient-to-l from-primary/10 to-transparent pointer-events-none font-sans"></div>
+          </div>
+
+        </section>
+      </div>
 
       {/* Add Dialog (Section 71) */}
       <CustomDialog
@@ -326,7 +650,7 @@ export default function CategoriesPage() {
           />
 
           <div className="flex flex-col gap-2">
-            <span className="text-xs font-semibold text-gray-600 select-none">Theme Color</span>
+            <span className="text-xs font-semibold text-muted-foreground select-none">Theme Color</span>
             <div className="flex flex-wrap gap-2">
               {COLOR_PALETTE.map((color) => (
                 <button
@@ -335,7 +659,7 @@ export default function CategoriesPage() {
                   onClick={() => setCatColor(color)}
                   className={cn(
                     "size-7 rounded-full border transition-all cursor-pointer",
-                    catColor === color ? "border-gray-900 scale-110 shadow-sm" : "border-transparent"
+                    catColor === color ? "border-foreground scale-110 shadow-sm" : "border-transparent"
                   )}
                   style={{ backgroundColor: color }}
                 />
@@ -345,14 +669,14 @@ export default function CategoriesPage() {
 
           <div ref={createIconDropdownRef} className="flex flex-col gap-2 relative w-full text-foreground select-none">
             <span className="text-[14px] font-semibold text-foreground select-none">Icon Representation</span>
-            
+
             <button
               type="button"
               onClick={() => {
                 setIsIconDropdownOpen(!isIconDropdownOpen)
                 setIconSearchQuery("")
               }}
-              className="flex items-center justify-between w-full h-10 px-3.5 py-2 text-[15px] font-semibold bg-input text-foreground border border-border rounded-[12px] outline-none cursor-pointer hover:border-[#D8C8B3] transition-all duration-200"
+              className="flex items-center justify-between w-full h-10 px-3.5 py-2 text-[15px] font-semibold bg-input text-foreground border border-border rounded-[12px] outline-none cursor-pointer hover:border-primary/40 transition-all duration-200"
             >
               <div className="flex items-center gap-2.5">
                 {(() => {
@@ -375,7 +699,7 @@ export default function CategoriesPage() {
             </button>
 
             {isIconDropdownOpen && (
-              <div className="absolute top-[calc(100%+6px)] left-0 z-50 w-full p-3 bg-[#FAF7F1] border border-border rounded-[16px] shadow-modal flex flex-col gap-2.5 animate-dropdown">
+              <div className="absolute top-[calc(100%+6px)] left-0 z-50 w-full p-3 bg-popover border border-border rounded-[16px] shadow-modal flex flex-col gap-2.5 animate-dropdown">
                 {/* Search Bar */}
                 <div className="relative flex items-center">
                   <Search className="absolute left-3 size-3.5 text-muted-foreground pointer-events-none select-none" />
@@ -456,7 +780,7 @@ export default function CategoriesPage() {
           />
 
           <div className="flex flex-col gap-2">
-            <span className="text-xs font-semibold text-gray-600 select-none">Theme Color</span>
+            <span className="text-xs font-semibold text-muted-foreground select-none">Theme Color</span>
             <div className="flex flex-wrap gap-2">
               {COLOR_PALETTE.map((color) => (
                 <button
@@ -465,7 +789,7 @@ export default function CategoriesPage() {
                   onClick={() => setCatColor(color)}
                   className={cn(
                     "size-7 rounded-full border transition-all cursor-pointer",
-                    catColor === color ? "border-gray-900 scale-110 shadow-sm" : "border-transparent"
+                    catColor === color ? "border-foreground scale-110 shadow-sm" : "border-transparent"
                   )}
                   style={{ backgroundColor: color }}
                 />
@@ -475,14 +799,14 @@ export default function CategoriesPage() {
 
           <div ref={editIconDropdownRef} className="flex flex-col gap-2 relative w-full text-foreground select-none">
             <span className="text-[14px] font-semibold text-foreground select-none">Icon Representation</span>
-            
+
             <button
               type="button"
               onClick={() => {
                 setIsIconDropdownOpen(!isIconDropdownOpen)
                 setIconSearchQuery("")
               }}
-              className="flex items-center justify-between w-full h-10 px-3.5 py-2 text-[15px] font-semibold bg-input text-foreground border border-border rounded-[12px] outline-none cursor-pointer hover:border-[#D8C8B3] transition-all duration-200"
+              className="flex items-center justify-between w-full h-10 px-3.5 py-2 text-[15px] font-semibold bg-input text-foreground border border-border rounded-[12px] outline-none cursor-pointer hover:border-primary/40 transition-all duration-200"
             >
               <div className="flex items-center gap-2.5">
                 {(() => {
@@ -505,7 +829,7 @@ export default function CategoriesPage() {
             </button>
 
             {isIconDropdownOpen && (
-              <div className="absolute top-[calc(100%+6px)] left-0 z-50 w-full p-3 bg-[#FAF7F1] border border-border rounded-[16px] shadow-modal flex flex-col gap-2.5 animate-dropdown">
+              <div className="absolute top-[calc(100%+6px)] left-0 z-50 w-full p-3 bg-popover border border-border rounded-[16px] shadow-modal flex flex-col gap-2.5 animate-dropdown">
                 {/* Search Bar */}
                 <div className="relative flex items-center">
                   <Search className="absolute left-3 size-3.5 text-muted-foreground pointer-events-none select-none" />
@@ -597,8 +921,8 @@ function CategoriesSkeleton() {
   return (
     <div className="flex flex-col gap-6 pb-12 animate-pulse">
       <div className="flex justify-between items-center border-b border-border pb-5">
-        <div className="h-8 w-1/4 bg-gray-200 rounded-[6px]" />
-        <div className="h-10 w-32 bg-gray-200 rounded-[10px]" />
+        <div className="h-8 w-1/4 bg-muted rounded-[6px]" />
+        <div className="h-10 w-32 bg-muted rounded-[10px]" />
       </div>
       <div className="h-16 bg-background-secondary border border-border rounded-[16px] p-4" />
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">

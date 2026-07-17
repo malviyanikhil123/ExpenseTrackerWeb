@@ -7,8 +7,7 @@ import {
   Coins,
   BarChart3,
   User,
-  ChevronLeft,
-  ChevronRight,
+  Menu,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -54,37 +53,34 @@ export const Sidebar: React.FC<SidebarProps> = ({
   return (
     <aside
       className={cn(
-        "h-screen flex flex-col justify-between border-r border-sidebar-border bg-sidebar transition-all duration-350 z-20 shrink-0",
-        isCollapsed ? "w-20" : "full",
+        "h-screen flex flex-col justify-between border-r border-sidebar-border bg-sidebar transition-all duration-350 z-20 shrink-0 select-none shadow-sm",
+        isCollapsed ? "w-20" : "w-64",
         className
       )}
     >
       {/* Sidebar Top: Branding & Collapse Button */}
       <div className="flex flex-col">
-        <div className="h-[72px] border-b border-sidebar-border px-6 flex items-center justify-between shrink-0 bg-sidebar">
-          {!isCollapsed && (
-            <span className="text-base font-bold tracking-tight text-sidebar-foreground select-none">
-              Expense Tracker
-            </span>
-          )}
-          {isCollapsed && (
-            <span className="text-base font-bold text-primary select-none mx-auto">ET</span>
+        <div className={cn(
+          "flex items-center justify-between shrink-0 bg-sidebar px-6 border-b border-sidebar-border/30",
+          isCollapsed ? "h-[72px]" : "h-24"
+        )}>
+          {!isCollapsed ? (
+            <div className="flex flex-col select-none">
+              <span className="text-[18px] font-bold text-primary tracking-tight leading-tight">
+                Spendra
+              </span>
+              <span className="text-[12px] text-secondary opacity-70 font-semibold mt-0.5">
+                Financial Wellness
+              </span>
+            </div>
+          ) : (
+            <span className="text-[18px] font-bold text-primary select-none mx-auto">S</span>
           )}
 
-          {/* Desktop Collapse Trigger */}
-          {onToggleCollapse && (
-            <button
-              type="button"
-              onClick={onToggleCollapse}
-              className="hidden md:flex p-1 rounded-md border border-sidebar-border text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-white/10 transition-colors cursor-pointer ml-[10px]"
-            >
-              {isCollapsed ? <ChevronRight className="size-4" /> : <ChevronLeft className="size-4" />}
-            </button>
-          )}
         </div>
 
         {/* Navigation Items (Section 22) */}
-        <nav className="flex flex-col gap-1.5 p-4 overflow-y-auto scrollbar-none">
+        <nav className="flex flex-col py-6 overflow-y-auto scrollbar-none gap-1">
           {items.map((item) => {
             const isActive = activeId === item.id
 
@@ -94,28 +90,29 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 href={`#${item.id}`}
                 onClick={(e) => handleItemClick(item.id, e)}
                 className={cn(
-                  "relative flex items-center gap-3.5 px-4 py-3.5 text-[15px] font-semibold rounded-[12px] select-none transition-all group/nav",
+                  "relative flex items-center gap-3.5 px-6 py-3 text-[15px] select-none transition-all duration-150 active:scale-98 cursor-pointer",
                   isActive
-                    ? "bg-primary text-sidebar-foreground font-semibold shadow-sm"
-                    : "text-sidebar-foreground/90 hover:bg-white/8 hover:text-sidebar-foreground"
+                    ? "text-primary font-bold border-r-4 border-primary bg-primary/10"
+                    : "text-secondary hover:bg-muted hover:text-foreground"
                 )}
                 title={isCollapsed ? item.title : undefined}
               >
                 <span className={cn(
+                  "transition-colors",
                   isActive
-                    ? "text-sidebar-foreground"
-                    : "text-sidebar-foreground/75 group-hover/nav:text-sidebar-foreground"
+                    ? "text-primary"
+                    : "text-secondary group-hover/nav:text-foreground"
                 )}>
                   {item.icon}
                 </span>
-                {!isCollapsed && <span className="font-semibold">{item.title}</span>}
+                {!isCollapsed && <span className="font-medium font-body-md">{item.title}</span>}
 
                 {/* Badge indicator */}
                 {item.badge && !isCollapsed && (
                   <span
                     className={cn(
                       "ml-auto text-[10px] px-2 py-0.5 rounded-full font-bold",
-                      isActive ? "bg-white/20 text-sidebar-foreground" : "bg-white/10 text-sidebar-foreground/80"
+                      isActive ? "bg-primary/20 text-primary" : "bg-muted text-secondary"
                     )}
                   >
                     {item.badge}

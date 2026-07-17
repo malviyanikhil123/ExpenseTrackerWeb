@@ -29,13 +29,13 @@ export const CustomButton = React.forwardRef<HTMLButtonElement, ButtonProps>(
 
     // Variant mapping
     const variants = {
-      primary: "bg-primary text-white hover:bg-[#8B592F] border border-transparent shadow-sm",
-      secondary: "bg-background border border-secondary text-foreground hover:bg-background-secondary",
-      outline: "bg-card border border-border text-foreground hover:bg-[#F2EBDE]",
-      ghost: "bg-transparent text-foreground hover:bg-background border border-transparent",
+      primary: "bg-primary text-white hover:opacity-90 border border-transparent shadow-sm",
+      secondary: "bg-background border border-secondary text-foreground hover:bg-muted",
+      outline: "bg-card border border-border text-foreground hover:bg-muted",
+      ghost: "bg-transparent text-foreground hover:bg-muted border border-transparent",
       danger: "bg-danger-bg text-danger hover:bg-danger-bg/85 border border-transparent shadow-sm",
-      success: "bg-[#53724D] text-white hover:opacity-90 border border-transparent shadow-sm",
-      icon: "bg-transparent border border-border text-muted-foreground hover:text-foreground hover:bg-background rounded-md p-0",
+      success: "bg-success text-white hover:opacity-90 border border-transparent shadow-sm",
+      icon: "bg-transparent border border-border text-muted-foreground hover:text-foreground hover:bg-muted rounded-md p-0",
     }
 
     // Border radii mapping: Buttons use 12px (rounded-[12px]) by default

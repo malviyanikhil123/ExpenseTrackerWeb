@@ -24,6 +24,12 @@ export interface Transaction {
     name: string
     type: string
   }
+  category?: {
+    id: string
+    name: string
+    icon?: string
+    color?: string
+  } | null
 }
 
 export interface TransactionsQueryFilters {

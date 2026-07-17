@@ -2,13 +2,37 @@ import { useEffect } from "react"
 import { useProfileDetails } from "../features/profile/hooks/useProfile"
 
 export function applyTheme(themeName: string) {
-  localStorage.setItem("theme", "LIGHT")
-  document.documentElement.classList.remove("dark")
+  const root = document.documentElement
+
+  if (themeName === "DARK") {
+    root.classList.add("dark")
+    localStorage.setItem("theme", "DARK")
+  } else if (themeName === "LIGHT") {
+    root.classList.remove("dark")
+    localStorage.setItem("theme", "LIGHT")
+  } else {
+    // SYSTEM
+    localStorage.setItem("theme", "SYSTEM")
+    if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+      root.classList.add("dark")
+    } else {
+      root.classList.remove("dark")
+    }
+  }
 }
 
 export function useApplyTheme() {
-  // Always apply LIGHT theme on load
+  const { data: profile } = useProfileDetails()
+
   useEffect(() => {
-    applyTheme("LIGHT")
+    // On first load, apply from localStorage or default to DARK
+    const saved = localStorage.getItem("theme") as "LIGHT" | "DARK" | "SYSTEM" | null
+    applyTheme(saved ?? "DARK")
   }, [])
+
+  useEffect(() => {
+    if (profile?.theme) {
+      applyTheme(profile.theme)
+    }
+  }, [profile?.theme])
 }

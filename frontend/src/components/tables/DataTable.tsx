@@ -90,7 +90,7 @@ export function DataTable<T extends { id: string | number }>({
         <button
           type="button"
           onClick={(e) => handleActionToggle(row.id, e)}
-          className="p-1.5 rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
+          className="p-1.5 rounded-full hover:bg-muted text-muted-foreground hover:text-muted-foreground transition-colors"
         >
           <MoreVertical className="size-4.5" />
         </button>
@@ -136,10 +136,10 @@ export function DataTable<T extends { id: string | number }>({
   return (
     <div className="w-full">
       {/* Desktop Table View (Section 31) */}
-      <div className="hidden md:block overflow-x-auto w-full border border-[#E7DDCE] rounded-[16px] bg-card shadow-card">
+      <div className="hidden md:block overflow-x-auto w-full border border-[#e2e8f0] rounded-[16px] bg-card shadow-card">
         <table className="w-full text-left border-collapse">
           <thead>
-            <tr className="border-b border-[#E7DDCE] bg-[#F5EFE4]">
+            <tr className="border-b border-border bg-muted/30">
               {columns.map((col) => (
                 <th
                   key={col.key}
@@ -155,11 +155,11 @@ export function DataTable<T extends { id: string | number }>({
               )}
             </tr>
           </thead>
-          <tbody className="divide-y divide-[#E7DDCE]">
+          <tbody className="divide-y divide-[#e2e8f0]">
             {data.map((row, index) => (
               <tr
                 key={row.id}
-                className="bg-[#FAF7F1] hover:bg-[#F2EBDE] transition-colors group/row"
+                className="bg-card hover:bg-muted/30 transition-colors group/row"
               >
                 {columns.map((col) => (
                   <td key={col.key} className="px-6 py-[18px] text-[15px] font-medium text-foreground">
@@ -182,7 +182,7 @@ export function DataTable<T extends { id: string | number }>({
         {data.map((row) => (
           <div
             key={row.id}
-            className="bg-card border border-[#E7DDCE] rounded-[16px] p-6 shadow-card hover:-translate-y-0.5 hover:shadow-md transition-all duration-200 ease-in-out relative flex flex-col gap-2"
+            className="bg-card border border-[#e2e8f0] rounded-[16px] p-6 shadow-card hover:-translate-y-0.5 hover:shadow-md transition-all duration-200 ease-in-out relative flex flex-col gap-2"
           >
             {/* Action menu positioned at the top-right of the card */}
             <div className="absolute top-4 right-4">

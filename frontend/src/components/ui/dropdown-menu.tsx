@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react"
+import { createPortal } from "react-dom"
 
 export interface DropdownMenuItem {
   label: string
@@ -14,11 +15,29 @@ interface DropdownMenuProps {
 
 export const DropdownMenu: React.FC<DropdownMenuProps> = ({ trigger, items }) => {
   const [isOpen, setIsOpen] = useState(false)
-  const menuRef = useRef<HTMLDivElement>(null)
+  const [coords, setCoords] = useState({ top: 0, left: 0 })
+  const triggerRef = useRef<HTMLElement>(null)
+  const dropdownRef = useRef<HTMLDivElement>(null)
+
+  const updateCoords = () => {
+    if (triggerRef.current) {
+      const rect = triggerRef.current.getBoundingClientRect()
+      // Render dropdown aligned to the right edge of the trigger
+      setCoords({
+        top: rect.bottom + window.scrollY,
+        left: rect.right - 190 + window.scrollX, // 190px is width of dropdown
+      })
+    }
+  }
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+      if (
+        triggerRef.current &&
+        !triggerRef.current.contains(event.target as Node) &&
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
         setIsOpen(false)
       }
     }
@@ -28,17 +47,44 @@ export const DropdownMenu: React.FC<DropdownMenuProps> = ({ trigger, items }) =>
     }
   }, [])
 
-  return (
-    <div className="relative inline-block text-left" ref={menuRef}>
-      {React.cloneElement(trigger as React.ReactElement<any>, {
-        onClick: (e: React.MouseEvent) => {
-          e.stopPropagation()
-          setIsOpen(!isOpen)
-        },
-      })}
+  useEffect(() => {
+    if (isOpen) {
+      updateCoords()
+      window.addEventListener("scroll", updateCoords, true)
+      window.addEventListener("resize", updateCoords)
+    }
+    return () => {
+      window.removeEventListener("scroll", updateCoords, true)
+      window.removeEventListener("resize", updateCoords)
+    }
+  }, [isOpen])
 
-      {isOpen && (
-        <div className="absolute right-0 mt-2 w-[190px] bg-popover/95 backdrop-blur-md border border-border rounded-[12px] shadow-dropdown z-50 p-1.5 font-sans text-xs animate-dropdown origin-top-right text-popover-foreground">
+  // Clone trigger element to attach ref and click listener
+  const triggerElement = React.cloneElement(trigger, {
+    ref: triggerRef,
+    onClick: (e: React.MouseEvent) => {
+      e.stopPropagation()
+      updateCoords()
+      setIsOpen(!isOpen)
+    },
+  })
+
+  return (
+    <div className="relative inline-block text-left">
+      {triggerElement}
+
+      {isOpen && createPortal(
+        <div
+          ref={dropdownRef}
+          style={{
+            position: "absolute",
+            top: `${coords.top + 4}px`,
+            left: `${coords.left}px`,
+            width: "190px",
+          }}
+          className="bg-popover/95 backdrop-blur-md border border-border rounded-[12px] shadow-dropdown z-[300] p-1.5 font-sans text-xs animate-dropdown origin-top-right text-popover-foreground"
+          onMouseDown={(e) => e.stopPropagation()}
+        >
           {items.map((item, idx) => {
             const isPreviousItemNormal = idx > 0 && !items[idx - 1].isDestructive
             const shouldShowDivider = item.isDestructive && isPreviousItemNormal
@@ -73,7 +119,8 @@ export const DropdownMenu: React.FC<DropdownMenuProps> = ({ trigger, items }) =>
               </React.Fragment>
             )
           })}
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   )

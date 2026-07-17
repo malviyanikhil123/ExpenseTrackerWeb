@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import { User, Mail, Lock, ShieldCheck, AlertCircle, Info, Globe, Coins, Moon, Activity, Calendar } from "lucide-react"
+import { User, Mail, Lock, ShieldCheck, AlertCircle, Info, Globe, Coins, Moon, Sun, SunMoon, Activity, Calendar } from "lucide-react"
 import { toast } from "sonner"
 
 import { useAuthStore } from "../../../store/authStore"
@@ -114,8 +114,8 @@ export default function ProfilePage() {
     return (
       <div className="flex flex-col items-center justify-center p-12 border border-danger/10 bg-danger/5 rounded-[16px] max-w-2xl mx-auto mt-12">
         <AlertCircle className="size-12 text-danger mb-4" />
-        <h2 className="text-xl font-bold text-gray-900 mb-1">Failed to fetch profile settings</h2>
-        <p className="text-sm text-gray-500 mb-6">There was an error communicating with the database service.</p>
+        <h2 className="text-xl font-bold text-foreground mb-1">Failed to fetch profile settings</h2>
+        <p className="text-sm text-muted-foreground mb-6">There was an error communicating with the database service.</p>
         <CustomButton variant="outline" onClick={() => refetch()}>
           Retry Request
         </CustomButton>
@@ -248,7 +248,7 @@ export default function ProfilePage() {
                   <span className="font-semibold text-foreground">Account Password</span>
                   <span className="text-muted-foreground">Regularly update credentials to protect transaction ledger logs.</span>
                 </div>
-                <CustomButton variant="outline" size="sm" className="border-gray-200 shrink-0" onClick={() => setIsPasswordOpen(true)}>
+                <CustomButton variant="outline" size="sm" className="border-border shrink-0" onClick={() => setIsPasswordOpen(true)}>
                   Change Password
                 </CustomButton>
               </div>
@@ -261,13 +261,70 @@ export default function ProfilePage() {
                   </div>
                   <span className="text-muted-foreground">Secure authorization checks using phone codes or authenticator apps.</span>
                 </div>
-                <CustomButton variant="outline" size="sm" className="border-gray-200 shrink-0 opacity-60 cursor-not-allowed" disabled>
+                <CustomButton variant="outline" size="sm" className="border-border shrink-0 opacity-60 cursor-not-allowed" disabled>
                   Enable MFA
                 </CustomButton>
               </div>
             </div>
           </div>
 
+          {/* Appearance & Preferences */}
+          <div className="bg-card border border-border rounded-[16px] p-6 shadow-card flex flex-col gap-5 text-card-foreground">
+            <h3 className="text-sm font-semibold text-foreground border-b border-border pb-2.5 flex items-center gap-2">
+              <Moon className="size-4 text-muted-foreground" />
+              Appearance & Preferences
+            </h3>
+
+            <div className="flex flex-col divide-y divide-border text-xs">
+              {/* Theme Toggle */}
+              <div className="flex items-center justify-between py-3.5 first:pt-0">
+                <div className="flex flex-col gap-0.5">
+                  <span className="font-semibold text-foreground">App Theme</span>
+                  <span className="text-muted-foreground">Choose between light, dark, or system-matched display mode.</span>
+                </div>
+                <div className="flex items-center gap-1.5 bg-muted border border-border rounded-[10px] p-1">
+                  <button
+                    id="theme-light-btn"
+                    onClick={() => handleThemeChange("LIGHT")}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-[7px] text-xs font-semibold transition-all ${
+                      theme === "LIGHT"
+                        ? "bg-card text-foreground shadow-sm border border-border"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    <Sun className="size-3.5" />
+                    Light
+                  </button>
+                  <button
+                    id="theme-system-btn"
+                    onClick={() => handleThemeChange("SYSTEM")}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-[7px] text-xs font-semibold transition-all ${
+                      theme === "SYSTEM"
+                        ? "bg-card text-foreground shadow-sm border border-border"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    <SunMoon className="size-3.5" />
+                    System
+                  </button>
+                  <button
+                    id="theme-dark-btn"
+                    onClick={() => handleThemeChange("DARK")}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-[7px] text-xs font-semibold transition-all ${
+                      theme === "DARK"
+                        ? "bg-primary text-primary-foreground shadow-sm"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    <Moon className="size-3.5" />
+                    Dark
+                  </button>
+                </div>
+              </div>
+
+              {/* Theme Toggle section ended */}
+            </div>
+          </div>
 
         </div>
 
@@ -328,7 +385,7 @@ function ProfileSkeleton() {
   return (
     <div className="flex flex-col gap-6 pb-12 animate-pulse font-sans">
       <div className="flex justify-between items-center border-b border-border pb-5">
-        <div className="h-8 w-1/4 bg-gray-200 rounded-[6px]" />
+        <div className="h-8 w-1/4 bg-muted rounded-[6px]" />
       </div>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-2">
         <div className="bg-card border border-border rounded-[16px] h-80" />

@@ -91,7 +91,7 @@ export const CustomPagination: React.FC<PaginationProps> = ({
                 variant={isCurrent ? "primary" : "outline"}
                 className={cn(
                   "size-8 text-xs p-0 font-medium",
-                  isCurrent ? "shadow-none pointer-events-none" : "border-gray-200 text-gray-700"
+                  isCurrent ? "shadow-none pointer-events-none" : "border-border text-foreground"
                 )}
                 onClick={() => onPageChange(page)}
               >
