@@ -67,7 +67,7 @@ export const DropdownMenu: React.FC<DropdownMenuProps> = ({ trigger, items }) =>
       updateCoords()
       setIsOpen(!isOpen)
     },
-  })
+  } as any)
 
   return (
     <div className="relative inline-block text-left">

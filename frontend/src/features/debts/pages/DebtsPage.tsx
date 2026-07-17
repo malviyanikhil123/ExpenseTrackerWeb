@@ -267,7 +267,7 @@ export default function DebtsPage() {
 
   const pendingBorrowDebts = debts.filter(d => d.type === 'BORROW' && d.status === 'PENDING' && d.dueDate);
   const nextDueDateStr = pendingBorrowDebts.length > 0 
-    ? format(new Date(pendingBorrowDebts.sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())[0].dueDate), "MMM do")
+    ? format(new Date(pendingBorrowDebts.sort((a, b) => new Date(a.dueDate!).getTime() - new Date(b.dueDate!).getTime())[0].dueDate!), "MMM do")
     : "No dues upcoming";
   const paymentsDueCount = debts.filter(d => d.type === 'BORROW' && d.status === 'PENDING').length;
 
