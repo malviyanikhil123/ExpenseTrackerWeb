@@ -126,10 +126,10 @@ export default function DashboardPage() {
     setIsTxDialogOpen(true)
   }
 
-  const handleOpenDebt = () => {
+  const handleOpenDebt = (type: "LENT" | "BORROW" = "LENT") => {
     setDebtParty("")
     setDebtAmount("")
-    setDebtType("LENT")
+    setDebtType(type)
     const defAcc = accounts.find((a) => a.isDefault)?.id || accounts[0]?.id || ""
     setDebtAccountId(defAcc)
     setIsDebtDialogOpen(true)

@@ -323,13 +323,13 @@ export default function AccountsPage() {
     <div className="flex flex-col gap-8 pb-12 select-none text-left font-sans">
       
       {/* Header section */}
-      <header className="flex justify-between items-end border-b border-border pb-5">
+      <header className="flex flex-col md:flex-row md:justify-between md:items-end gap-4 border-b border-border pb-5">
         <div>
-          <h2 className="text-[32px] font-bold text-foreground">My Accounts</h2>
+          <h2 className="text-[32px] font-bold text-foreground font-sans">My Accounts</h2>
           <p className="text-[14px] text-secondary">A unified view of your financial ecosystem.</p>
         </div>
-        <div className="flex gap-4 items-center">
-          <label className="flex items-center gap-2 text-xs font-semibold text-secondary cursor-pointer mr-2">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3 w-full md:w-auto font-sans">
+          <label className="flex items-center gap-2 text-xs font-semibold text-secondary cursor-pointer sm:mr-2 select-none">
             <input
               type="checkbox"
               checked={showArchived}
@@ -338,15 +338,17 @@ export default function AccountsPage() {
             />
             Show Archived
           </label>
-          <button className="flex items-center gap-1.5 px-4 py-2 rounded-lg border border-primary text-primary font-bold text-[14px] hover:bg-primary/5 transition-colors cursor-pointer bg-transparent">
-            <Download className="size-4" /> Export Report
-          </button>
-          <button 
-            onClick={handleOpenCreate}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary text-white font-bold text-[14px] shadow-md shadow-primary/20 hover:opacity-90 transition-all active:scale-95 cursor-pointer border-none"
-          >
-            <Plus className="size-4" /> Link Account
-          </button>
+          <div className="flex gap-2 w-full sm:w-auto">
+            <button className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-4 py-2 rounded-lg border border-primary text-primary font-bold text-[14px] hover:bg-primary/5 transition-colors cursor-pointer bg-transparent">
+              <Download className="size-4" /> Export Report
+            </button>
+            <button 
+              onClick={handleOpenCreate}
+              className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-4 py-2 rounded-lg bg-primary text-white font-bold text-[14px] shadow-md shadow-primary/20 hover:opacity-90 transition-all active:scale-95 cursor-pointer border-none"
+            >
+              <Plus className="size-4" /> Link Account
+            </button>
+          </div>
         </div>
       </header>
 

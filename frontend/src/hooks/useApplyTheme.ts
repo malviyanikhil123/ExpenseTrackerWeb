@@ -25,9 +25,9 @@ export function useApplyTheme() {
   const { data: profile } = useProfileDetails()
 
   useEffect(() => {
-    // On first load, apply from localStorage or default to DARK
+    // On first load, apply from localStorage or default to LIGHT
     const saved = localStorage.getItem("theme") as "LIGHT" | "DARK" | "SYSTEM" | null
-    applyTheme(saved ?? "DARK")
+    applyTheme(saved ?? "LIGHT")
   }, [])
 
   useEffect(() => {

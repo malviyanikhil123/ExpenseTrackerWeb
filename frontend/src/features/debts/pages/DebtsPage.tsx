@@ -334,14 +334,14 @@ export default function DebtsPage() {
     <div className="flex flex-col gap-6 pb-12 select-none text-left">
       
       {/* Header section */}
-      <div className="flex justify-between items-end mb-6 border-b border-border pb-5">
+      <div className="flex flex-col md:flex-row md:justify-between md:items-end gap-4 mb-6 border-b border-border pb-5">
         <div>
           <h2 className="text-[32px] font-bold text-foreground font-sans">Debts & Borrowings</h2>
-          <p className="text-[14px] text-secondary font-sans font-sans font-sans">A unified view of what you owe and what is owed to you.</p>
+          <p className="text-[14px] text-secondary font-sans">A unified view of what you owe and what is owed to you.</p>
         </div>
-        <div className="flex gap-3 font-sans">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3 w-full md:w-auto font-sans">
           {/* Search query input */}
-          <div className="relative w-64 font-sans">
+          <div className="relative w-full sm:w-64 font-sans">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-secondary opacity-60 size-4" />
             <input
               type="text"
@@ -352,47 +352,51 @@ export default function DebtsPage() {
             />
           </div>
 
-          <DropdownMenu
-            trigger={
-              <button className="bg-card border border-border px-4 py-2 rounded-lg font-bold text-[14px] flex items-center gap-1.5 hover:bg-muted/60 transition-colors cursor-pointer text-secondary">
-                <Icons.Sliders className="size-4" />
-                Filter: {filterStatus === "PENDING" ? "Active" : filterStatus === "COMPLETED" ? "Settled" : "All"}
-              </button>
-            }
-            items={[
-              {
-                label: "Active Debts",
-                icon: <AlertCircle className="size-3.5 text-primary" />,
-                onClick: () => {
-                  setFilterStatus("PENDING")
-                  setLentPage(1)
-                  setBorrowPage(1)
+          <div className="flex gap-2 w-full sm:w-auto">
+            <div className="flex-1 sm:flex-initial">
+              <DropdownMenu
+                trigger={
+                  <button className="bg-card border border-border px-4 py-2 rounded-lg font-bold text-[14px] flex items-center justify-center gap-1.5 hover:bg-muted/60 transition-colors cursor-pointer text-secondary w-full">
+                    <Icons.Sliders className="size-4" />
+                    Filter: {filterStatus === "PENDING" ? "Active" : filterStatus === "COMPLETED" ? "Settled" : "All"}
+                  </button>
                 }
-              },
-              {
-                label: "Settled Debts",
-                icon: <Award className="size-3.5 text-[#10b981]" />,
-                onClick: () => {
-                  setFilterStatus("COMPLETED")
-                  setLentPage(1)
-                  setBorrowPage(1)
-                }
-              },
-              {
-                label: "Show All",
-                icon: <Bookmark className="size-3.5" />,
-                onClick: () => {
-                  setFilterStatus("")
-                  setLentPage(1)
-                  setBorrowPage(1)
-                }
-              }
-            ]}
-          />
-          <button className="bg-card border border-border px-4 py-2 rounded-lg font-bold text-[14px] flex items-center gap-1.5 hover:bg-muted/60 transition-colors cursor-pointer text-secondary">
-            <Icons.Download className="size-4" />
-            Export
-          </button>
+                items={[
+                  {
+                    label: "Active Debts",
+                    icon: <AlertCircle className="size-3.5 text-primary" />,
+                    onClick: () => {
+                      setFilterStatus("PENDING")
+                      setLentPage(1)
+                      setBorrowPage(1)
+                    }
+                  },
+                  {
+                    label: "Settled Debts",
+                    icon: <Award className="size-3.5 text-[#10b981]" />,
+                    onClick: () => {
+                      setFilterStatus("COMPLETED")
+                      setLentPage(1)
+                      setBorrowPage(1)
+                    }
+                  },
+                  {
+                    label: "Show All",
+                    icon: <Bookmark className="size-3.5" />,
+                    onClick: () => {
+                      setFilterStatus("")
+                      setLentPage(1)
+                      setBorrowPage(1)
+                    }
+                  }
+                ]}
+              />
+            </div>
+            <button className="flex-1 sm:flex-initial bg-card border border-border px-4 py-2 rounded-lg font-bold text-[14px] flex items-center justify-center gap-1.5 hover:bg-muted/60 transition-colors cursor-pointer text-secondary">
+              <Icons.Download className="size-4" />
+              Export
+            </button>
+          </div>
         </div>
       </div>
 
@@ -461,11 +465,39 @@ export default function DebtsPage() {
         </div>
       </div>
 
+      {/* Mobile Tab Toggle for Lent/Borrow */}
+      <div className="xl:hidden flex p-1 bg-muted rounded-xl border border-border mb-4">
+        <button
+          onClick={() => setActiveTab("LENT")}
+          className={cn(
+            "flex-1 py-2.5 text-xs font-bold rounded-lg transition-all cursor-pointer border-none flex items-center justify-center gap-1.5",
+            activeTab === "LENT"
+              ? "bg-card text-primary shadow-sm"
+              : "text-secondary hover:text-foreground"
+          )}
+        >
+          <Icons.Handshake className="size-4" />
+          Lent (They owe me)
+        </button>
+        <button
+          onClick={() => setActiveTab("BORROW")}
+          className={cn(
+            "flex-1 py-2.5 text-xs font-bold rounded-lg transition-all cursor-pointer border-none flex items-center justify-center gap-1.5",
+            activeTab === "BORROW"
+              ? "bg-card text-[#a43a3a] shadow-sm"
+              : "text-secondary hover:text-foreground"
+          )}
+        >
+          <Icons.Receipt className="size-4" />
+          Borrowed (I owe them)
+        </button>
+      </div>
+
       {/* Main Lists Section */}
       <div className="flex flex-col xl:flex-row gap-6 mt-8 font-sans">
         
         {/* Lent List (They owe me) */}
-        <div className="flex-1 space-y-4">
+        <div className={cn("flex-1 space-y-4", activeTab !== "LENT" && "hidden xl:block")}>
           <div className="flex items-center justify-between font-sans font-sans">
             <h3 className="text-[20px] font-bold text-foreground flex items-center gap-2 font-sans font-sans">
               <Icons.Handshake className="size-5 text-primary" />
@@ -656,7 +688,7 @@ export default function DebtsPage() {
         </div>
 
         {/* Borrowed List (I owe them) */}
-        <div className="flex-1 space-y-4">
+        <div className={cn("flex-1 space-y-4", activeTab !== "BORROW" && "hidden xl:block")}>
           <div className="flex items-center justify-between font-sans">
             <h3 className="text-[20px] font-bold text-foreground flex items-center gap-2">
               <Icons.Receipt className="size-5 text-[#a43a3a]" />

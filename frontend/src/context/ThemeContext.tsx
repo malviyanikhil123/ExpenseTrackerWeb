@@ -14,7 +14,7 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined)
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { data: profile } = useProfileDetails()
   const [theme, setThemeState] = useState<Theme>(() => {
-    return (localStorage.getItem("theme") as Theme) || "DARK"
+    return (localStorage.getItem("theme") as Theme) || "LIGHT"
   })
 
   // Sync state whenever profile loads — only if user has no local override

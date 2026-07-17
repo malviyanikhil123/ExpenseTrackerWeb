@@ -420,103 +420,186 @@ export default function TransactionsPage() {
         </div>
       </div>
 
-      {/* Filters Section (Inline) */}
-      <div className="bg-card border border-border shadow-sm rounded-xl p-6 select-none">
-        <div className="flex flex-wrap items-end gap-4">
-          {/* Search Box */}
-          <div className="flex-1 min-w-[200px] text-left">
-            <label className="block text-[12px] font-bold text-secondary mb-1">Search Description</label>
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-secondary opacity-60 size-4" />
-              <input
-                type="text"
-                className="w-full pl-9 pr-4 py-2 bg-input border border-border rounded-lg text-[14px] focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-foreground"
-                placeholder="Search description..."
-                value={searchQuery}
-                onChange={(e) => {
-                  setSearchQuery(e.target.value)
+      {/* Filters Section */}
+      {(() => {
+        const activeFilterCount = [searchQuery, filterType, filterAccountId, filterCategoryId, filterPaymentMethodId].filter(Boolean).length
+
+        const filterContent = (
+          <>
+            {/* Search Box */}
+            <div className="flex flex-col text-left">
+              <label className="block text-[12px] font-bold text-secondary mb-1">Search Description</label>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-secondary opacity-60 size-4" />
+                <input
+                  type="text"
+                  className="w-full pl-9 pr-4 py-2 bg-input border border-border rounded-lg text-[14px] focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-foreground font-medium"
+                  placeholder="Search description..."
+                  value={searchQuery}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value)
+                    setCurrentPage(1)
+                  }}
+                />
+              </div>
+            </div>
+
+            {/* Flow Type Filter */}
+            <div className="flex flex-col text-left">
+              <CustomSelect
+                label="Flow Type"
+                value={filterType || ""}
+                onChange={(val) => {
+                  setFilterType(val ? val as any : undefined)
                   setCurrentPage(1)
                 }}
+                options={[
+                  { value: "", label: "All Flow Types" },
+                  { value: "INCOME", label: "Income Deposits" },
+                  { value: "EXPENSE", label: "Expense Purchases" }
+                ]}
               />
             </div>
-          </div>
 
-          {/* Flow Type Filter */}
-          <div className="flex-1 min-w-[150px] text-left">
-            <CustomSelect
-              label="Flow Type"
-              value={filterType || ""}
-              onChange={(val) => {
-                setFilterType(val ? val as any : undefined)
-                setCurrentPage(1)
-              }}
-              options={[
-                { value: "", label: "All Flow Types" },
-                { value: "INCOME", label: "Income Deposits" },
-                { value: "EXPENSE", label: "Expense Purchases" }
-              ]}
-            />
-          </div>
+            {/* Account Filter */}
+            <div className="flex flex-col text-left">
+              <CustomSelect
+                label="Account"
+                value={filterAccountId}
+                onChange={(val) => {
+                  setFilterAccountId(val)
+                  setCurrentPage(1)
+                }}
+                options={[
+                  { value: "", label: "All Accounts" },
+                  ...accounts.map(a => ({ value: a.id, label: a.name }))
+                ]}
+              />
+            </div>
 
-          {/* Account Filter */}
-          <div className="flex-1 min-w-[180px] text-left">
-            <CustomSelect
-              label="Account"
-              value={filterAccountId}
-              onChange={(val) => {
-                setFilterAccountId(val)
-                setCurrentPage(1)
-              }}
-              options={[
-                { value: "", label: "All Accounts" },
-                ...accounts.map(a => ({ value: a.id, label: a.name }))
-              ]}
-            />
-          </div>
+            {/* Category Filter */}
+            <div className="flex flex-col text-left">
+              <CustomSelect
+                label="Category"
+                value={filterCategoryId}
+                onChange={(val) => {
+                  setFilterCategoryId(val)
+                  setCurrentPage(1)
+                }}
+                options={[
+                  { value: "", label: "All Categories" },
+                  ...categories.map(c => ({ value: c.id, label: c.name }))
+                ]}
+              />
+            </div>
 
-          {/* Category Filter */}
-          <div className="flex-1 min-w-[180px] text-left">
-            <CustomSelect
-              label="Category"
-              value={filterCategoryId}
-              onChange={(val) => {
-                setFilterCategoryId(val)
-                setCurrentPage(1)
-              }}
-              options={[
-                { value: "", label: "All Categories" },
-                ...categories.map(c => ({ value: c.id, label: c.name }))
-              ]}
-            />
-          </div>
+            {/* Payment Method Filter */}
+            <div className="flex flex-col text-left">
+              <CustomSelect
+                label="Method"
+                value={filterPaymentMethodId}
+                onChange={(val) => {
+                  setFilterPaymentMethodId(val)
+                  setCurrentPage(1)
+                }}
+                options={[
+                  { value: "", label: "Any Method" },
+                  ...paymentMethods.map(pm => ({ value: pm.id, label: pm.name }))
+                ]}
+              />
+            </div>
+          </>
+        )
 
-          {/* Payment Method Filter */}
-          <div className="flex-1 min-w-[150px] text-left">
-            <CustomSelect
-              label="Method"
-              value={filterPaymentMethodId}
-              onChange={(val) => {
-                setFilterPaymentMethodId(val)
-                setCurrentPage(1)
-              }}
-              options={[
-                { value: "", label: "Any Method" },
-                ...paymentMethods.map(pm => ({ value: pm.id, label: pm.name }))
-              ]}
-            />
-          </div>
+        return (
+          <>
+            {/* Desktop: inline filters (hidden on mobile) */}
+            <div className="hidden md:grid grid-cols-1 sm:grid-cols-2 md:grid-cols-6 gap-3 bg-card border border-border shadow-sm p-4 rounded-[16px] items-end select-none">
+              {filterContent}
+              <div className="flex gap-2">
+                <button
+                  onClick={clearFilters}
+                  className="w-full px-4 py-2 border border-border text-secondary hover:bg-muted/50 rounded-lg text-[14px] font-bold transition-colors cursor-pointer"
+                >
+                  Reset
+                </button>
+              </div>
+            </div>
 
-          {/* Buttons */}
-          <div className="flex gap-2">
-            <button
-              onClick={clearFilters}
-              className="px-4 py-2 border border-border text-secondary hover:bg-muted/50 rounded-lg text-[14px] font-bold transition-colors cursor-pointer"
-            >
-              Reset
-            </button>
-          </div>
-        </div>
-      </div>
+            {/* Mobile: filter button */}
+            <div className="md:hidden flex justify-between items-center bg-card border border-border p-3.5 rounded-[16px] shadow-sm select-none">
+              <button
+                type="button"
+                onClick={() => setIsFilterPanelOpen(true)}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-[12px] border border-border bg-muted/30 text-foreground text-xs font-semibold hover:bg-muted transition-colors cursor-pointer"
+              >
+                <SlidersHorizontal className="size-4" />
+                Filters
+                {activeFilterCount > 0 && (
+                  <span className="ml-1 min-w-5 h-5 px-1.5 rounded-full bg-primary text-white text-[10px] font-bold flex items-center justify-center">
+                    {activeFilterCount}
+                  </span>
+                )}
+              </button>
+              
+              {activeFilterCount > 0 && (
+                <button
+                  onClick={clearFilters}
+                  className="text-xs font-bold text-danger hover:underline cursor-pointer bg-transparent border-none font-sans"
+                >
+                  Clear All
+                </button>
+              )}
+            </div>
+
+            {/* Mobile: filter drawer overlay */}
+            {isFilterPanelOpen && (
+              <div className="md:hidden fixed inset-0 z-[60]">
+                {/* Backdrop */}
+                <div
+                  className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+                  onClick={() => setIsFilterPanelOpen(false)}
+                />
+                {/* Drawer panel */}
+                <div
+                  className="absolute bottom-0 left-0 right-0 bg-card rounded-t-[24px] border-t border-border shadow-modal p-6 flex flex-col gap-4 animate-slide-up"
+                  style={{
+                    maxHeight: "85vh",
+                    animation: "slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards",
+                  }}
+                >
+                  <div className="flex justify-between items-center pb-2 border-b border-border">
+                    <span className="font-bold text-foreground">Filters</span>
+                    <button
+                      onClick={() => setIsFilterPanelOpen(false)}
+                      className="p-1 rounded-full hover:bg-muted text-muted-foreground outline-none border-none bg-transparent cursor-pointer flex items-center justify-center"
+                    >
+                      <X className="size-5" />
+                    </button>
+                  </div>
+                  <div className="flex flex-col gap-4 overflow-y-auto pr-1 pb-4 scrollbar-none">
+                    {filterContent}
+                    <div className="flex gap-2 pt-2 border-t border-border/40 mt-2">
+                      <button
+                        onClick={clearFilters}
+                        className="flex-1 py-2.5 border border-border text-secondary hover:bg-muted/50 rounded-lg text-xs font-bold transition-colors cursor-pointer"
+                      >
+                        Reset
+                      </button>
+                      <button
+                        onClick={() => setIsFilterPanelOpen(false)}
+                        className="flex-1 py-2.5 bg-primary text-white rounded-lg text-xs font-bold transition-colors cursor-pointer border-none"
+                      >
+                        Apply Filters
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </>
+        )
+      })()}
 
       {/* Ledger Table Section */}
       <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden text-card-foreground select-none">

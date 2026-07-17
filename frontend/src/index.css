@@ -22,20 +22,20 @@
   --info: #3b82f6;
 
   /* Backgrounds */
-  --background: #f8fafc;
+  --background: #f0f4f2;
   --foreground: #0b1c30;
 
   /* Card */
-  --card: #ffffff;
+  --card: #f9fbf9;
   --card-foreground: #0b1c30;
 
   /* Sidebar */
-  --sidebar: #f8f9ff;
+  --sidebar: #e8eee9;
   --sidebar-foreground: #0b1c30;
   --sidebar-border: rgba(0, 0, 0, 0.05);
 
   /* Popover */
-  --popover: #ffffff;
+  --popover: #f9fbf9;
   --popover-foreground: #0b1c30;
 
   /* Inputs & Borders */
