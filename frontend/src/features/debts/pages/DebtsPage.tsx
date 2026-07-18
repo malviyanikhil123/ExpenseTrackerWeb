@@ -29,6 +29,7 @@ import { useCurrency } from "../../../hooks/useCurrency"
 import { useAuthStore } from "../../../store/authStore"
 import { CustomSelect } from "../../../components/inputs/CustomSelect"
 import { CustomDatePicker } from "../../../components/inputs/CustomDatePicker"
+import { cn } from "../../../lib/utils"
 
 export default function DebtsPage() {
   const user = useAuthStore((state) => state.user)
@@ -66,9 +67,7 @@ export default function DebtsPage() {
   const [lentPage, setLentPage] = useState(1)
   const [borrowPage, setBorrowPage] = useState(1)
 
-  const { data: debts = [], isLoading, isError, refetch } = useDebtsList({
-    status: filterStatus || undefined,
-  })
+  const { data: debts = [], isLoading, isError, refetch } = useDebtsList()
   const { data: accounts = [] } = useAccountsList()
 
   const createMutation = useCreateDebt()
@@ -79,9 +78,11 @@ export default function DebtsPage() {
   const { data: repayments = [], isLoading: isRepaymentsLoading } = useRepaymentsList(selectedDebt?.id || "")
   const createRepaymentMutation = useCreateRepayment()
 
-  const filteredDebts = debts.filter((d) =>
-    d.partyName.toLowerCase().includes(searchQuery.toLowerCase())
-  )
+  const filteredDebts = debts.filter((d) => {
+    const matchesSearch = d.partyName.toLowerCase().includes(searchQuery.toLowerCase())
+    const matchesStatus = filterStatus ? d.status === filterStatus : true
+    return matchesSearch && matchesStatus
+  })
 
   const handleOpenCreate = () => {
     setDebtParty("")
@@ -299,7 +300,7 @@ export default function DebtsPage() {
 
   // Group borrowed debts by due date month to construct timeline data
   const getRepaymentTimeline = () => {
-    const borrowDues = debts.filter(d => d.type === 'BORROW' && Number(d.remainingAmount) > 0 && d.dueDate);
+    const borrowDues = debts.filter(d => d.type === 'BORROW' && d.dueDate);
     if (borrowDues.length === 0) {
       return [
         { label: "OCT", amount: 0, heightPct: 5 },
@@ -316,7 +317,8 @@ export default function DebtsPage() {
     const monthlyGroups: Record<string, number> = {};
     sortedDues.forEach(d => {
       const mStr = format(new Date(d.dueDate!), "MMM yyyy");
-      monthlyGroups[mStr] = (monthlyGroups[mStr] || 0) + Number(d.remainingAmount);
+      // Use totalAmount to reflect the debt in the timeline even when repaid
+      monthlyGroups[mStr] = (monthlyGroups[mStr] || 0) + Number(d.totalAmount);
     });
 
     const entries = Object.entries(monthlyGroups);
@@ -528,11 +530,11 @@ export default function DebtsPage() {
               const initials = debt.partyName.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase();
               
               return (
-                <div key={debt.id} className="bg-card rounded-xl p-6 shadow-sm border border-border/80 hover:border-primary/50 transition-colors group text-left relative font-sans">
-                  <div className="absolute top-6 right-6 z-20 font-sans font-sans">
+                <div key={debt.id} className="bg-card rounded-xl p-4 sm:p-6 shadow-sm border border-border/80 hover:border-primary/50 transition-colors group text-left relative font-sans">
+                  <div className="absolute top-4 right-4 sm:top-6 sm:right-6 z-20">
                     <DropdownMenu
                       trigger={
-                        <button className="p-1.5 rounded-full hover:bg-black/5 text-secondary cursor-pointer outline-none border-none bg-transparent flex items-center justify-center font-sans font-sans">
+                        <button className="p-1.5 rounded-full hover:bg-black/5 text-secondary cursor-pointer outline-none border-none bg-transparent flex items-center justify-center">
                           <MoreVertical className="size-4" />
                         </button>
                       }
@@ -557,7 +559,7 @@ export default function DebtsPage() {
                     />
                   </div>
 
-                  <div className="flex justify-between items-start mb-4 pr-6 font-sans">
+                  <div className="flex justify-between items-start mb-4 pr-8 font-sans">
                     <div className="flex items-center gap-3">
                       <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center font-bold text-primary text-[15px]">
                         {initials}
@@ -649,19 +651,19 @@ export default function DebtsPage() {
 
             {/* Pagination for Lent list */}
             {totalLentPages > 1 && (
-              <div className="flex items-center justify-between mt-2 bg-card border border-border rounded-xl p-4 font-sans select-none">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-2 bg-card border border-border rounded-xl p-4 font-sans select-none">
                 <span className="text-[13px] text-secondary font-medium">
                   Showing {Math.min(lentList.length, (clampedLentPage - 1) * DEBTS_PER_PAGE + 1)}–{Math.min(lentList.length, clampedLentPage * DEBTS_PER_PAGE)} of {lentList.length}
                 </span>
-                <div className="flex gap-2">
+                <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-start">
                   <button
                     onClick={() => setLentPage(prev => Math.max(1, prev - 1))}
                     disabled={clampedLentPage === 1}
-                    className="px-3 py-1.5 rounded-lg border border-border text-[13px] font-bold text-secondary disabled:opacity-40 hover:bg-muted/60 transition-colors cursor-pointer bg-card"
+                    className="px-3 py-1.5 rounded-lg border border-border text-[13px] font-bold text-secondary disabled:opacity-40 hover:bg-muted/60 transition-colors cursor-pointer bg-card flex-1 sm:flex-none"
                   >
                     Previous
                   </button>
-                  <div className="flex gap-1">
+                  <div className="hidden sm:flex gap-1">
                     {Array.from({ length: totalLentPages }, (_, i) => i + 1).map((p) => (
                       <button
                         key={p}
@@ -674,10 +676,13 @@ export default function DebtsPage() {
                       </button>
                     ))}
                   </div>
+                  <span className="text-[13px] text-secondary font-bold sm:hidden px-2">
+                    {clampedLentPage} / {totalLentPages}
+                  </span>
                   <button
                     onClick={() => setLentPage(prev => Math.min(totalLentPages, prev + 1))}
                     disabled={clampedLentPage === totalLentPages}
-                    className="px-3 py-1.5 rounded-lg border border-border text-[13px] font-bold text-secondary disabled:opacity-40 hover:bg-muted/60 transition-colors cursor-pointer bg-card"
+                    className="px-3 py-1.5 rounded-lg border border-border text-[13px] font-bold text-secondary disabled:opacity-40 hover:bg-muted/60 transition-colors cursor-pointer bg-card flex-1 sm:flex-none"
                   >
                     Next
                   </button>
@@ -720,8 +725,8 @@ export default function DebtsPage() {
               const isPending = debt.status === 'PENDING';
               
               return (
-                <div key={debt.id} className="bg-card rounded-xl p-6 shadow-sm border border-border/80 hover:border-danger/50 transition-colors group text-left relative font-sans">
-                  <div className="absolute top-6 right-6 z-20">
+                <div key={debt.id} className="bg-card rounded-xl p-4 sm:p-6 shadow-sm border border-border/80 hover:border-danger/50 transition-colors group text-left relative font-sans">
+                  <div className="absolute top-4 right-4 sm:top-6 sm:right-6 z-20">
                     <DropdownMenu
                       trigger={
                         <button className="p-1.5 rounded-full hover:bg-black/5 text-secondary cursor-pointer outline-none border-none bg-transparent flex items-center justify-center">
@@ -749,7 +754,7 @@ export default function DebtsPage() {
                     />
                   </div>
 
-                  <div className="flex justify-between items-start mb-4 pr-6">
+                  <div className="flex justify-between items-start mb-4 pr-8 font-sans">
                     <div className="flex items-center gap-3">
                       <div className="w-12 h-12 rounded-full bg-[#a43a3a]/10 flex items-center justify-center font-bold text-[#a43a3a] text-[15px]">
                         {initials}
@@ -815,19 +820,19 @@ export default function DebtsPage() {
 
             {/* Pagination for Borrow list */}
             {totalBorrowPages > 1 && (
-              <div className="flex items-center justify-between mt-2 bg-card border border-border rounded-xl p-4 font-sans select-none">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-2 bg-card border border-border rounded-xl p-4 font-sans select-none">
                 <span className="text-[13px] text-secondary font-medium">
                   Showing {Math.min(borrowList.length, (clampedBorrowPage - 1) * DEBTS_PER_PAGE + 1)}–{Math.min(borrowList.length, clampedBorrowPage * DEBTS_PER_PAGE)} of {borrowList.length}
                 </span>
-                <div className="flex gap-2">
+                <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-start">
                   <button
                     onClick={() => setBorrowPage(prev => Math.max(1, prev - 1))}
                     disabled={clampedBorrowPage === 1}
-                    className="px-3 py-1.5 rounded-lg border border-border text-[13px] font-bold text-secondary disabled:opacity-40 hover:bg-muted/60 transition-colors cursor-pointer bg-card"
+                    className="px-3 py-1.5 rounded-lg border border-border text-[13px] font-bold text-secondary disabled:opacity-40 hover:bg-muted/60 transition-colors cursor-pointer bg-card flex-1 sm:flex-none"
                   >
                     Previous
                   </button>
-                  <div className="flex gap-1">
+                  <div className="hidden sm:flex gap-1">
                     {Array.from({ length: totalBorrowPages }, (_, i) => i + 1).map((p) => (
                       <button
                         key={p}
@@ -840,10 +845,13 @@ export default function DebtsPage() {
                       </button>
                     ))}
                   </div>
+                  <span className="text-[13px] text-secondary font-bold sm:hidden px-2">
+                    {clampedBorrowPage} / {totalBorrowPages}
+                  </span>
                   <button
                     onClick={() => setBorrowPage(prev => Math.min(totalBorrowPages, prev + 1))}
                     disabled={clampedBorrowPage === totalBorrowPages}
-                    className="px-3 py-1.5 rounded-lg border border-border text-[13px] font-bold text-secondary disabled:opacity-40 hover:bg-muted/60 transition-colors cursor-pointer bg-card"
+                    className="px-3 py-1.5 rounded-lg border border-border text-[13px] font-bold text-secondary disabled:opacity-40 hover:bg-muted/60 transition-colors cursor-pointer bg-card flex-1 sm:flex-none"
                   >
                     Next
                   </button>
@@ -863,7 +871,7 @@ export default function DebtsPage() {
           <div className="md:w-1/3 bg-[#0b1c30] text-white rounded-2xl p-8 flex flex-col justify-between overflow-hidden relative shadow-sm font-sans">
             <div className="z-10 text-left font-sans">
               <h4 className="text-[20px] font-bold mb-4 font-sans">Growth Strategy</h4>
-              <p className="text-[14px] text-secondary opacity-80 leading-relaxed mb-6 font-sans">
+              <p className="text-[14px] text-slate-300 leading-relaxed mb-6 font-sans">
                 {smartStrategyText}
               </p>
               <button className="bg-primary text-white border-none px-6 py-2.5 rounded-full font-bold text-[13px] hover:brightness-110 transition-all cursor-pointer">
@@ -890,7 +898,7 @@ export default function DebtsPage() {
                       key={idx}
                       className={cn(
                         "flex-1 rounded-t-md relative group cursor-pointer transition-all duration-300",
-                        isZero ? "bg-[#eff4ff]/30" : idx % 3 === 0 ? "bg-[#0b1c30]" : idx % 3 === 1 ? "bg-primary/20" : "bg-[#006c49]/60"
+                        isZero ? "bg-slate-200/50 dark:bg-slate-800/30" : idx % 3 === 0 ? "bg-primary" : idx % 3 === 1 ? "bg-info/70" : "bg-success/70"
                       )}
                       style={{ height: `${t.heightPct}%` }}
                     >

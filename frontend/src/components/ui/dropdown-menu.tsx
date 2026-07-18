@@ -22,10 +22,25 @@ export const DropdownMenu: React.FC<DropdownMenuProps> = ({ trigger, items }) =>
   const updateCoords = () => {
     if (triggerRef.current) {
       const rect = triggerRef.current.getBoundingClientRect()
-      // Render dropdown aligned to the right edge of the trigger
+      const dropdownWidth = 190
+      const margin = 8
+
+      // Try to align to the right edge of the trigger first
+      let left = rect.right - dropdownWidth + window.scrollX
+
+      // If that goes off the left edge of the viewport, align to the left edge of the trigger
+      if (left < window.scrollX + margin) {
+        left = rect.left + window.scrollX
+      }
+
+      // Constrain within viewport boundaries (with a safety margin)
+      const minLeft = window.scrollX + margin
+      const maxLeft = window.innerWidth + window.scrollX - dropdownWidth - margin
+      left = Math.max(minLeft, Math.min(maxLeft, left))
+
       setCoords({
         top: rect.bottom + window.scrollY,
-        left: rect.right - 190 + window.scrollX, // 190px is width of dropdown
+        left,
       })
     }
   }

@@ -654,7 +654,7 @@ export default function TransactionsPage() {
 
                 return (
                   <tr key={tx.id} className="hover:bg-muted/30 transition-colors group">
-                    <td className="py-4 px-6 font-medium text-secondary">{dateStr}</td>
+                    <td className="py-4 px-6 font-medium text-secondary whitespace-nowrap">{dateStr}</td>
                     <td className="py-4 px-6">
                       <div className="flex items-center gap-3">
                         <div className={cn(
@@ -1144,13 +1144,22 @@ export default function TransactionsPage() {
 
 function TransactionsSkeleton() {
   return (
-    <div className="flex flex-col gap-6 pb-12 animate-pulse">
+    <div className="flex flex-col gap-6 pb-12 animate-pulse font-sans">
       <div className="flex justify-between items-center border-b border-border pb-5">
-        <div className="h-8 w-1/4 bg-muted rounded-[6px]" />
-        <div className="h-10 w-32 bg-muted rounded-[10px]" />
+        <div className="h-8 w-1/4 bg-slate-200/60 dark:bg-slate-800/40 rounded-[6px]" />
+        <div className="h-10 w-32 bg-slate-200/60 dark:bg-slate-800/40 rounded-[10px]" />
       </div>
-      <div className="h-16 bg-background-secondary border border-border rounded-[16px] p-4" />
-      <div className="bg-card border border-border rounded-[16px] h-96 mt-6" />
+      <div className="h-16 bg-slate-100/70 dark:bg-slate-850/40 border border-border rounded-[16px] p-4" />
+      <div className="bg-card border border-border rounded-[16px] h-96 mt-6 flex flex-col gap-4 p-6">
+        {[...Array(5)].map((_, i) => (
+          <div key={i} className="flex gap-4 py-2 border-b border-border/40 items-center">
+            <div className="h-5 w-1/6 bg-slate-200/60 dark:bg-slate-800/40 rounded-[4px]" />
+            <div className="h-5 w-2/6 bg-slate-200/60 dark:bg-slate-800/40 rounded-[4px]" />
+            <div className="h-5 w-1/6 bg-slate-200/60 dark:bg-slate-800/40 rounded-[4px]" />
+            <div className="h-5 w-2/6 bg-slate-200/60 dark:bg-slate-800/40 rounded-[4px]" />
+          </div>
+        ))}
+      </div>
     </div>
   )
 }

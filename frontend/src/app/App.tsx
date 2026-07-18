@@ -20,6 +20,8 @@ import DebtsPage from "../features/debts/pages/DebtsPage"
 import AnalyticsPage from "../features/analytics/pages/AnalyticsPage"
 import ProfilePage from "../features/profile/pages/ProfilePage"
 import NotFound from "../pages/NotFound"
+import { GlobalLoadingBar } from "../components/ui/global-loading-bar"
+import { MutationSplashLoader } from "../components/ui/mutation-splash-loader"
 
 // Route Guards (Section 51, 52)
 function ProtectedRoute() {
@@ -94,6 +96,8 @@ export default function App() {
 
   return (
     <>
+      <GlobalLoadingBar />
+      <MutationSplashLoader />
       <Routes>
         {/* Redirect Root (Section 52) */}
         <Route path="/" element={<Navigate to="/dashboard" replace />} />

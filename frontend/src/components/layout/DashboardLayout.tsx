@@ -129,7 +129,12 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
             <Menu className="size-5" />
           </button>
 
-          <div className="flex items-center flex-1">
+          {/* Mobile Logo Branding */}
+          <div className="md:hidden flex items-center shrink-0">
+            <span className="font-bold text-primary text-[18px] tracking-tight">Spendra</span>
+          </div>
+
+          <div className="hidden sm:flex items-center flex-1">
             <div className="relative w-full max-w-md focus-within:ring-2 focus-within:ring-primary/20 rounded-full transition-all">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-secondary opacity-60 size-4" />
               <input
@@ -249,11 +254,24 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
                   <p className="text-[14px] font-bold text-foreground leading-tight">{userDisplayName}</p>
                   <p className="text-[12px] text-secondary font-medium mt-0.5">Premium Plan</p>
                 </div>
-                <img
-                  className="w-10 h-10 rounded-full object-cover shadow-sm border border-sidebar-border/20"
-                  src={userAvatarUrl || "https://lh3.googleusercontent.com/aida-public/AB6AXuA5SQtaRmQCwwuYxCrwC8fdmKpAMQZMg12EkDF4kOOfIXRCCDLxMMJ_DOt7NiGkl1R4CQH2FK0GDQoOcMliNsrjl17ZKnDai0WibCEvxbDpRX41d-28Fqr1RZM1hZPQqthRTRQp23azqEV9GwnAmyvIDgtDM5Qi-Alb5DzmulTdxj-5yCmh-68H1XG3PIGerC2ZfXf-ChFmELJseZETzCBaS8OKY476bRd8lagTYOyk3_grLM6tkSmS"}
-                  alt="User Avatar"
-                />
+                {userAvatarUrl ? (
+                  <img
+                    className="w-10 h-10 rounded-full object-cover shadow-sm border border-sidebar-border/20 animate-fade-in"
+                    src={userAvatarUrl}
+                    alt="User Avatar"
+                  />
+                ) : (
+                  <div className="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center font-bold text-sm select-none border border-sidebar-border/20 shadow-sm shrink-0">
+                    {userDisplayName
+                      ? userDisplayName
+                          .split(" ")
+                          .map((n) => n[0])
+                          .join("")
+                          .substring(0, 2)
+                          .toUpperCase()
+                      : "U"}
+                  </div>
+                )}
               </button>
 
               {isProfileMenuOpen && (
