@@ -46,6 +46,21 @@ export default function CategoriesPage() {
   const [showAllIcons, setShowAllIcons] = useState(false)
   const [iconSearchQuery, setIconSearchQuery] = useState("")
   const [isIconDropdownOpen, setIsIconDropdownOpen] = useState(false)
+  const [itemsPerPage, setItemsPerPage] = useState(7)
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 768) {
+        setItemsPerPage(8)
+      } else {
+        setItemsPerPage(7)
+      }
+    }
+    handleResize()
+    window.addEventListener("resize", handleResize)
+    return () => window.removeEventListener("resize", handleResize)
+  }, [])
+
   const [pickerCoords, setPickerCoords] = useState<{ top: number; left: number; width: number; openUp: boolean }>({ top: 0, left: 0, width: 0, openUp: false })
 
   const updatePickerCoords = (triggerEl: HTMLButtonElement) => {
@@ -226,15 +241,13 @@ export default function CategoriesPage() {
     .filter(c => c.type === 'INCOME')
     .sort((a, b) => (categorySpentMap[b.id] || 0) - (categorySpentMap[a.id] || 0));
 
-  const ITEMS_PER_PAGE = 7;
-  const totalExpensePages = Math.ceil(expenseCategories.length / ITEMS_PER_PAGE) || 1;
+  const totalExpensePages = Math.ceil(expenseCategories.length / itemsPerPage) || 1;
   const clampedExpensePage = Math.min(expensePage, totalExpensePages);
-  const paginatedExpenseCategories = expenseCategories.slice((clampedExpensePage - 1) * ITEMS_PER_PAGE, clampedExpensePage * ITEMS_PER_PAGE);
+  const paginatedExpenseCategories = expenseCategories.slice((clampedExpensePage - 1) * itemsPerPage, clampedExpensePage * itemsPerPage);
 
-  const INCOME_ITEMS_PER_PAGE = 7;
-  const totalIncomePages = Math.ceil(incomeCategories.length / INCOME_ITEMS_PER_PAGE) || 1;
+  const totalIncomePages = Math.ceil(incomeCategories.length / itemsPerPage) || 1;
   const clampedIncomePage = Math.min(incomePage, totalIncomePages);
-  const paginatedIncomeCategories = incomeCategories.slice((clampedIncomePage - 1) * INCOME_ITEMS_PER_PAGE, clampedIncomePage * INCOME_ITEMS_PER_PAGE);
+  const paginatedIncomeCategories = incomeCategories.slice((clampedIncomePage - 1) * itemsPerPage, clampedIncomePage * itemsPerPage);
 
   const currentMonth = new Date().getMonth();
   const currentYear = new Date().getFullYear();
@@ -255,14 +268,18 @@ export default function CategoriesPage() {
   const totalExpenseSpent = transactions.filter(t => t.type === 'EXPENSE').reduce((sum, t) => sum + Number(t.amount), 0) || 1;
   
   const housingSpent = transactions.filter(t => {
-    const name = (t.category?.name || "").toLowerCase();
-    return t.type === 'EXPENSE' && (name.includes('housing') || name.includes('rent') || name.includes('utilities') || name.includes('home'));
+    if (t.type !== 'EXPENSE' || !t.categoryId) return false;
+    const cat = categories.find(c => c.id === t.categoryId);
+    const name = (cat?.name || "").toLowerCase();
+    return name.includes('housing') || name.includes('rent') || name.includes('utilities') || name.includes('home');
   }).reduce((sum, t) => sum + Number(t.amount), 0);
   const housingPct = Math.round((housingSpent / totalExpenseSpent) * 100);
 
   const lifestyleSpent = transactions.filter(t => {
-    const name = (t.category?.name || "").toLowerCase();
-    return t.type === 'EXPENSE' && (name.includes('food') || name.includes('dining') || name.includes('entertain') || name.includes('lifestyle') || name.includes('shop'));
+    if (t.type !== 'EXPENSE' || !t.categoryId) return false;
+    const cat = categories.find(c => c.id === t.categoryId);
+    const name = (cat?.name || "").toLowerCase();
+    return name.includes('food') || name.includes('dining') || name.includes('entertain') || name.includes('lifestyle') || name.includes('shop');
   }).reduce((sum, t) => sum + Number(t.amount), 0);
   const lifestylePct = Math.round((lifestyleSpent / totalExpenseSpent) * 100);
 
@@ -436,7 +453,7 @@ export default function CategoriesPage() {
             {totalExpensePages > 1 && (
               <div className="flex flex-col sm:flex-row items-center justify-between mt-6 bg-card border border-border rounded-xl p-4 font-sans select-none gap-4 text-center sm:text-left">
                 <span className="text-[13px] text-secondary font-medium">
-                  Showing {Math.min(expenseCategories.length, (clampedExpensePage - 1) * ITEMS_PER_PAGE + 1)} to {Math.min(expenseCategories.length, clampedExpensePage * ITEMS_PER_PAGE)} of {expenseCategories.length} categories
+                  Showing {Math.min(expenseCategories.length, (clampedExpensePage - 1) * itemsPerPage + 1)} to {Math.min(expenseCategories.length, clampedExpensePage * itemsPerPage)} of {expenseCategories.length} categories
                 </span>
                 <div className="flex gap-2 items-center">
                   <button
@@ -543,7 +560,7 @@ export default function CategoriesPage() {
             {totalIncomePages > 1 && (
               <div className="flex flex-col sm:flex-row items-center justify-between mt-6 bg-card border border-border rounded-xl p-4 font-sans select-none gap-4 text-center sm:text-left">
                 <span className="text-[13px] text-secondary font-medium">
-                  Showing {Math.min(incomeCategories.length, (clampedIncomePage - 1) * INCOME_ITEMS_PER_PAGE + 1)} to {Math.min(incomeCategories.length, clampedIncomePage * INCOME_ITEMS_PER_PAGE)} of {incomeCategories.length} categories
+                  Showing {Math.min(incomeCategories.length, (clampedIncomePage - 1) * itemsPerPage + 1)} to {Math.min(incomeCategories.length, clampedIncomePage * itemsPerPage)} of {incomeCategories.length} categories
                 </span>
                 <div className="flex gap-2 items-center">
                   <button
