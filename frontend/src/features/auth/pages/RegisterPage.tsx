@@ -79,8 +79,8 @@ export default function RegisterPage() {
       <div className="w-full max-w-[420px] bg-card border border-border rounded-[16px] p-8 shadow-card flex flex-col gap-6 text-card-foreground">
 
         <div className="flex flex-col gap-1.5 text-center sm:text-left select-none">
-          <div className="size-10 rounded-[10px] bg-primary flex items-center justify-center text-white font-bold text-lg mb-2 shadow-sm mx-auto sm:mx-0">
-            ET
+          <div className="text-[22px] font-bold text-primary tracking-tight mb-2">
+            Spendra
           </div>
           <h1 className="text-[32px] font-bold tracking-tight text-foreground leading-none">Create Account</h1>
           <p className="text-[14px] font-normal text-muted-foreground mt-1 leading-normal">
