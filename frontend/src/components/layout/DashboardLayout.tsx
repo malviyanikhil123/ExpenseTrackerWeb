@@ -221,18 +221,13 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
                               )}
                             </p>
 
-                            <div className="flex items-center justify-between mt-0.5 text-3xs font-bold uppercase tracking-wider">
+                            <div className="mt-1 flex items-center">
                               <span className={cn(
-                                "text-muted-foreground",
-                                dueTodayOrOverdue && "text-danger"
+                                "text-[10px] font-medium text-muted-foreground",
+                                dueTodayOrOverdue && "text-danger/80"
                               )}>
                                 Due: {formatDueNotificationDate(debt.dueDate!)}
                               </span>
-                              {dueTodayOrOverdue && (
-                                <span className="text-danger flex items-center gap-1 font-extrabold text-[10px]">
-                                  ⚠️ Action Required
-                                </span>
-                              )}
                             </div>
                           </div>
                         )
