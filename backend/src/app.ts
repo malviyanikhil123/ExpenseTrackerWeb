@@ -26,12 +26,12 @@ export async function buildApp() {
     app.decorate("authenticate", authenticate);
 
     // Global Error Handler to intercept database validation & zod errors
-    app.setErrorHandler((error, request, reply) => {
+    app.setErrorHandler((error: any, request, reply) => {
         request.log.error(error);
 
         // Handle Zod Validation Errors
         if (error instanceof ZodError) {
-            const formattedErrors = error.errors.map(err => `${err.path.join(".")}: ${err.message}`).join(", ");
+            const formattedErrors = error.issues.map(err => `${err.path.join(".")}: ${err.message}`).join(", ");
             return reply.status(400).send({
                 success: false,
                 statusCode: 400,
