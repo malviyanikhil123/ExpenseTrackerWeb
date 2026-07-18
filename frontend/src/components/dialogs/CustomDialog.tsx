@@ -12,6 +12,7 @@ export interface DialogProps {
   children?: React.ReactNode
   footer?: React.ReactNode
   size?: "sm" | "md" | "lg"
+  contentClassName?: string
 }
 
 export const CustomDialog: React.FC<DialogProps> = ({
@@ -22,6 +23,7 @@ export const CustomDialog: React.FC<DialogProps> = ({
   children,
   footer,
   size = "md",
+  contentClassName,
 }) => {
   // ESC key closing support (Section 47)
   useEffect(() => {
@@ -97,7 +99,7 @@ export const CustomDialog: React.FC<DialogProps> = ({
         </div>
 
         {/* Content (Scrollable if tall) */}
-        <div className="flex-1 overflow-y-auto scrollbar-none px-6 py-3 text-[15px] font-medium text-foreground leading-relaxed">
+        <div className={cn("flex-1 overflow-y-auto scrollbar-none px-6 py-3 text-[15px] font-medium text-foreground leading-relaxed", contentClassName)}>
           {children}
         </div>
 

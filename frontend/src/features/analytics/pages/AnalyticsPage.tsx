@@ -130,14 +130,14 @@ export default function AnalyticsPage() {
     {
       title: "Net Balance",
       amount: report.balance,
-      icon: <Wallet className="size-5 text-secondary" />,
-      color: "text-foreground",
+      icon: <Wallet className={`size-5 ${report.balance >= 0 ? "text-success" : "text-danger"}`} />,
+      color: report.balance >= 0 ? "text-success" : "text-danger",
     },
     {
       title: "Savings Ratio",
       amount: report.savings,
-      icon: <PiggyBank className="size-5 text-primary" />,
-      color: "text-foreground",
+      icon: <PiggyBank className={`size-5 ${report.savings >= 0 ? "text-success" : "text-danger"}`} />,
+      color: report.savings >= 0 ? "text-success" : "text-danger",
       isPercent: true,
     },
   ]

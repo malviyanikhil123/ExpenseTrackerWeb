@@ -38,7 +38,7 @@ import { CustomDialog } from "../../../components/dialogs/CustomDialog"
 import { CustomInput, CurrencyInput } from "../../../components/inputs/CustomInput"
 import { useCurrency } from "../../../hooks/useCurrency"
 import { CustomSelect } from "../../../components/inputs/CustomSelect"
-
+import { cn } from "@/lib/utils"
 interface DashboardData {
   totalBalance: number
   totalIncome: number
@@ -511,7 +511,9 @@ export default function DashboardPage() {
             </div>
             <div>
               <p className="text-[12px] font-bold text-secondary uppercase tracking-wider">Net Worth</p>
-              <p className="text-[24px] font-bold text-foreground mt-1">{formatMoney(dashboardData.netWorth)}</p>
+              <p className={cn("text-[24px] font-bold mt-1", dashboardData.netWorth < 0 ? "text-[#a43a3a]" : "text-foreground")}>
+                {formatMoney(dashboardData.netWorth)}
+              </p>
             </div>
           </div>
 
@@ -564,7 +566,7 @@ export default function DashboardPage() {
             </div>
             <div>
               <p className="text-[12px] font-bold text-secondary uppercase tracking-wider">Pending Debts</p>
-              <p className="text-[24px] font-bold text-foreground mt-1">
+              <p className={cn("text-[24px] font-bold mt-1", (dashboardData.pendingLent - dashboardData.pendingBorrow) < 0 ? "text-[#a43a3a]" : "text-foreground")}>
                 {formatMoney(dashboardData.pendingLent - dashboardData.pendingBorrow)}
               </p>
             </div>
@@ -615,7 +617,7 @@ export default function DashboardPage() {
                 <ArrowLeftRight className="size-4" />
               </div>
             </div>
-            <p className="text-[28px] font-bold text-primary">{formatMoney(dashboardData.cashFlow)}</p>
+            <p className={cn("text-[28px] font-bold", dashboardData.cashFlow < 0 ? "text-[#a43a3a]" : "text-primary")}>{formatMoney(dashboardData.cashFlow)}</p>
           </div>
         </div>
       </section>

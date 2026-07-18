@@ -134,16 +134,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
             <span className="font-bold text-primary text-[18px] tracking-tight">Spendra</span>
           </div>
 
-          <div className="hidden sm:flex items-center flex-1">
-            <div className="relative w-full max-w-md focus-within:ring-2 focus-within:ring-primary/20 rounded-full transition-all">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-secondary opacity-60 size-4" />
-              <input
-                className="w-full pl-10 pr-4 py-2 bg-muted border-none rounded-full text-[14px] focus:ring-0 focus:outline-none placeholder:text-muted-foreground text-foreground"
-                placeholder="Search insights or transactions..."
-                type="text"
-              />
-            </div>
-          </div>
+
 
           {/* Header Actions & Profile Dropdown */}
           <div className="flex items-center gap-4">

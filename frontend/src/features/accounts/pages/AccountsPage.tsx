@@ -37,6 +37,7 @@ import { DropdownMenu } from "../../../components/ui/dropdown-menu"
 import { Badge } from "../../../components/feedback/FeedbackStates"
 import { useCurrency } from "../../../hooks/useCurrency"
 import { CustomSelect } from "../../../components/inputs/CustomSelect"
+import { cn } from "@/lib/utils"
 
 const COLOR_PALETTE = [
   "#006c49", // Primary Emerald
@@ -513,7 +514,7 @@ export default function AccountsPage() {
                               <p className={cn("text-[11px] font-medium opacity-80 uppercase tracking-wider", !isDark && "text-secondary")}>
                                 Available Balance
                               </p>
-                              <p className="text-[24px] font-bold leading-none mt-1">
+                              <p className={cn("text-[24px] font-bold leading-none mt-1", Number(balanceVal) < 0 ? "text-[#a43a3a]" : "")}>
                                 {formatMoney(balanceVal)}
                               </p>
                             </div>
@@ -591,7 +592,7 @@ export default function AccountsPage() {
               </svg>
               <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
                 <span className="text-[11px] font-bold text-secondary uppercase tracking-widest">Net Worth</span>
-                <span className="text-[22px] font-extrabold text-foreground mt-0.5">{formatMoney(netWorth)}</span>
+                <span className={cn("text-[22px] font-extrabold mt-0.5", netWorth < 0 ? "text-[#a43a3a]" : "text-foreground")}>{formatMoney(netWorth)}</span>
               </div>
             </div>
             

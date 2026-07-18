@@ -52,7 +52,7 @@ export default function TransactionsPage() {
   const initialTypeFilter = location.state?.filterType || undefined
 
   const [searchQuery, setSearchQuery] = useState("")
-  const [filterType, setFilterType] = useState<"INCOME" | "EXPENSE" | undefined>(initialTypeFilter)
+  const [filterType, setFilterType] = useState<"INCOME" | "EXPENSE" | "TRANSFER" | undefined>(initialTypeFilter)
   const [filterAccountId, setFilterAccountId] = useState<string>("")
   const [filterCategoryId, setFilterCategoryId] = useState<string>("")
   const [filterPaymentMethodId, setFilterPaymentMethodId] = useState<string>("")
@@ -456,7 +456,8 @@ export default function TransactionsPage() {
                 options={[
                   { value: "", label: "All Flow Types" },
                   { value: "INCOME", label: "Income Deposits" },
-                  { value: "EXPENSE", label: "Expense Purchases" }
+                  { value: "EXPENSE", label: "Expense Purchases" },
+                  { value: "TRANSFER", label: "Account Transfers" }
                 ]}
               />
             </div>
@@ -616,16 +617,16 @@ export default function TransactionsPage() {
         </div>
 
         <div className="overflow-x-auto custom-scrollbar text-left">
-          <table className="w-full border-collapse text-left text-xs font-sans">
+          <table className="w-full min-w-[768px] border-collapse text-left text-xs font-sans">
             <thead>
               <tr className="bg-muted/30 border-b border-border text-secondary font-semibold uppercase tracking-wider select-none text-[11px]">
-                <th className="py-4 px-6">Date</th>
-                <th className="py-4 px-6">Description</th>
-                <th className="py-4 px-6">Category</th>
-                <th className="py-4 px-6">Method</th>
-                <th className="py-4 px-6">Account</th>
-                <th className="py-4 px-6 text-right">Amount</th>
-                <th className="py-4 px-6 w-24 text-center">Actions</th>
+                <th className="py-4 px-3 sm:px-4 md:px-6">Date</th>
+                <th className="py-4 px-3 sm:px-4 md:px-6">Description</th>
+                <th className="py-4 px-3 sm:px-4 md:px-6">Category</th>
+                <th className="py-4 px-3 sm:px-4 md:px-6">Method</th>
+                <th className="py-4 px-3 sm:px-4 md:px-6">Account</th>
+                <th className="py-4 px-3 sm:px-4 md:px-6 text-right">Amount</th>
+                <th className="py-4 px-3 sm:px-4 md:px-6 w-24 text-center">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border/30">
@@ -638,6 +639,19 @@ export default function TransactionsPage() {
                 const dateStr = format(new Date(tx.transactionDate), "MMM d, yyyy");
                 const catName = isTransfer ? `Transfer → ${getAccountName(tx.destinationAccountId || "")}` : getCategoryName(tx.categoryId || "");
                 const methodCode = tx.paymentMethod?.code || "CASH";
+                
+                const catText = isTransfer ? "Transfer" : catName;
+                const methodText = tx.paymentMethod?.name || "Cash";
+                const accName = getAccountName(tx.accountId);
+                const isShortText = (str: string) => str.trim().split(/\s+/).filter(Boolean).length <= 2;
+                
+                const formatLinesByWordCount = (str: string) => {
+                  const words = str.trim().split(/\s+/).filter(Boolean);
+                  if (words.length <= 2) return str;
+                  const firstPart = words.slice(0, words.length - 2).join(" ");
+                  const lastPart = words.slice(words.length - 2).join("\u00A0");
+                  return firstPart ? `${firstPart} ${lastPart}` : lastPart;
+                };
                 
                 const renderRowIcon = () => {
                   if (isIncome) {
@@ -654,8 +668,8 @@ export default function TransactionsPage() {
 
                 return (
                   <tr key={tx.id} className="hover:bg-muted/30 transition-colors group">
-                    <td className="py-4 px-6 font-medium text-secondary whitespace-nowrap">{dateStr}</td>
-                    <td className="py-4 px-6">
+                    <td className="py-4 px-3 sm:px-4 md:px-6 font-medium text-secondary whitespace-nowrap">{dateStr}</td>
+                    <td className="py-4 px-3 sm:px-4 md:px-6">
                       <div className="flex items-center gap-3">
                         <div className={cn(
                           "w-10 h-10 rounded-full flex items-center justify-center",
@@ -682,28 +696,29 @@ export default function TransactionsPage() {
                         </div>
                       </div>
                     </td>
-                    <td className="py-4 px-6">
+                    <td className="py-4 px-3 sm:px-4 md:px-6">
                       <span className={cn(
                         "px-3 py-1 font-semibold text-[12px] rounded-full",
+                        isShortText(catText) ? "whitespace-nowrap" : "",
                         isIncome ? "bg-primary/10 text-primary" : "bg-[#10b981]/10 text-[#10b981]"
                       )}>
-                        {isTransfer ? "Transfer" : catName}
+                        {formatLinesByWordCount(isTransfer ? "Transfer" : catName)}
                       </span>
                     </td>
-                    <td className="py-4 px-6 text-secondary text-[13px]">
+                    <td className={cn("py-4 px-3 sm:px-4 md:px-6 text-secondary text-[13px]", isShortText(methodText) ? "whitespace-nowrap" : "")}>
                       <div className="flex items-center gap-1.5">
                         <Icons.CreditCard className="size-3.5" />
-                        <span>{tx.paymentMethod?.name || "Cash"}</span>
+                        <span>{formatLinesByWordCount(methodText)}</span>
                       </div>
                     </td>
-                    <td className="py-4 px-6 text-secondary text-[13px]">{getAccountName(tx.accountId)}</td>
+                    <td className={cn("py-4 px-3 sm:px-4 md:px-6 text-secondary text-[13px]", isShortText(accName) ? "whitespace-nowrap" : "")}>{formatLinesByWordCount(accName)}</td>
                     <td className={cn(
-                      "py-4 px-6 font-bold text-[15px] text-right",
+                      "py-4 px-3 sm:px-4 md:px-6 font-bold text-[15px] text-right",
                       isIncome ? "text-primary" : "text-[#a43a3a]"
                     )}>
                       {formattedAmount}
                     </td>
-                    <td className="py-4 px-6">
+                    <td className="py-4 px-3 sm:px-4 md:px-6">
                       <div className="flex justify-center items-center gap-2">
                         <button
                           type="button"

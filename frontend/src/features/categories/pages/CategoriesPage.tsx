@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react"
+import { createPortal } from "react-dom"
 import { Plus, Search, MoreVertical, Edit2, Trash2, FolderOpen, AlertCircle, Info, ChevronDown, ChevronUp, X } from "lucide-react"
 import * as Icons from "lucide-react"
 import { toast } from "sonner"
@@ -45,6 +46,26 @@ export default function CategoriesPage() {
   const [showAllIcons, setShowAllIcons] = useState(false)
   const [iconSearchQuery, setIconSearchQuery] = useState("")
   const [isIconDropdownOpen, setIsIconDropdownOpen] = useState(false)
+  const [pickerCoords, setPickerCoords] = useState<{ top: number; left: number; width: number; openUp: boolean }>({ top: 0, left: 0, width: 0, openUp: false })
+
+  const updatePickerCoords = (triggerEl: HTMLButtonElement) => {
+    if (triggerEl) {
+      const rect = triggerEl.getBoundingClientRect()
+      const dropdownHeight = 230
+      const margin = 6
+      const spaceBelow = window.innerHeight - rect.bottom
+      const openUp = spaceBelow < dropdownHeight + 20 && rect.top > dropdownHeight + 20
+
+      setPickerCoords({
+        top: openUp 
+          ? rect.top + window.scrollY - dropdownHeight - margin 
+          : rect.bottom + window.scrollY + margin,
+        left: rect.left + window.scrollX,
+        width: rect.width,
+        openUp
+      })
+    }
+  }
 
   const createIconDropdownRef = useRef<HTMLDivElement>(null)
   const editIconDropdownRef = useRef<HTMLDivElement>(null)
@@ -205,12 +226,12 @@ export default function CategoriesPage() {
     .filter(c => c.type === 'INCOME')
     .sort((a, b) => (categorySpentMap[b.id] || 0) - (categorySpentMap[a.id] || 0));
 
-  const ITEMS_PER_PAGE = 5;
+  const ITEMS_PER_PAGE = 7;
   const totalExpensePages = Math.ceil(expenseCategories.length / ITEMS_PER_PAGE) || 1;
   const clampedExpensePage = Math.min(expensePage, totalExpensePages);
   const paginatedExpenseCategories = expenseCategories.slice((clampedExpensePage - 1) * ITEMS_PER_PAGE, clampedExpensePage * ITEMS_PER_PAGE);
 
-  const INCOME_ITEMS_PER_PAGE = 5;
+  const INCOME_ITEMS_PER_PAGE = 7;
   const totalIncomePages = Math.ceil(incomeCategories.length / INCOME_ITEMS_PER_PAGE) || 1;
   const clampedIncomePage = Math.min(incomePage, totalIncomePages);
   const paginatedIncomeCategories = incomeCategories.slice((clampedIncomePage - 1) * INCOME_ITEMS_PER_PAGE, clampedIncomePage * INCOME_ITEMS_PER_PAGE);
@@ -283,51 +304,7 @@ export default function CategoriesPage() {
         {/* Left Column: Hierarchy & Deep Analysis */}
         <section className="col-span-12 lg:col-span-4 space-y-6">
           
-          {/* Hierarchy tree view card */}
-          <div className="bg-card border border-border shadow-sm rounded-xl p-6">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-[20px] font-bold text-foreground">Hierarchy</h3>
-              <button 
-                onClick={() => handleOpenCreate()}
-                className="text-primary hover:bg-primary-container/10 p-1.5 rounded-full transition-colors cursor-pointer border-none bg-transparent flex items-center justify-center"
-              >
-                <Plus className="size-5" />
-              </button>
-            </div>
-            
-            <div className="space-y-3">
-              {expenseCategories.length === 0 ? (
-                <p className="text-xs text-secondary italic">No classifications defined.</p>
-              ) : (
-                (showAllHierarchy ? expenseCategories : expenseCategories.slice(0, 8)).map((cat) => {
-                  const iconObj = icons.find((i) => i.id === cat.categoryIconId)
-                  const iconKey = iconObj?.iconKey || "FolderOpen"
-                  return (
-                    <div key={cat.id} className="flex items-center gap-2.5 p-2.5 hover:bg-muted/60 rounded-lg transition-colors cursor-pointer group">
-                      <Icons.ChevronRight className="size-4 text-secondary group-hover:text-primary" />
-                      <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-card shadow-sm border border-border">
-                        {renderIcon(iconKey, cat.color)}
-                      </div>
-                      <span className="font-semibold text-foreground text-[14px] flex-1">{cat.name}</span>
-                      <span className="text-[12px] text-secondary font-medium">Active</span>
-                    </div>
-                  );
-                })
-              )}
-            </div>
-            {expenseCategories.length > 8 && (
-              <button
-                onClick={() => setShowAllHierarchy(prev => !prev)}
-                className="mt-3 w-full py-2 rounded-lg text-[13px] font-bold text-primary bg-primary/5 hover:bg-primary/10 transition-colors cursor-pointer border-none flex items-center justify-center gap-1.5"
-              >
-                {showAllHierarchy ? (
-                  <><ChevronUp className="size-4" /> Show less</>
-                ) : (
-                  <><ChevronDown className="size-4" /> Show {expenseCategories.length - 8} more</>
-                )}
-              </button>
-            )}
-          </div>
+
 
           {/* Deep Category Analysis */}
           <div className="bg-card border border-border shadow-sm rounded-xl p-6 overflow-hidden relative min-h-[300px]">
@@ -394,14 +371,14 @@ export default function CategoriesPage() {
               <a className="text-primary font-bold text-[14px] hover:underline cursor-pointer font-sans">Manage All</a>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-3">
               {/* Add Expense Placeholder Card */}
               <button 
                 onClick={() => handleOpenCreate("EXPENSE")}
-                className="border-2 border-dashed border-border/80 hover:border-primary rounded-xl p-5 flex flex-col items-center justify-center gap-2 text-secondary hover:text-primary transition-all group h-48 cursor-pointer bg-card"
+                className="border-2 border-dashed border-border/80 hover:border-primary rounded-xl p-3.5 sm:p-5 flex flex-col items-center justify-center gap-2 text-secondary hover:text-primary transition-all group h-[168px] cursor-pointer bg-card"
               >
                 <Icons.PlusCircle className="size-8 group-hover:scale-110 transition-transform" />
-                <span className="font-bold text-[14px]">Add Expense Category</span>
+                <span className="font-bold text-[13px] sm:text-[14px]">Add Expense</span>
               </button>
 
               {paginatedExpenseCategories.map((cat) => {
@@ -411,9 +388,9 @@ export default function CategoriesPage() {
                 const trend = getCategoryTrend(cat.id)
 
                 return (
-                  <div key={cat.id} className="bg-card border border-border rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow group flex flex-col justify-between h-48 relative text-left font-sans">
-                    <div className="flex justify-between items-start mb-4">
-                      <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center group-hover:bg-primary/10 transition-colors">
+                  <div key={cat.id} className="bg-card border border-border rounded-xl p-3.5 sm:p-5 shadow-sm hover:shadow-md transition-shadow group flex flex-col justify-between h-[168px] relative text-left font-sans">
+                    <div className="flex justify-between items-start">
+                      <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-muted flex items-center justify-center group-hover:bg-primary/10 transition-colors">
                         {renderIcon(iconName, cat.color)}
                       </div>
                       
@@ -442,14 +419,14 @@ export default function CategoriesPage() {
                       />
                     </div>
                     
-                    <div>
-                      <h4 className="text-[17px] font-bold text-foreground mb-1 leading-snug">{cat.name}</h4>
-                      <p className="text-[12px] text-secondary leading-snug line-clamp-1">Daily essentials & classifications</p>
+                    <div className="mt-2">
+                      <h4 className="text-[14px] sm:text-[17px] font-bold text-foreground mb-0.5 leading-tight line-clamp-1">{cat.name}</h4>
+                      <p className="text-[10px] sm:text-[12px] text-secondary leading-snug line-clamp-1">Daily essentials & classifications</p>
                     </div>
                     
-                    <div className="flex justify-between items-center mt-3 pt-3 border-t border-border/40 font-sans">
-                      <span className="text-[20px] font-bold text-primary">{formatMoney(spentValue)}</span>
-                      <span className={cn("px-2 py-0.5 rounded text-[11px] font-bold", trend.style)}>{trend.label}</span>
+                    <div className="flex justify-between items-center mt-2 pt-2 border-t border-border/40 font-sans">
+                      <span className="text-[15px] sm:text-[20px] font-bold text-primary leading-none">{formatMoney(spentValue)}</span>
+                      <span className={cn("px-1.5 py-0.5 rounded text-[9px] sm:text-[11px] font-bold", trend.style)}>{trend.label}</span>
                     </div>
                   </div>
                 );
@@ -457,11 +434,11 @@ export default function CategoriesPage() {
             </div>
 
             {totalExpensePages > 1 && (
-              <div className="flex items-center justify-between mt-6 bg-card border border-border rounded-xl p-4 font-sans select-none">
+              <div className="flex flex-col sm:flex-row items-center justify-between mt-6 bg-card border border-border rounded-xl p-4 font-sans select-none gap-4 text-center sm:text-left">
                 <span className="text-[13px] text-secondary font-medium">
                   Showing {Math.min(expenseCategories.length, (clampedExpensePage - 1) * ITEMS_PER_PAGE + 1)} to {Math.min(expenseCategories.length, clampedExpensePage * ITEMS_PER_PAGE)} of {expenseCategories.length} categories
                 </span>
-                <div className="flex gap-2">
+                <div className="flex gap-2 items-center">
                   <button
                     onClick={() => setExpensePage(prev => Math.max(1, prev - 1))}
                     disabled={clampedExpensePage === 1}
@@ -469,7 +446,7 @@ export default function CategoriesPage() {
                   >
                     Previous
                   </button>
-                  <div className="flex gap-1">
+                  <div className="hidden sm:flex gap-1">
                     {Array.from({ length: totalExpensePages }, (_, i) => i + 1).map((p) => (
                       <button
                         key={p}
@@ -502,14 +479,14 @@ export default function CategoriesPage() {
               <a className="text-primary font-bold text-[14px] hover:underline cursor-pointer font-sans font-medium">Manage All</a>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-3">
               {/* Add Income Placeholder Card */}
               <button 
                 onClick={() => handleOpenCreate("INCOME")}
-                className="border-2 border-dashed border-border/80 hover:border-primary rounded-xl p-5 flex flex-col items-center justify-center gap-2 text-secondary hover:text-primary transition-all group h-48 cursor-pointer bg-card"
+                className="border-2 border-dashed border-border/80 hover:border-primary rounded-xl p-3.5 sm:p-5 flex flex-col items-center justify-center gap-2 text-secondary hover:text-primary transition-all group h-[168px] cursor-pointer bg-card"
               >
                 <Icons.PlusCircle className="size-8 group-hover:scale-110 transition-transform" />
-                <span className="font-bold text-[14px]">Add Income Category</span>
+                <span className="font-bold text-[13px] sm:text-[14px]">Add Income</span>
               </button>
 
               {paginatedIncomeCategories.map((cat) => {
@@ -518,9 +495,9 @@ export default function CategoriesPage() {
                 const incomeValue = categorySpentMap[cat.id] || 0
 
                 return (
-                  <div key={cat.id} className="bg-primary/5 border border-primary/20 hover:bg-primary/10 rounded-xl p-5 shadow-sm hover:shadow-md transition-all group flex flex-col justify-between h-48 relative text-left font-sans">
-                    <div className="flex justify-between items-start mb-4">
-                      <div className="w-12 h-12 rounded-xl bg-card border border-border flex items-center justify-center shadow-sm">
+                  <div key={cat.id} className="bg-primary/5 border border-primary/20 hover:bg-primary/10 rounded-xl p-3.5 sm:p-5 shadow-sm hover:shadow-md transition-all group flex flex-col justify-between h-[168px] relative text-left font-sans">
+                    <div className="flex justify-between items-start">
+                      <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-card border border-border flex items-center justify-center shadow-sm">
                         {renderIcon(iconName, cat.color)}
                       </div>
                       
@@ -549,13 +526,13 @@ export default function CategoriesPage() {
                       />
                     </div>
                     
-                    <div>
-                      <h4 className="text-[17px] font-bold text-foreground mb-1 leading-snug">{cat.name}</h4>
-                      <p className="text-[12px] text-secondary leading-snug line-clamp-1">Deposits & salary streams</p>
+                    <div className="mt-2">
+                      <h4 className="text-[14px] sm:text-[17px] font-bold text-foreground mb-0.5 leading-tight line-clamp-1">{cat.name}</h4>
+                      <p className="text-[10px] sm:text-[12px] text-secondary leading-snug line-clamp-1">Deposits & salary streams</p>
                     </div>
                     
-                    <div className="flex justify-between items-center mt-3 pt-3 border-t border-border/40 font-sans">
-                      <span className="text-[20px] font-bold text-primary">{formatMoney(incomeValue)}</span>
+                    <div className="flex justify-between items-center mt-2 pt-2 border-t border-border/40 font-sans">
+                      <span className="text-[15px] sm:text-[20px] font-bold text-primary leading-none">{formatMoney(incomeValue)}</span>
                       <Icons.TrendingUp className="size-5 text-primary" />
                     </div>
                   </div>
@@ -564,11 +541,11 @@ export default function CategoriesPage() {
             </div>
 
             {totalIncomePages > 1 && (
-              <div className="flex items-center justify-between mt-6 bg-card border border-border rounded-xl p-4 font-sans select-none">
+              <div className="flex flex-col sm:flex-row items-center justify-between mt-6 bg-card border border-border rounded-xl p-4 font-sans select-none gap-4 text-center sm:text-left">
                 <span className="text-[13px] text-secondary font-medium">
                   Showing {Math.min(incomeCategories.length, (clampedIncomePage - 1) * INCOME_ITEMS_PER_PAGE + 1)} to {Math.min(incomeCategories.length, clampedIncomePage * INCOME_ITEMS_PER_PAGE)} of {incomeCategories.length} categories
                 </span>
-                <div className="flex gap-2">
+                <div className="flex gap-2 items-center">
                   <button
                     onClick={() => setIncomePage(prev => Math.max(1, prev - 1))}
                     disabled={clampedIncomePage === 1}
@@ -576,7 +553,7 @@ export default function CategoriesPage() {
                   >
                     Previous
                   </button>
-                  <div className="flex gap-1">
+                  <div className="hidden sm:flex gap-1">
                     {Array.from({ length: totalIncomePages }, (_, i) => i + 1).map((p) => (
                       <button
                         key={p}
@@ -672,7 +649,8 @@ export default function CategoriesPage() {
 
             <button
               type="button"
-              onClick={() => {
+              onClick={(e) => {
+                updatePickerCoords(e.currentTarget)
                 setIsIconDropdownOpen(!isIconDropdownOpen)
                 setIconSearchQuery("")
               }}
@@ -698,8 +676,20 @@ export default function CategoriesPage() {
               <ChevronDown className="size-4 text-muted-foreground" />
             </button>
 
-            {isIconDropdownOpen && (
-              <div className="absolute top-[calc(100%+6px)] left-0 z-50 w-full p-3 bg-popover border border-border rounded-[16px] shadow-modal flex flex-col gap-2.5 animate-dropdown">
+            {isIconDropdownOpen && createPortal(
+              <div
+                ref={createIconDropdownRef}
+                style={{
+                  position: "absolute",
+                  top: `${pickerCoords.top}px`,
+                  left: `${pickerCoords.left}px`,
+                  width: `${pickerCoords.width}px`,
+                }}
+                className={cn(
+                  "z-[9999] p-3 bg-popover border border-border rounded-[16px] shadow-modal flex flex-col gap-2.5 animate-dropdown",
+                  pickerCoords.openUp ? "origin-bottom" : "origin-top"
+                )}
+              >
                 {/* Search Bar */}
                 <div className="relative flex items-center">
                   <Search className="absolute left-3 size-3.5 text-muted-foreground pointer-events-none select-none" />
@@ -748,7 +738,8 @@ export default function CategoriesPage() {
                     ))
                   )}
                 </div>
-              </div>
+              </div>,
+              document.body
             )}
           </div>
         </div>
@@ -802,7 +793,8 @@ export default function CategoriesPage() {
 
             <button
               type="button"
-              onClick={() => {
+              onClick={(e) => {
+                updatePickerCoords(e.currentTarget)
                 setIsIconDropdownOpen(!isIconDropdownOpen)
                 setIconSearchQuery("")
               }}
@@ -828,8 +820,20 @@ export default function CategoriesPage() {
               <ChevronDown className="size-4 text-muted-foreground" />
             </button>
 
-            {isIconDropdownOpen && (
-              <div className="absolute top-[calc(100%+6px)] left-0 z-50 w-full p-3 bg-popover border border-border rounded-[16px] shadow-modal flex flex-col gap-2.5 animate-dropdown">
+            {isIconDropdownOpen && createPortal(
+              <div
+                ref={editIconDropdownRef}
+                style={{
+                  position: "absolute",
+                  top: `${pickerCoords.top}px`,
+                  left: `${pickerCoords.left}px`,
+                  width: `${pickerCoords.width}px`,
+                }}
+                className={cn(
+                  "z-[9999] p-3 bg-popover border border-border rounded-[16px] shadow-modal flex flex-col gap-2.5 animate-dropdown",
+                  pickerCoords.openUp ? "origin-bottom" : "origin-top"
+                )}
+              >
                 {/* Search Bar */}
                 <div className="relative flex items-center">
                   <Search className="absolute left-3 size-3.5 text-muted-foreground pointer-events-none select-none" />
@@ -878,7 +882,8 @@ export default function CategoriesPage() {
                     ))
                   )}
                 </div>
-              </div>
+              </div>,
+              document.body
             )}
           </div>
         </div>

@@ -255,6 +255,7 @@ export class TransactionsService {
             } else if (transaction.type === "EXPENSE") {
                 if (oldSrcAcc && oldSrcAcc.type === "CREDIT_CARD") {
                     oldSrcBal.outstanding -= oldAmt;
+                    oldSrcBal.balance += oldAmt;
                 } else if (oldSrcAcc && (oldSrcAcc.type === "DEBIT_CARD" || oldSrcAcc.type === "UPI") && oldSrcAcc.linkedBankAccountId) {
                     const linked = beforeBalances.get(oldSrcAcc.linkedBankAccountId);
                     if (linked) linked.balance += oldAmt;
@@ -262,7 +263,12 @@ export class TransactionsService {
                     oldSrcBal.balance += oldAmt;
                 }
             } else if (transaction.type === "TRANSFER") {
-                oldSrcBal.balance += oldAmt;
+                if (oldSrcAcc && oldSrcAcc.type === "CREDIT_CARD") {
+                    oldSrcBal.outstanding -= oldAmt;
+                    oldSrcBal.balance += oldAmt;
+                } else {
+                    oldSrcBal.balance += oldAmt;
+                }
             }
         }
 
@@ -273,6 +279,7 @@ export class TransactionsService {
                 const oldDestAcc = populatedMap.get(transaction.destinationAccountId);
                 if (oldDestAcc && oldDestAcc.type === "CREDIT_CARD") {
                     oldDestBal.outstanding += oldAmt;
+                    oldDestBal.balance -= oldAmt;
                 } else {
                     oldDestBal.balance -= oldAmt;
                 }

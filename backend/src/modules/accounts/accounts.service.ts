@@ -271,7 +271,14 @@ export class AccountsService {
 
                 // Subtract from source balance
                 const srcBal = balances.get(srcId);
-                if (srcBal) srcBal.balance -= amt;
+                if (srcBal) {
+                    const srcAcc = allAccountsMap.get(srcId);
+                    if (srcAcc && srcAcc.type === "CREDIT_CARD") {
+                        srcBal.outstanding += amt;
+                    } else {
+                        srcBal.balance -= amt;
+                    }
+                }
 
                 // Add to destination
                 if (destId) {
