@@ -277,12 +277,12 @@ export default function ProfilePage() {
 
             <div className="flex flex-col divide-y divide-border text-xs">
               {/* Theme Toggle */}
-              <div className="flex items-center justify-between py-3.5 first:pt-0">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 py-3.5 first:pt-0">
                 <div className="flex flex-col gap-0.5">
                   <span className="font-semibold text-foreground">App Theme</span>
                   <span className="text-muted-foreground">Choose between light, dark, or system-matched display mode.</span>
                 </div>
-                <div className="flex items-center gap-1.5 bg-muted border border-border rounded-[10px] p-1">
+                <div className="flex items-center gap-1.5 bg-muted border border-border rounded-[10px] p-1 self-start sm:self-auto">
                   <button
                     id="theme-light-btn"
                     onClick={() => handleThemeChange("LIGHT")}

@@ -1,7 +1,8 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Plus, Search, MoreVertical, Edit2, Trash2, Calendar, AlertCircle, Info, DollarSign, History, User, TrendingUp, Award, Bookmark } from "lucide-react"
 import { format } from "date-fns"
 import { toast } from "sonner"
+import { useSearchParams } from "react-router-dom"
 import {
   generateWhatsAppLink,
   openWhatsApp,
@@ -32,6 +33,30 @@ import { CustomDatePicker } from "../../../components/inputs/CustomDatePicker"
 import { cn } from "../../../lib/utils"
 
 export default function DebtsPage() {
+  const parseDebtNote = (note?: string | null) => {
+    if (!note) return { reminderName: "", cleanNote: "" }
+    const match = note.match(/^\[Reminder Name: ([^\]]+)\]\s*(.*)/s)
+    if (match) {
+      return { reminderName: match[1], cleanNote: match[2] }
+    }
+    return { reminderName: "", cleanNote: note }
+  }
+
+  const buildDebtNote = (reminderName: string, note: string) => {
+    const cleanName = reminderName.trim()
+    const cleanNote = note.trim()
+    if (cleanName) {
+      return `[Reminder Name: ${cleanName}] ${cleanNote}`
+    }
+    return cleanNote
+  }
+
+  const getWhatsAppName = (debt: any) => {
+    if (!debt) return ""
+    const { reminderName } = parseDebtNote(debt.note)
+    return reminderName || debt.partyName
+  }
+
   const user = useAuthStore((state) => state.user)
   const [searchQuery, setSearchQuery] = useState("")
   const [activeTab, setActiveTab] = useState<"BORROW" | "LENT">("BORROW")
@@ -51,6 +76,7 @@ export default function DebtsPage() {
 
   // Form Fields
   const [debtParty, setDebtParty] = useState("")
+  const [debtReminderName, setDebtReminderName] = useState("")
   const [debtPhone, setDebtPhone] = useState("")
   const [debtAmount, setDebtAmount] = useState("")
   const [debtNotes, setDebtNotes] = useState("")
@@ -74,6 +100,43 @@ export default function DebtsPage() {
   const updateMutation = useUpdateDebt()
   const deleteMutation = useDeleteDebt()
 
+  const [searchParams, setSearchParams] = useSearchParams()
+
+  const [debtConfirmSendMethod, setDebtConfirmSendMethod] = useState<"NUMBER" | "NAME">("NUMBER")
+  const [repayConfirmSendMethod, setRepayConfirmSendMethod] = useState<"NUMBER" | "NAME">("NUMBER")
+  const [isReminderOpen, setIsReminderOpen] = useState(false)
+  const [reminderTarget, setReminderTarget] = useState<any>(null)
+  const [reminderSendMethod, setReminderSendMethod] = useState<"NUMBER" | "NAME">("NUMBER")
+
+  useEffect(() => {
+    const partyParam = searchParams.get("party")
+    const nameParam = searchParams.get("name")
+    const phoneParam = searchParams.get("phone") || searchParams.get("number")
+
+    if (partyParam || nameParam || phoneParam) {
+      if (partyParam) setDebtParty(partyParam)
+      if (nameParam) setDebtReminderName(nameParam)
+      if (phoneParam) setDebtPhone(phoneParam)
+
+      setDebtDate(new Date().toISOString().split("T")[0])
+
+      setIsCreateOpen(true)
+
+      const newParams = new URLSearchParams(searchParams)
+      newParams.delete("name")
+      newParams.delete("party")
+      newParams.delete("phone")
+      newParams.delete("number")
+      setSearchParams(newParams, { replace: true })
+    }
+  }, [searchParams, setSearchParams])
+
+  useEffect(() => {
+    if (isCreateOpen && !debtAccountId && accounts.length > 0) {
+      setDebtAccountId(accounts.find((a) => a.isDefault)?.id || accounts[0]?.id || "")
+    }
+  }, [isCreateOpen, debtAccountId, accounts])
+
   // Repayments Sub-API query and mutation (Section 75)
   const { data: repayments = [], isLoading: isRepaymentsLoading } = useRepaymentsList(selectedDebt?.id || "")
   const createRepaymentMutation = useCreateRepayment()
@@ -86,6 +149,7 @@ export default function DebtsPage() {
 
   const handleOpenCreate = () => {
     setDebtParty("")
+    setDebtReminderName("")
     setDebtPhone("")
     setDebtAmount("")
     setDebtNotes("")
@@ -98,9 +162,11 @@ export default function DebtsPage() {
   const handleOpenEdit = (debt: any) => {
     setSelectedDebt(debt)
     setDebtParty(debt.partyName)
+    const { reminderName, cleanNote } = parseDebtNote(debt.note)
+    setDebtReminderName(reminderName)
     setDebtPhone(debt.phoneNumber || "")
     setDebtAmount(String(debt.totalAmount))
-    setDebtNotes(debt.note || "")
+    setDebtNotes(cleanNote)
     setDebtDueDate(debt.dueDate ? new Date(debt.dueDate).toISOString().split("T")[0] : "")
     setDebtDate(debt.debtDate ? new Date(debt.debtDate).toISOString().split("T")[0] : new Date().toISOString().split("T")[0])
     setDebtAccountId(debt.accountId || "")
@@ -142,7 +208,7 @@ export default function DebtsPage() {
         type: activeTab,
         debtDate: debtDate ? new Date(debtDate).toISOString() : new Date().toISOString(),
         dueDate: debtDueDate ? new Date(debtDueDate).toISOString() : undefined,
-        note: debtNotes.trim() || undefined,
+        note: buildDebtNote(debtReminderName, debtNotes) || undefined,
         accountId: debtAccountId,
       },
       {
@@ -177,7 +243,7 @@ export default function DebtsPage() {
           totalAmount: Number(debtAmount),
           debtDate: debtDate ? new Date(debtDate).toISOString() : undefined,
           dueDate: debtDueDate ? new Date(debtDueDate).toISOString() : undefined,
-          note: debtNotes.trim() || undefined,
+          note: buildDebtNote(debtReminderName, debtNotes) || null,
           accountId: debtAccountId,
         },
       },
@@ -569,10 +635,10 @@ export default function DebtsPage() {
                         <p className="text-[12px] text-secondary leading-tight mt-0.5">
                           Lent on: {debt.debtDate ? format(new Date(debt.debtDate), "dd MMM yyyy") : format(new Date(), "dd MMM yyyy")}
                         </p>
-                        {debt.note && (
+                        {parseDebtNote(debt.note).cleanNote && (
                           <p className="text-[12px] text-primary/80 leading-tight mt-1 flex items-center gap-1 truncate max-w-[200px]">
                             <Info className="size-3 flex-shrink-0" />
-                            {debt.note}
+                            {parseDebtNote(debt.note).cleanNote}
                           </p>
                         )}
                       </div>
@@ -764,10 +830,10 @@ export default function DebtsPage() {
                         <p className="text-[12px] text-secondary leading-tight mt-0.5">
                           Borrowed on: {debt.debtDate ? format(new Date(debt.debtDate), "dd MMM yyyy") : format(new Date(), "dd MMM yyyy")}
                         </p>
-                        {debt.note && (
+                        {parseDebtNote(debt.note).cleanNote && (
                           <p className="text-[12px] text-[#a43a3a]/80 leading-tight mt-1 flex items-center gap-1 truncate max-w-[200px]">
                             <Info className="size-3 flex-shrink-0" />
-                            {debt.note}
+                            {parseDebtNote(debt.note).cleanNote}
                           </p>
                         )}
                       </div>
@@ -951,6 +1017,13 @@ export default function DebtsPage() {
           />
 
           <CustomInput
+            label="Name (WhatsApp Reminder)"
+            placeholder="e.g. Jane"
+            value={debtReminderName}
+            onChange={(e) => setDebtReminderName(e.target.value)}
+          />
+
+          <CustomInput
             label="Phone Number (Optional)"
             placeholder="e.g. 9876543210"
             value={debtPhone}
@@ -1024,6 +1097,13 @@ export default function DebtsPage() {
             placeholder="e.g. Jane Smith"
             value={debtParty}
             onChange={(e) => setDebtParty(e.target.value)}
+          />
+
+          <CustomInput
+            label="Name (WhatsApp Reminder)"
+            placeholder="e.g. Jane"
+            value={debtReminderName}
+            onChange={(e) => setDebtReminderName(e.target.value)}
           />
 
           <CustomInput
@@ -1266,22 +1346,20 @@ export default function DebtsPage() {
             <CustomButton
               variant="primary"
               size="sm"
-              disabled={!selectedDebt?.phoneNumber}
               onClick={() => {
-                if (selectedDebt?.phoneNumber) {
-                  const msg = generateRepaymentReminderMessage({
-                    partyName: selectedDebt.partyName,
-                    type: selectedDebt.type,
-                    amountPaid: lastRepaymentAmount,
-                    remainingAmount: selectedDebt.remainingAmount,
-                    senderName: user?.name,
-                  })
-                  const url = generateWhatsAppLink({
-                    phone: selectedDebt.phoneNumber || "",
-                    message: msg,
-                  })
-                  openWhatsApp(url)
-                }
+                const phoneToUse = repayConfirmSendMethod === "NUMBER" ? (selectedDebt?.phoneNumber || "") : ""
+                const msg = generateRepaymentReminderMessage({
+                  partyName: getWhatsAppName(selectedDebt),
+                  type: selectedDebt.type,
+                  amountPaid: lastRepaymentAmount,
+                  remainingAmount: selectedDebt.remainingAmount,
+                  senderName: user?.name,
+                })
+                const url = generateWhatsAppLink({
+                  phone: phoneToUse,
+                  message: msg,
+                })
+                openWhatsApp(url)
                 setIsRepaymentConfirmOpen(false)
               }}
             >
@@ -1290,12 +1368,42 @@ export default function DebtsPage() {
           </>
         }
       >
-        {!selectedDebt?.phoneNumber && (
-          <div className="flex items-center gap-2 p-3 bg-amber-50 border border-amber-200/60 rounded-[10px] mt-2 text-amber-800 text-xs">
-            <AlertCircle className="size-4 text-amber-600 flex-shrink-0" />
-            <span>No phone number available.</span>
+        <div className="mt-3 flex flex-col gap-2.5">
+          <p className="text-xs text-muted-foreground">Select how you want to send the confirmation:</p>
+          <div className="flex flex-col gap-2">
+            <label className={`flex items-center gap-2.5 text-xs font-semibold cursor-pointer p-2.5 rounded-[8px] border transition-colors ${
+              repayConfirmSendMethod === "NUMBER" 
+                ? "border-primary bg-primary/5 text-primary" 
+                : "border-border hover:bg-muted text-foreground"
+            } ${!selectedDebt?.phoneNumber ? "opacity-50 cursor-not-allowed" : ""}`}>
+              <input
+                type="radio"
+                name="repayConfirmSendMethod"
+                value="NUMBER"
+                checked={repayConfirmSendMethod === "NUMBER"}
+                disabled={!selectedDebt?.phoneNumber}
+                onChange={() => setRepayConfirmSendMethod("NUMBER")}
+                className="text-primary focus:ring-primary size-3.5 cursor-pointer disabled:cursor-not-allowed"
+              />
+              <span>Send directly to number ({selectedDebt?.phoneNumber || "No number saved"})</span>
+            </label>
+            <label className={`flex items-center gap-2.5 text-xs font-semibold cursor-pointer p-2.5 rounded-[8px] border transition-colors ${
+              repayConfirmSendMethod === "NAME" 
+                ? "border-primary bg-primary/5 text-primary" 
+                : "border-border hover:bg-muted text-foreground"
+            }`}>
+              <input
+                type="radio"
+                name="repayConfirmSendMethod"
+                value="NAME"
+                checked={repayConfirmSendMethod === "NAME"}
+                onChange={() => setRepayConfirmSendMethod("NAME")}
+                className="text-primary focus:ring-primary size-3.5 cursor-pointer"
+              />
+              <span>Search contact in WhatsApp (by Name: {getWhatsAppName(selectedDebt)})</span>
+            </label>
           </div>
-        )}
+        </div>
       </CustomDialog>
 
       {/* Debt Creation WhatsApp Confirmation Dialog */}
@@ -1312,23 +1420,21 @@ export default function DebtsPage() {
             <CustomButton
               variant="primary"
               size="sm"
-              disabled={!createdDebt?.phoneNumber}
               onClick={() => {
-                if (createdDebt?.phoneNumber) {
-                  const msg = generateDebtReminderMessage({
-                    partyName: createdDebt.partyName,
-                    type: createdDebt.type,
-                    amount: Number(createdDebt.totalAmount),
-                    remainingAmount: Number(createdDebt.remainingAmount),
-                    dueDate: createdDebt.dueDate,
-                    senderName: user?.name,
-                  })
-                  const url = generateWhatsAppLink({
-                    phone: createdDebt.phoneNumber || "",
-                    message: msg,
-                  })
-                  openWhatsApp(url)
-                }
+                const phoneToUse = debtConfirmSendMethod === "NUMBER" ? (createdDebt?.phoneNumber || "") : ""
+                const msg = generateDebtReminderMessage({
+                  partyName: getWhatsAppName(createdDebt),
+                  type: createdDebt.type,
+                  amount: Number(createdDebt.totalAmount),
+                  remainingAmount: Number(createdDebt.remainingAmount),
+                  dueDate: createdDebt.dueDate,
+                  senderName: user?.name,
+                })
+                const url = generateWhatsAppLink({
+                  phone: phoneToUse,
+                  message: msg,
+                })
+                openWhatsApp(url)
                 setIsDebtConfirmOpen(false)
               }}
             >
@@ -1337,12 +1443,119 @@ export default function DebtsPage() {
           </>
         }
       >
-        {!createdDebt?.phoneNumber && (
-          <div className="flex items-center gap-2 p-3 bg-amber-50 border border-amber-200/60 rounded-[10px] mt-2 text-amber-800 text-xs">
-            <AlertCircle className="size-4 text-amber-600 flex-shrink-0" />
-            <span>No phone number available.</span>
+        <div className="mt-3 flex flex-col gap-2.5">
+          <p className="text-xs text-muted-foreground">Select how you want to send the reminder:</p>
+          <div className="flex flex-col gap-2">
+            <label className={`flex items-center gap-2.5 text-xs font-semibold cursor-pointer p-2.5 rounded-[8px] border transition-colors ${
+              debtConfirmSendMethod === "NUMBER" 
+                ? "border-primary bg-primary/5 text-primary" 
+                : "border-border hover:bg-muted text-foreground"
+            } ${!createdDebt?.phoneNumber ? "opacity-50 cursor-not-allowed" : ""}`}>
+              <input
+                type="radio"
+                name="debtConfirmSendMethod"
+                value="NUMBER"
+                checked={debtConfirmSendMethod === "NUMBER"}
+                disabled={!createdDebt?.phoneNumber}
+                onChange={() => setDebtConfirmSendMethod("NUMBER")}
+                className="text-primary focus:ring-primary size-3.5 cursor-pointer disabled:cursor-not-allowed"
+              />
+              <span>Send directly to number ({createdDebt?.phoneNumber || "No number saved"})</span>
+            </label>
+            <label className={`flex items-center gap-2.5 text-xs font-semibold cursor-pointer p-2.5 rounded-[8px] border transition-colors ${
+              debtConfirmSendMethod === "NAME" 
+                ? "border-primary bg-primary/5 text-primary" 
+                : "border-border hover:bg-muted text-foreground"
+            }`}>
+              <input
+                type="radio"
+                name="debtConfirmSendMethod"
+                value="NAME"
+                checked={debtConfirmSendMethod === "NAME"}
+                onChange={() => setDebtConfirmSendMethod("NAME")}
+                className="text-primary focus:ring-primary size-3.5 cursor-pointer"
+              />
+              <span>Search contact in WhatsApp (by Name: {getWhatsAppName(createdDebt)})</span>
+            </label>
           </div>
-        )}
+        </div>
+      </CustomDialog>
+
+      {/* General Debt Reminder Option Dialog */}
+      <CustomDialog
+        isOpen={isReminderOpen}
+        onClose={() => setIsReminderOpen(false)}
+        title="Send Reminder"
+        description="Select how you would like to send the WhatsApp reminder."
+        footer={
+          <>
+            <CustomButton variant="outline" size="sm" onClick={() => setIsReminderOpen(false)}>
+              Cancel
+            </CustomButton>
+            <CustomButton
+              variant="primary"
+              size="sm"
+              onClick={() => {
+                if (reminderTarget) {
+                  const phoneToUse = reminderSendMethod === "NUMBER" ? (reminderTarget.phoneNumber || "") : ""
+                  const msg = generateDebtReminderMessage({
+                    partyName: getWhatsAppName(reminderTarget),
+                    type: reminderTarget.type,
+                    amount: Number(reminderTarget.totalAmount),
+                    remainingAmount: Number(reminderTarget.remainingAmount),
+                    dueDate: reminderTarget.dueDate,
+                    senderName: user?.name,
+                  })
+                  const url = generateWhatsAppLink({
+                    phone: phoneToUse,
+                    message: msg,
+                  })
+                  openWhatsApp(url)
+                }
+                setIsReminderOpen(false)
+              }}
+            >
+              Send WhatsApp
+            </CustomButton>
+          </>
+        }
+      >
+        <div className="mt-3 flex flex-col gap-2.5">
+          <p className="text-xs text-muted-foreground">Select reminder delivery method:</p>
+          <div className="flex flex-col gap-2">
+            <label className={`flex items-center gap-2.5 text-xs font-semibold cursor-pointer p-2.5 rounded-[8px] border transition-colors ${
+              reminderSendMethod === "NUMBER" 
+                ? "border-primary bg-primary/5 text-primary" 
+                : "border-border hover:bg-muted text-foreground"
+            } ${!reminderTarget?.phoneNumber ? "opacity-50 cursor-not-allowed" : ""}`}>
+              <input
+                type="radio"
+                name="reminderSendMethod"
+                value="NUMBER"
+                checked={reminderSendMethod === "NUMBER"}
+                disabled={!reminderTarget?.phoneNumber}
+                onChange={() => setReminderSendMethod("NUMBER")}
+                className="text-primary focus:ring-primary size-3.5 cursor-pointer disabled:cursor-not-allowed"
+              />
+              <span>Send directly to number ({reminderTarget?.phoneNumber || "No number saved"})</span>
+            </label>
+            <label className={`flex items-center gap-2.5 text-xs font-semibold cursor-pointer p-2.5 rounded-[8px] border transition-colors ${
+              reminderSendMethod === "NAME" 
+                ? "border-primary bg-primary/5 text-primary" 
+                : "border-border hover:bg-muted text-foreground"
+            }`}>
+              <input
+                type="radio"
+                name="reminderSendMethod"
+                value="NAME"
+                checked={reminderSendMethod === "NAME"}
+                onChange={() => setReminderSendMethod("NAME")}
+                className="text-primary focus:ring-primary size-3.5 cursor-pointer"
+              />
+              <span>Search contact in WhatsApp (by Name: {getWhatsAppName(reminderTarget)})</span>
+            </label>
+          </div>
+        </div>
       </CustomDialog>
 
     </div>

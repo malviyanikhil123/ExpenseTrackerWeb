@@ -161,7 +161,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
               </button>
 
               {isNotificationsOpen && (
-                <div className="absolute right-0 top-[calc(100%+6px)] w-[320px] sm:w-[360px] bg-popover border border-border rounded-[16px] shadow-dropdown py-3 px-4 z-40 animate-dropdown origin-top-right">
+                <div className="absolute -right-[80px] sm:right-0 top-[calc(100%+6px)] w-[320px] sm:w-[360px] bg-popover border border-border rounded-[16px] shadow-dropdown py-3 px-4 z-40 animate-dropdown origin-top-right">
                   <div className="flex items-center justify-between border-b border-border pb-2 mb-2">
                     <span className="text-sm font-bold text-foreground">Notifications</span>
                     {notificationDebts.length > 0 && (

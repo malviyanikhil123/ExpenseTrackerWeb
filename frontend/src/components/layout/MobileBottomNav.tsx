@@ -3,6 +3,7 @@ import {
   LayoutDashboard,
   Receipt,
   Wallet,
+  Tags,
   Coins,
   BarChart3,
 } from "lucide-react"
@@ -18,6 +19,7 @@ const NAV_ITEMS = [
   { id: "dashboard", icon: LayoutDashboard, label: "Home" },
   { id: "transactions", icon: Receipt, label: "Transactions" },
   { id: "accounts", icon: Wallet, label: "Accounts" },
+  { id: "categories", icon: Tags, label: "Categories" },
   { id: "debts", icon: Coins, label: "Debts" },
   { id: "analytics", icon: BarChart3, label: "Analytics" },
 ]
