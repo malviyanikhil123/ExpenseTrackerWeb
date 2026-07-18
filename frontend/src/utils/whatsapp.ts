@@ -46,7 +46,7 @@ export function generateDebtReminderMessage({
 }: DebtReminderParams): string {
   const formattedAmount = `₹${remainingAmount.toLocaleString("en-IN", { maximumFractionDigits: 2 })}`
   const formattedOriginalAmount = `₹${amount.toLocaleString("en-IN", { maximumFractionDigits: 2 })}`
-  const sender = senderName || "Expense Tracker"
+  const sender = senderName || "Spendra"
 
   const dueSection = dueDate
     ? `\n\nDue Date:\n${format(new Date(dueDate), "d MMMM yyyy")}`
@@ -78,7 +78,7 @@ export function generateRepaymentReminderMessage({
 }: RepaymentReminderParams): string {
   const formattedPaid = `₹${amountPaid.toLocaleString("en-IN", { maximumFractionDigits: 2 })}`
   const formattedRemaining = `₹${remainingAmount.toLocaleString("en-IN", { maximumFractionDigits: 2 })}`
-  const sender = senderName || "Expense Tracker"
+  const sender = senderName || "Spendra"
 
   if (type === "LENT") {
     return `Hello ${partyName},\n\nThank you for paying ${formattedPaid}.\n\nRemaining Balance:\n${formattedRemaining}\n\n${sender} has updated the payment.\n\nThank you.`
