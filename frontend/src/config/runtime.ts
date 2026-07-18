@@ -15,7 +15,7 @@ export function getApiUrl(): string {
 
   switch (host) {
     case "expensetracker.nikhilmalviya.online":
-      return "https://api-expensetracker.nikhilmalviya.online";
+      return "https://api-spendra.nikhilmalviya.online";
 
     case "100.113.63.36":
       return "http://100.113.63.36:5003";

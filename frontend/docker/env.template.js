@@ -4,8 +4,8 @@
   let apiUrl;
 
   switch (host) {
-    case "expensetracker.nikhilmalviya.online":
-      apiUrl = "https://api-expensetracker.nikhilmalviya.online";
+    case "spendra.nikhilmalviya.online":
+      apiUrl = "https://api-spendra.nikhilmalviya.online";
       break;
 
     case "100.113.63.36":
