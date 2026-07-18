@@ -14,7 +14,7 @@ export function getApiUrl(): string {
   const host = window.location.hostname;
 
   switch (host) {
-    case "expensetracker.nikhilmalviya.online":
+    case "spendra.nikhilmalviya.online":
       return "https://api-spendra.nikhilmalviya.online";
 
     case "100.113.63.36":
