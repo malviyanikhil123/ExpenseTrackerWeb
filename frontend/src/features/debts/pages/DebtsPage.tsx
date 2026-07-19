@@ -88,6 +88,9 @@ export default function DebtsPage() {
   const [repayAmount, setRepayAmount] = useState("")
   const [repayNotes, setRepayNotes] = useState("")
   const [repayAccountId, setRepayAccountId] = useState("")
+  const [isSplitRepayment, setIsSplitRepayment] = useState(false)
+  const [repaySplitAmount, setRepaySplitAmount] = useState("")
+  const [repaySplitAccountId, setRepaySplitAccountId] = useState("")
 
   const [filterStatus, setFilterStatus] = useState<"PENDING" | "COMPLETED" | "">("PENDING")
   const [lentPage, setLentPage] = useState(1)
@@ -95,6 +98,12 @@ export default function DebtsPage() {
   const [selectedPartyName, setSelectedPartyName] = useState<string | null>(null)
   const [selectedPartyType, setSelectedPartyType] = useState<"LENT" | "BORROW" | null>(null)
   const [isPartyHistoryOpen, setIsPartyHistoryOpen] = useState(false)
+  const [isSettleAllOpen, setIsSettleAllOpen] = useState(false)
+  const [settleAccountId, setSettleAccountId] = useState("")
+  const [isSettlingAll, setIsSettlingAll] = useState(false)
+  const [isSettleAllSplit, setIsSettleAllSplit] = useState(false)
+  const [settleAllSplitAmount, setSettleAllSplitAmount] = useState("")
+  const [settleAllSplitAccountId, setSettleAllSplitAccountId] = useState("")
 
   const groupDebtsByParty = (list: any[]) => {
     const groups: Record<string, {
@@ -305,8 +314,147 @@ export default function DebtsPage() {
     })
   }
 
-  const handleCreateRepayment = () => {
-    if (!repayAmount || Number(repayAmount) <= 0) {
+  const handleOpenSettleAll = () => {
+    const defaultId = accounts.find((a) => a.isDefault)?.id || accounts[0]?.id || ""
+    setSettleAccountId(defaultId)
+    const allowed = accounts.filter((a) => {
+      if (a.isArchived) return false;
+      if (selectedPartyType === "BORROW") {
+        return a.type === "CASH" || a.type === "BANK" || a.type === "CREDIT_CARD";
+      } else {
+        return a.type === "CASH" || a.type === "BANK";
+      }
+    });
+    setSettleAllSplitAccountId(allowed.find((a) => a.id !== defaultId)?.id || allowed[1]?.id || allowed[0]?.id || "")
+    setIsSettleAllSplit(false)
+    setSettleAllSplitAmount("")
+    setIsSettleAllOpen(true)
+  }
+
+  const settleAllPending = async () => {
+    if (!activeGroupedParty || !settleAccountId) {
+      toast.error("Please select a bank account.")
+      return
+    }
+    
+    const pendingDebts = activeGroupedParty.debts.filter(d => d.status === "PENDING" && Number(d.remainingAmount) > 0)
+    
+    if (pendingDebts.length === 0) {
+      toast.info("No pending debts to settle.")
+      return
+    }
+
+    const totalOutstanding = pendingDebts.reduce((sum, d) => sum + Number(d.remainingAmount), 0)
+
+    if (isSettleAllSplit) {
+      const splitAmount1 = Number(settleAllSplitAmount) || 0
+      const splitAmount2 = totalOutstanding - splitAmount1
+
+      if (splitAmount1 <= 0 || splitAmount2 <= 0) {
+        toast.error("Split amounts must be positive numbers.")
+        return
+      }
+
+      if (!settleAllSplitAccountId) {
+        toast.error("Please select the second payment account.")
+        return
+      }
+
+      if (settleAccountId === settleAllSplitAccountId) {
+        toast.error("Please select two different accounts for splitting.")
+        return
+      }
+
+      setIsSettlingAll(true)
+      try {
+        let remainingAmt1 = splitAmount1
+        const calls: Promise<any>[] = []
+
+        for (const debt of pendingDebts) {
+          const debtRemaining = Number(debt.remainingAmount)
+          if (remainingAmt1 > 0) {
+            if (remainingAmt1 >= debtRemaining) {
+              calls.push(
+                createRepaymentMutation.mutateAsync({
+                  debtId: debt.id,
+                  accountId: settleAccountId,
+                  amount: debtRemaining,
+                  repaymentDate: new Date().toISOString(),
+                  note: "Bulk settlement (Split Part 1)",
+                })
+              )
+              remainingAmt1 -= debtRemaining
+            } else {
+              calls.push(
+                createRepaymentMutation.mutateAsync({
+                  debtId: debt.id,
+                  accountId: settleAccountId,
+                  amount: remainingAmt1,
+                  repaymentDate: new Date().toISOString(),
+                  note: "Bulk settlement (Split Part 1)",
+                })
+              )
+              calls.push(
+                createRepaymentMutation.mutateAsync({
+                  debtId: debt.id,
+                  accountId: settleAllSplitAccountId,
+                  amount: debtRemaining - remainingAmt1,
+                  repaymentDate: new Date().toISOString(),
+                  note: "Bulk settlement (Split Part 2)",
+                })
+              )
+              remainingAmt1 = 0
+            }
+          } else {
+            calls.push(
+              createRepaymentMutation.mutateAsync({
+                debtId: debt.id,
+                accountId: settleAllSplitAccountId,
+                amount: debtRemaining,
+                repaymentDate: new Date().toISOString(),
+                note: "Bulk settlement (Split Part 2)",
+              })
+            )
+          }
+        }
+
+        await Promise.all(calls)
+        toast.success(`Successfully settled all debts for ${activeGroupedParty.partyName}!`)
+        setIsSettleAllOpen(false)
+        setIsPartyHistoryOpen(false)
+      } catch (error) {
+        // Handled by react-query/toast
+      } finally {
+        setIsSettlingAll(false)
+      }
+    } else {
+      setIsSettlingAll(true)
+      try {
+        await Promise.all(
+          pendingDebts.map(debt => 
+            createRepaymentMutation.mutateAsync({
+              debtId: debt.id,
+              accountId: settleAccountId,
+              amount: Number(debt.remainingAmount),
+              repaymentDate: new Date().toISOString(),
+              note: "Bulk settlement",
+            })
+          )
+        )
+        toast.success(`Successfully settled all debts for ${activeGroupedParty.partyName}!`)
+        setIsSettleAllOpen(false)
+        setIsPartyHistoryOpen(false)
+      } catch (error) {
+        // Handled by react-query/toast
+      } finally {
+        setIsSettlingAll(false)
+      }
+    }
+  }
+
+  const handleCreateRepayment = async () => {
+    const totalAmount = Number(repayAmount) || 0
+    if (!repayAmount || totalAmount <= 0) {
       toast.error("Please enter a valid repayment amount.")
       return
     }
@@ -317,40 +465,95 @@ export default function DebtsPage() {
     }
 
     const remainingVal = Number(selectedDebt?.remainingAmount || 0)
-    if (Number(repayAmount) > remainingVal) {
+    if (totalAmount > remainingVal) {
       toast.error(`Repayment cannot exceed remaining debt balance (${formatMoney(remainingVal)})`)
       return
     }
 
-    const amountNum = Number(repayAmount)
+    if (isSplitRepayment) {
+      const splitAmount1 = Number(repaySplitAmount) || 0
+      const splitAmount2 = totalAmount - splitAmount1
 
-    createRepaymentMutation.mutate(
-      {
-        debtId: selectedDebt.id,
-        accountId: repayAccountId,
-        amount: amountNum,
-        repaymentDate: new Date().toISOString(),
-        note: repayNotes.trim() || undefined,
-      },
-      {
-        onSuccess: () => {
-          setIsAddRepaymentOpen(false)
-          setRepayAmount("")
-          setRepayNotes("")
-          setRepayAccountId("")
-          setLastRepaymentAmount(amountNum)
-          
-          // Invalidate and refresh local state
-          setSelectedDebt((prev: any) => ({
-            ...prev,
-            remainingAmount: prev.remainingAmount - amountNum,
-            status: prev.remainingAmount - amountNum <= 0 ? "COMPLETED" : "PENDING",
-          }))
-
-          setIsRepaymentConfirmOpen(true)
-        },
+      if (splitAmount1 <= 0 || splitAmount2 <= 0) {
+        toast.error("Split amounts must be positive numbers.")
+        return
       }
-    )
+
+      if (!repaySplitAccountId) {
+        toast.error("Please select the second payment account.")
+        return
+      }
+
+      if (repayAccountId === repaySplitAccountId) {
+        toast.error("Please select two different accounts for splitting.")
+        return
+      }
+
+      try {
+        await createRepaymentMutation.mutateAsync({
+          debtId: selectedDebt.id,
+          accountId: repayAccountId,
+          amount: splitAmount1,
+          repaymentDate: new Date().toISOString(),
+          note: `${repayNotes.trim() ? repayNotes.trim() + " " : ""}(Split Part 1)`,
+        })
+
+        await createRepaymentMutation.mutateAsync({
+          debtId: selectedDebt.id,
+          accountId: repaySplitAccountId,
+          amount: splitAmount2,
+          repaymentDate: new Date().toISOString(),
+          note: `${repayNotes.trim() ? repayNotes.trim() + " " : ""}(Split Part 2)`,
+        })
+
+        setIsAddRepaymentOpen(false)
+        setRepayAmount("")
+        setRepayNotes("")
+        setRepayAccountId("")
+        setIsSplitRepayment(false)
+        setRepaySplitAmount("")
+        setLastRepaymentAmount(totalAmount)
+
+        // Invalidate and refresh local state
+        setSelectedDebt((prev: any) => ({
+          ...prev,
+          remainingAmount: prev.remainingAmount - totalAmount,
+          status: prev.remainingAmount - totalAmount <= 0 ? "COMPLETED" : "PENDING",
+        }))
+
+        setIsRepaymentConfirmOpen(true)
+      } catch (error) {
+        // Handled by react-query/toast
+      }
+    } else {
+      createRepaymentMutation.mutate(
+        {
+          debtId: selectedDebt.id,
+          accountId: repayAccountId,
+          amount: totalAmount,
+          repaymentDate: new Date().toISOString(),
+          note: repayNotes.trim() || undefined,
+        },
+        {
+          onSuccess: () => {
+            setIsAddRepaymentOpen(false)
+            setRepayAmount("")
+            setRepayNotes("")
+            setRepayAccountId("")
+            setLastRepaymentAmount(totalAmount)
+            
+            // Invalidate and refresh local state
+            setSelectedDebt((prev: any) => ({
+              ...prev,
+              remainingAmount: prev.remainingAmount - totalAmount,
+              status: prev.remainingAmount - totalAmount <= 0 ? "COMPLETED" : "PENDING",
+            }))
+
+            setIsRepaymentConfirmOpen(true)
+          },
+        }
+      )
+    }
   }
 
   if (isLoading) {
@@ -964,19 +1167,31 @@ export default function DebtsPage() {
                   <p className="text-[11px] text-secondary mt-0.5">{activeGroupedParty.phoneNumber}</p>
                 )}
               </div>
-              <button
-                onClick={() => {
-                  setIsPartyHistoryOpen(false)
-                  setActiveTab(selectedPartyType!)
-                  handleOpenCreateForParty(activeGroupedParty.partyName, activeGroupedParty.phoneNumber)
-                }}
-                className={`text-[12px] font-bold flex items-center gap-1 cursor-pointer border-none bg-transparent ${
-                  selectedPartyType === "LENT" ? "text-primary hover:text-primary/80" : "text-[#a43a3a] hover:text-[#a43a3a]/80"
-                }`}
-              >
-                <Icons.PlusCircle className="size-4" />
-                <span>{selectedPartyType === "LENT" ? "Add Lent" : "Add Borrow"}</span>
-              </button>
+              <div className="flex items-center gap-3">
+                {activeGroupedParty.debts.some((d: any) => d.status === "PENDING" && Number(d.remainingAmount) > 0) && (
+                  <button
+                    onClick={handleOpenSettleAll}
+                    className="text-[12px] font-bold flex items-center gap-1 cursor-pointer border border-[#10b981]/30 bg-[#10b981]/5 text-[#10b981] hover:bg-[#10b981]/10 px-2.5 py-1.5 rounded-lg transition-colors font-sans"
+                  >
+                    <Icons.CheckCircle className="size-3.5" />
+                    <span>Settle All</span>
+                  </button>
+                )}
+                
+                <button
+                  onClick={() => {
+                    setIsPartyHistoryOpen(false)
+                    setActiveTab(selectedPartyType!)
+                    handleOpenCreateForParty(activeGroupedParty.partyName, activeGroupedParty.phoneNumber)
+                  }}
+                  className={`text-[12px] font-bold flex items-center gap-1 cursor-pointer border border-border px-2.5 py-1.5 rounded-lg hover:bg-muted/80 bg-card font-sans ${
+                    selectedPartyType === "LENT" ? "text-primary" : "text-[#a43a3a]"
+                  }`}
+                >
+                  <Icons.PlusCircle className="size-3.5" />
+                  <span>{selectedPartyType === "LENT" ? "Add Lent" : "Add Borrow"}</span>
+                </button>
+              </div>
             </div>
 
             <div className="max-h-[350px] overflow-y-auto space-y-3 pr-1">
@@ -1102,6 +1317,130 @@ export default function DebtsPage() {
             </div>
           </div>
         )}
+      </CustomDialog>
+
+      {/* Settle All Dialog */}
+      <CustomDialog
+        isOpen={isSettleAllOpen}
+        onClose={() => setIsSettleAllOpen(false)}
+        title={`Settle All for ${activeGroupedParty?.partyName}`}
+        description={`Confirm settlement of all outstanding ${selectedPartyType === "LENT" ? "lent" : "borrowed"} entries.`}
+        footer={
+          <>
+            <CustomButton variant="outline" size="sm" onClick={() => setIsSettleAllOpen(false)} disabled={isSettlingAll}>
+              Cancel
+            </CustomButton>
+            <CustomButton variant="primary" size="sm" onClick={settleAllPending} isLoading={isSettlingAll}>
+              Confirm Settle All
+            </CustomButton>
+          </>
+        }
+      >
+        <div className="flex flex-col gap-4 py-2 text-xs font-sans text-left">
+          <p className="text-[13px] text-secondary font-medium">
+            This will fully repay and mark all <strong>{activeGroupedParty?.debts.filter((d: any) => d.status === "PENDING").length} pending</strong> entries for <strong>{activeGroupedParty?.partyName}</strong> as settled.
+          </p>
+          <div className="p-3.5 bg-primary/5 border border-primary/10 rounded-[10px] text-foreground font-semibold flex justify-between select-none">
+            <span>Total Settlement Amount:</span>
+            <span>
+              {formatMoney(
+                activeGroupedParty?.debts
+                  .filter((d: any) => d.status === "PENDING")
+                  .reduce((sum: number, d: any) => sum + Number(d.remainingAmount), 0) || 0
+              )}
+            </span>
+          </div>
+
+          <CustomSelect
+            label={
+              isSettleAllSplit
+                ? (selectedPartyType === "BORROW" ? "Account 1 (Pay From)" : "Account 1 (Receive into)")
+                : "Payment Account (Bank / Card / Cash)"
+            }
+            value={settleAccountId}
+            onChange={setSettleAccountId}
+            options={accounts
+              .filter((a) => {
+                if (a.isArchived) return false;
+                if (selectedPartyType === "BORROW") {
+                  return a.type === "CASH" || a.type === "BANK" || a.type === "CREDIT_CARD";
+                } else {
+                  return a.type === "CASH" || a.type === "BANK";
+                }
+              })
+              .map((a) => ({ value: a.id, label: a.name }))}
+            placeholder="Select account"
+          />
+
+          {/* Settle All Split Toggle */}
+          <div className="flex items-center gap-2 py-1 select-none font-sans">
+            <input
+              type="checkbox"
+              id="settleAllSplitToggle"
+              checked={isSettleAllSplit}
+              onChange={(e) => {
+                setIsSettleAllSplit(e.target.checked);
+                if (e.target.checked) {
+                  const total = activeGroupedParty?.debts
+                    .filter((d: any) => d.status === "PENDING")
+                    .reduce((sum: number, d: any) => sum + Number(d.remainingAmount), 0) || 0;
+                  if (total > 0) {
+                    setSettleAllSplitAmount(String(Math.round((total / 2) * 100) / 100));
+                  } else {
+                    setSettleAllSplitAmount("");
+                  }
+                }
+              }}
+              className="rounded border-gray-300 text-primary focus:ring-primary size-4 cursor-pointer"
+            />
+            <label htmlFor="settleAllSplitToggle" className="font-bold text-secondary text-[12px] cursor-pointer">
+              Split payment across two accounts
+            </label>
+          </div>
+
+          {isSettleAllSplit && (
+            <div className="space-y-4 p-3 bg-muted/20 border border-border/60 rounded-xl animate-in fade-in duration-200">
+              <CurrencyInput
+                label="Amount for Account 1"
+                placeholder="0.00"
+                value={settleAllSplitAmount}
+                onChange={(e) => setSettleAllSplitAmount(e.target.value)}
+              />
+
+              <CustomSelect
+                label={selectedPartyType === "BORROW" ? "Account 2 (Pay From)" : "Account 2 (Receive into)"}
+                value={settleAllSplitAccountId}
+                onChange={setSettleAllSplitAccountId}
+                options={accounts
+                  .filter((a: any) => {
+                    if (a.isArchived) return false;
+                    if (a.id === settleAccountId) return false; // Exclude Account 1
+                    if (selectedPartyType === "BORROW") {
+                      return a.type === "CASH" || a.type === "BANK" || a.type === "CREDIT_CARD";
+                    } else {
+                      return a.type === "CASH" || a.type === "BANK";
+                    }
+                  })
+                  .map((a: any) => ({ value: a.id, label: a.name }))}
+              />
+
+              <div className="text-[11px] font-semibold text-secondary flex justify-between px-1">
+                <span>Remaining for Account 2:</span>
+                <span className="font-bold text-foreground">
+                  {formatMoney(
+                    Math.max(
+                      0,
+                      (activeGroupedParty?.debts
+                        .filter((d: any) => d.status === "PENDING")
+                        .reduce((sum: number, d: any) => sum + Number(d.remainingAmount), 0) || 0) -
+                        (Number(settleAllSplitAmount) || 0)
+                    )
+                  )}
+                </span>
+              </div>
+            </div>
+          )}
+        </div>
       </CustomDialog>
 
       {/* Add Debt Dialog */}
@@ -1298,6 +1637,9 @@ export default function DebtsPage() {
                     }
                   });
                   setRepayAccountId(allowed.find((a: any) => a.isDefault)?.id || allowed[0]?.id || "");
+                  setRepaySplitAccountId(allowed.find((a: any) => a.id !== (allowed.find((x: any) => x.isDefault)?.id || allowed[0]?.id))?.id || allowed[1]?.id || allowed[0]?.id || "");
+                  setIsSplitRepayment(false);
+                  setRepaySplitAmount("");
                   setIsAddRepaymentOpen(true);
                 }}
               >
@@ -1395,7 +1737,11 @@ export default function DebtsPage() {
           />
 
           <CustomSelect
-            label={selectedDebt?.type === "BORROW" ? "Pay From Account" : "Receive into Account"}
+            label={
+              isSplitRepayment
+                ? (selectedDebt?.type === "BORROW" ? "Account 1 (Pay From)" : "Account 1 (Receive into)")
+                : (selectedDebt?.type === "BORROW" ? "Pay From Account" : "Receive into Account")
+            }
             value={repayAccountId}
             onChange={setRepayAccountId}
             options={accounts
@@ -1411,6 +1757,66 @@ export default function DebtsPage() {
               })
               .map((a: any) => ({ value: a.id, label: a.name }))}
           />
+
+          {/* Split Repayment Toggle */}
+          <div className="flex items-center gap-2 py-1 select-none font-sans">
+            <input
+              type="checkbox"
+              id="splitRepaymentToggle"
+              checked={isSplitRepayment}
+              onChange={(e) => {
+                setIsSplitRepayment(e.target.checked);
+                if (e.target.checked) {
+                  // Default to half of repayAmount if valid
+                  const totalAmt = Number(repayAmount) || 0;
+                  if (totalAmt > 0) {
+                    setRepaySplitAmount(String(Math.round((totalAmt / 2) * 100) / 100));
+                  } else {
+                    setRepaySplitAmount("");
+                  }
+                }
+              }}
+              className="rounded border-gray-300 text-primary focus:ring-primary size-4 cursor-pointer"
+            />
+            <label htmlFor="splitRepaymentToggle" className="font-bold text-secondary text-[12px] cursor-pointer">
+              Split repayment across two accounts
+            </label>
+          </div>
+
+          {isSplitRepayment && (
+            <div className="space-y-4 p-3 bg-muted/20 border border-border/60 rounded-xl animate-in fade-in duration-200">
+              <CurrencyInput
+                label="Amount for Account 1"
+                placeholder="0.00"
+                value={repaySplitAmount}
+                onChange={(e) => setRepaySplitAmount(e.target.value)}
+              />
+
+              <CustomSelect
+                label={selectedDebt?.type === "BORROW" ? "Account 2 (Pay From)" : "Account 2 (Receive into)"}
+                value={repaySplitAccountId}
+                onChange={setRepaySplitAccountId}
+                options={accounts
+                  .filter((a: any) => {
+                    if (a.isArchived) return false;
+                    if (a.id === repayAccountId) return false; // Exclude Account 1
+                    if (selectedDebt?.type === "BORROW") {
+                      return a.type === "CASH" || a.type === "BANK" || a.type === "CREDIT_CARD";
+                    } else {
+                      return a.type === "CASH" || a.type === "BANK";
+                    }
+                  })
+                  .map((a: any) => ({ value: a.id, label: a.name }))}
+              />
+
+              <div className="text-[11px] font-semibold text-secondary flex justify-between px-1">
+                <span>Remaining for Account 2:</span>
+                <span className="font-bold text-foreground">
+                  {formatMoney(Math.max(0, (Number(repayAmount) || 0) - (Number(repaySplitAmount) || 0)))}
+                </span>
+              </div>
+            </div>
+          )}
 
           <CustomInput
             label="Note / Comments"
