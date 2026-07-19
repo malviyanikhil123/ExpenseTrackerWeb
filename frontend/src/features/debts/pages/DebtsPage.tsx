@@ -92,6 +92,40 @@ export default function DebtsPage() {
   const [filterStatus, setFilterStatus] = useState<"PENDING" | "COMPLETED" | "">("PENDING")
   const [lentPage, setLentPage] = useState(1)
   const [borrowPage, setBorrowPage] = useState(1)
+  const [selectedPartyName, setSelectedPartyName] = useState<string | null>(null)
+  const [selectedPartyType, setSelectedPartyType] = useState<"LENT" | "BORROW" | null>(null)
+  const [isPartyHistoryOpen, setIsPartyHistoryOpen] = useState(false)
+
+  const groupDebtsByParty = (list: any[]) => {
+    const groups: Record<string, {
+      partyName: string
+      phoneNumber?: string
+      totalAmount: number
+      remainingAmount: number
+      debts: any[]
+    }> = {}
+    
+    list.forEach((debt) => {
+      const key = debt.partyName.trim().toLowerCase()
+      if (!groups[key]) {
+        groups[key] = {
+          partyName: debt.partyName,
+          phoneNumber: debt.phoneNumber,
+          totalAmount: 0,
+          remainingAmount: 0,
+          debts: [],
+        }
+      }
+      groups[key].totalAmount += Number(debt.totalAmount)
+      groups[key].remainingAmount += Number(debt.remainingAmount)
+      groups[key].debts.push(debt)
+      if (!groups[key].phoneNumber && debt.phoneNumber) {
+        groups[key].phoneNumber = debt.phoneNumber
+      }
+    })
+    return Object.values(groups)
+  }
+
 
   const { data: debts = [], isLoading, isError, refetch } = useDebtsList()
   const { data: accounts = [] } = useAccountsList()
@@ -151,6 +185,18 @@ export default function DebtsPage() {
     setDebtParty("")
     setDebtReminderName("")
     setDebtPhone("")
+    setDebtAmount("")
+    setDebtNotes("")
+    setDebtDueDate("")
+    setDebtDate(new Date().toISOString().split("T")[0])
+    setDebtAccountId(accounts.find((a) => a.isDefault)?.id || accounts[0]?.id || "")
+    setIsCreateOpen(true)
+  }
+
+  const handleOpenCreateForParty = (partyName: string, phoneNumber?: string) => {
+    setDebtParty(partyName)
+    setDebtReminderName("")
+    setDebtPhone(phoneNumber || "")
     setDebtAmount("")
     setDebtNotes("")
     setDebtDueDate("")
@@ -243,7 +289,7 @@ export default function DebtsPage() {
           totalAmount: Number(debtAmount),
           debtDate: debtDate ? new Date(debtDate).toISOString() : undefined,
           dueDate: debtDueDate ? new Date(debtDueDate).toISOString() : undefined,
-          note: buildDebtNote(debtReminderName, debtNotes) || null,
+          note: buildDebtNote(debtReminderName, debtNotes) || "",
           accountId: debtAccountId,
         },
       },
@@ -341,19 +387,27 @@ export default function DebtsPage() {
   const lentList = filteredDebts.filter(d => d.type === 'LENT');
   const borrowList = filteredDebts.filter(d => d.type === 'BORROW');
 
+  const groupedLentList = groupDebtsByParty(lentList);
+  const groupedBorrowList = groupDebtsByParty(borrowList);
+
+  const activeGroupedParty = selectedPartyName && selectedPartyType
+    ? (selectedPartyType === "LENT" ? groupedLentList : groupedBorrowList)
+        .find(p => p.partyName.trim().toLowerCase() === selectedPartyName.trim().toLowerCase())
+    : null;
+
   const DEBTS_PER_PAGE = 4;
 
-  const totalLentPages = Math.ceil(lentList.length / DEBTS_PER_PAGE) || 1;
+  const totalLentPages = Math.ceil(groupedLentList.length / DEBTS_PER_PAGE) || 1;
   const clampedLentPage = Math.min(lentPage, totalLentPages);
-  const paginatedLentList = lentList.slice((clampedLentPage - 1) * DEBTS_PER_PAGE, clampedLentPage * DEBTS_PER_PAGE);
+  const paginatedLentList = groupedLentList.slice((clampedLentPage - 1) * DEBTS_PER_PAGE, clampedLentPage * DEBTS_PER_PAGE);
 
-  const totalBorrowPages = Math.ceil(borrowList.length / DEBTS_PER_PAGE) || 1;
+  const totalBorrowPages = Math.ceil(groupedBorrowList.length / DEBTS_PER_PAGE) || 1;
   const clampedBorrowPage = Math.min(borrowPage, totalBorrowPages);
-  const paginatedBorrowList = borrowList.slice((clampedBorrowPage - 1) * DEBTS_PER_PAGE, clampedBorrowPage * DEBTS_PER_PAGE);
+  const paginatedBorrowList = groupedBorrowList.slice((clampedBorrowPage - 1) * DEBTS_PER_PAGE, clampedBorrowPage * DEBTS_PER_PAGE);
 
   // Find the borrowed debt with highest remaining balance
-  const highestBorrowed = borrowList.sort((a, b) => Number(b.remainingAmount) - Number(a.remainingAmount))[0];
-  const highestLent = lentList.sort((a, b) => Number(b.remainingAmount) - Number(a.remainingAmount))[0];
+  const highestBorrowed = [...borrowList].sort((a, b) => Number(b.remainingAmount) - Number(a.remainingAmount))[0];
+  const highestLent = [...lentList].sort((a, b) => Number(b.remainingAmount) - Number(a.remainingAmount))[0];
 
   let smartStrategyText = "All debts and lendings are settled. Maintain this clean sheet to optimize your financial wellness!";
   if (highestBorrowed && highestLent) {
@@ -471,44 +525,53 @@ export default function DebtsPage() {
       {/* Net Position Summary Section */}
       <div className="grid grid-cols-12 gap-6 font-sans">
         {/* Net Position Card */}
-        <div className="col-span-12 lg:col-span-8 bg-card rounded-xl p-6 shadow-sm border border-border flex flex-col md:flex-row gap-6 items-center relative overflow-hidden">
+        <div className="col-span-12 lg:col-span-8 bg-card rounded-xl p-6 shadow-sm border border-border grid grid-cols-1 md:grid-cols-2 gap-6 relative overflow-hidden">
           <div className="absolute -right-16 -top-16 w-64 h-64 bg-primary/5 rounded-full blur-3xl"></div>
-          <div className="flex-1 space-y-4 z-10 text-left">
-            <p className="text-[12px] font-bold text-secondary uppercase tracking-wider font-sans">Net Position</p>
-            <div className="flex items-baseline gap-2">
-              <span className={cn("text-[36px] font-bold mt-1 font-sans", netPosition >= 0 ? "text-primary" : "text-[#a43a3a]")}>
-                {netPosition >= 0 ? "+" : ""}{formatMoney(netPosition)}
-              </span>
-              <span className={cn(
-                "px-2 py-0.5 text-[11px] font-bold rounded-full font-sans",
-                netPosition >= 0 ? "bg-primary/10 text-primary" : "bg-[#a43a3a]/10 text-[#a43a3a]"
-              )}>
-                {netPosition >= 0 ? "Positive" : "Negative"}
-              </span>
+          
+          {/* Left Side: Net Position Info */}
+          <div className="space-y-4 z-10 text-left flex flex-col justify-center">
+            <div>
+              <p className="text-[12px] font-bold text-secondary uppercase tracking-wider font-sans">Net Position</p>
+              <div className="flex items-baseline gap-2 mt-1">
+                <span className={cn("text-[36px] font-bold font-sans leading-none", netPosition >= 0 ? "text-primary" : "text-[#a43a3a]")}>
+                  {netPosition >= 0 ? "+" : ""}{formatMoney(netPosition)}
+                </span>
+                <span className={cn(
+                  "px-2 py-0.5 text-[11px] font-bold rounded-full font-sans align-middle",
+                  netPosition >= 0 ? "bg-primary/10 text-primary" : "bg-[#a43a3a]/10 text-[#a43a3a]"
+                )}>
+                  {netPosition >= 0 ? "Positive" : "Negative"}
+                </span>
+              </div>
             </div>
-            <p className="text-[13px] text-secondary font-sans">
+            <p className="text-[13px] text-secondary font-sans leading-relaxed">
               {netPosition >= 0 
                 ? `You have ${formatMoney(Math.abs(netPosition))} more in assets being returned to you than outstanding debts.`
                 : `You owe others ${formatMoney(Math.abs(netPosition))} more than what is being returned to you.`}
             </p>
-            <div className="pt-2 flex gap-8 font-sans">
-              <div>
-                <p className="text-[11px] text-secondary uppercase tracking-wider font-semibold font-sans font-sans">Lent Out</p>
-                <p className="text-[20px] text-primary font-bold font-sans">{formatMoney(totalLent)}</p>
+          </div>
+
+          {/* Right Side: Breakdown Cards */}
+          <div className="grid grid-cols-2 gap-4 z-10 items-center">
+            <div className="bg-primary/5 border border-primary/10 rounded-xl p-4 flex flex-col justify-between text-left h-32">
+              <div className="size-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary mb-3">
+                <Icons.Handshake className="size-4.5" />
               </div>
-              <div className="w-[1px] bg-border h-10 self-center font-sans"></div>
               <div>
-                <p className="text-[11px] text-secondary uppercase tracking-wider font-semibold font-sans font-sans font-sans font-sans">Total Debt</p>
-                <p className="text-[20px] text-[#a43a3a] font-bold font-sans">{formatMoney(totalBorrowed)}</p>
+                <p className="text-[11px] text-secondary uppercase tracking-wider font-bold">Lent Out</p>
+                <p className="text-[20px] text-primary font-bold mt-0.5">{formatMoney(totalLent)}</p>
               </div>
             </div>
-          </div>
-          <div className="w-full md:w-64 h-40 rounded-xl overflow-hidden relative border border-border/60">
-            <img 
-              className="w-full h-full object-cover font-sans" 
-              src="https://lh3.googleusercontent.com/aida-public/AB6AXuC80Mx_bJbONrvawwtZhONsaqqt9PDO7_g1w6Izety8je2IPR6-h5hAEryVxsYRz49C8uYZe8goc7oSCgfxwMV5s6BU8wRKm70VdRQNEZziglVzKEGmEz7kDL8j-kBilAh5bNo0orkl0NrNBZgzykcu0hi4-RG3jWZoBirOtrvD360OYxm7eRgmZRMyf8v0RZHEpxDMS5LSQtA-LoP8vyhTQM6ez8onGqILESzrfWpq4V6mJL_dXkhN"
-              alt="Analytics Chart" 
-            />
+
+            <div className="bg-[#a43a3a]/5 border border-[#a43a3a]/10 rounded-xl p-4 flex flex-col justify-between text-left h-32">
+              <div className="size-8 rounded-lg bg-[#a43a3a]/10 flex items-center justify-center text-[#a43a3a] mb-3">
+                <Icons.Receipt className="size-4.5" />
+              </div>
+              <div>
+                <p className="text-[11px] text-secondary uppercase tracking-wider font-bold">Total Debt</p>
+                <p className="text-[20px] text-[#a43a3a] font-bold mt-0.5">{formatMoney(totalBorrowed)}</p>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -572,7 +635,7 @@ export default function DebtsPage() {
               Lent (They owe me)
             </h3>
             <span className="bg-muted px-3 py-1 rounded-full font-bold text-[12px] text-secondary font-sans">
-              {lentList.length} Entries
+              {groupedLentList.length} Contacts
             </span>
           </div>
 
@@ -590,136 +653,71 @@ export default function DebtsPage() {
               <span className="font-bold text-[13px]">Add someone who owes you</span>
             </button>
 
-            {paginatedLentList.map((debt) => {
-              const paidAmount = Number(debt.totalAmount) - Number(debt.remainingAmount);
-              const progressPct = Number(debt.totalAmount) > 0 ? Math.round((paidAmount / Number(debt.totalAmount)) * 100) : 0;
-              const initials = debt.partyName.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase();
+            {paginatedLentList.map((party) => {
+              const key = party.partyName.trim().toLowerCase()
+              const paidAmount = Number(party.totalAmount) - Number(party.remainingAmount)
+              const progressPct = Number(party.totalAmount) > 0 ? Math.round((paidAmount / Number(party.totalAmount)) * 100) : 0
+              const initials = party.partyName.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()
               
               return (
-                <div key={debt.id} className="bg-card rounded-xl p-4 sm:p-6 shadow-sm border border-border/80 hover:border-primary/50 transition-colors group text-left relative font-sans">
-                  <div className="absolute top-4 right-4 sm:top-6 sm:right-6 z-20">
-                    <DropdownMenu
-                      trigger={
-                        <button className="p-1.5 rounded-full hover:bg-black/5 text-secondary cursor-pointer outline-none border-none bg-transparent flex items-center justify-center">
-                          <MoreVertical className="size-4" />
-                        </button>
-                      }
-                      items={[
-                        {
-                          label: "Edit Debt",
-                          icon: <Edit2 className="size-3.5" />,
-                          onClick: () => handleOpenEdit(debt),
-                        },
-                        {
-                          label: "Add Repayment",
-                          icon: <DollarSign className="size-3.5" />,
-                          onClick: () => handleOpenRepayments(debt),
-                        },
-                        {
-                          label: "Delete",
-                          icon: <Trash2 className="size-3.5" />,
-                          onClick: () => handleOpenDelete(debt),
-                          isDestructive: true,
-                        },
-                      ]}
-                    />
-                  </div>
-
-                  <div className="flex justify-between items-start mb-4 pr-8 font-sans">
+                <div 
+                  key={key} 
+                  onClick={() => {
+                    setSelectedPartyName(party.partyName)
+                    setSelectedPartyType("LENT")
+                    setIsPartyHistoryOpen(true)
+                  }}
+                  className="bg-card rounded-xl p-4 sm:p-6 shadow-sm border border-border/80 hover:border-primary/50 transition-all text-left relative font-sans cursor-pointer hover:shadow-md"
+                >
+                  {/* Top Header representing the Person/Contact */}
+                  <div className="flex justify-between items-start select-none">
                     <div className="flex items-center gap-3">
                       <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center font-bold text-primary text-[15px]">
                         {initials}
                       </div>
                       <div>
-                        <h4 className="font-bold text-[17px] text-foreground leading-snug">{debt.partyName}</h4>
-                        <p className="text-[12px] text-secondary leading-tight mt-0.5">
-                          Lent on: {debt.debtDate ? format(new Date(debt.debtDate), "dd MMM yyyy") : format(new Date(), "dd MMM yyyy")}
+                        <h4 className="font-bold text-[17px] text-foreground leading-snug">{party.partyName}</h4>
+                        <p className="text-[12px] text-secondary leading-tight mt-0.5 flex items-center gap-1.5">
+                          <Icons.Layers className="size-3 text-primary/70" />
+                          <span>{party.debts.length} {party.debts.length === 1 ? "loan" : "loans"}</span>
+                          {party.phoneNumber && (
+                            <>
+                              <span className="text-border">•</span>
+                              <span className="truncate max-w-[120px]">{party.phoneNumber}</span>
+                            </>
+                          )}
                         </p>
-                        {parseDebtNote(debt.note).cleanNote && (
-                          <p className="text-[12px] text-primary/80 leading-tight mt-1 flex items-center gap-1 truncate max-w-[200px]">
-                            <Info className="size-3 flex-shrink-0" />
-                            {parseDebtNote(debt.note).cleanNote}
-                          </p>
-                        )}
                       </div>
                     </div>
-                    <div className="text-right">
-                      <p className="text-[20px] font-bold text-primary leading-snug">
-                        {formatMoney(Math.max(0, Number(debt.remainingAmount)))}
-                      </p>
-                      <p className="text-[12px] text-secondary mt-0.5 font-sans font-medium">Original: {formatMoney(debt.totalAmount)}</p>
+                    <div className="flex items-center gap-3">
+                      <div className="text-right">
+                        <p className="text-[20px] font-bold text-primary leading-snug">
+                          {formatMoney(Math.max(0, Number(party.remainingAmount)))}
+                        </p>
+                        <p className="text-[12px] text-secondary mt-0.5 font-sans font-medium">Original: {formatMoney(party.totalAmount)}</p>
+                      </div>
                     </div>
                   </div>
 
-                  <div className="space-y-2 font-sans font-sans font-sans font-sans">
-                    <div className="flex justify-between text-[12px] font-medium text-secondary font-sans">
-                      <span>Repayment Progress</span>
+                  {/* Summary Progress Bar for the party */}
+                  <div className="mt-4 space-y-2 font-sans">
+                    <div className="flex justify-between text-[12px] font-medium text-secondary">
+                      <span>Overall Progress</span>
                       <span className="text-primary font-bold">{progressPct}%</span>
                     </div>
                     <div className="w-full h-2 bg-primary/20 rounded-full overflow-hidden">
                       <div className="h-full bg-primary transition-all" style={{ width: `${progressPct}%` }}></div>
                     </div>
                   </div>
-
-                  <div className="mt-4 flex justify-between items-center pt-4 border-t border-border/30 font-sans font-sans font-sans font-sans font-sans">
-                    <div className="flex gap-4">
-                      {debt.dueDate && (
-                        <div className="flex items-center gap-1 text-secondary text-[12px]">
-                          <Calendar className="size-3.5" />
-                          <span>Due: {format(new Date(debt.dueDate), "dd MMM yyyy")}</span>
-                        </div>
-                      )}
-                      <div className="flex items-center gap-1 text-secondary text-[12px]">
-                        <Icons.Percent className="size-3.5" />
-                        <span>0% Interest</span>
-                      </div>
-                    </div>
-                    <div className="flex gap-2 items-center">
-                      {(debt.status === "COMPLETED" || Number(debt.remainingAmount) <= 0) ? (
-                        <Badge variant="success">Settled</Badge>
-                      ) : (
-                        <>
-                          {debt.phoneNumber && (
-                            <button 
-                              onClick={() => {
-                                const msg = generateDebtReminderMessage({
-                                  partyName: debt.partyName,
-                                  type: debt.type,
-                                  amount: Number(debt.totalAmount),
-                                  remainingAmount: Number(debt.remainingAmount),
-                                  dueDate: debt.dueDate,
-                                  senderName: user?.name,
-                                })
-                                const url = generateWhatsAppLink({
-                                  phone: debt.phoneNumber || "",
-                                  message: msg,
-                                })
-                                openWhatsApp(url)
-                              }}
-                              className="text-primary font-bold text-[13px] hover:underline cursor-pointer border-none bg-transparent"
-                            >
-                              Remind
-                            </button>
-                          )}
-                          <button 
-                            onClick={() => handleOpenRepayments(debt)}
-                            className="text-primary font-bold text-[13px] hover:underline cursor-pointer border-none bg-transparent font-sans"
-                          >
-                            Settle Up
-                          </button>
-                        </>
-                      )}
-                    </div>
-                  </div>
                 </div>
-              );
+              )
             })}
 
             {/* Pagination for Lent list */}
             {totalLentPages > 1 && (
               <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-2 bg-card border border-border rounded-xl p-4 font-sans select-none">
                 <span className="text-[13px] text-secondary font-medium">
-                  Showing {Math.min(lentList.length, (clampedLentPage - 1) * DEBTS_PER_PAGE + 1)}–{Math.min(lentList.length, clampedLentPage * DEBTS_PER_PAGE)} of {lentList.length}
+                  Showing {Math.min(groupedLentList.length, (clampedLentPage - 1) * DEBTS_PER_PAGE + 1)}–{Math.min(groupedLentList.length, clampedLentPage * DEBTS_PER_PAGE)} of {groupedLentList.length}
                 </span>
                 <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-start">
                   <button
@@ -766,7 +764,7 @@ export default function DebtsPage() {
               Borrowed (I owe them)
             </h3>
             <span className="bg-muted px-3 py-1 rounded-full font-bold text-[12px] text-secondary font-sans">
-              {borrowList.length} Entries
+              {groupedBorrowList.length} Contacts
             </span>
           </div>
 
@@ -784,69 +782,54 @@ export default function DebtsPage() {
               <span className="font-bold text-[13px]">Add someone you owe</span>
             </button>
 
-            {paginatedBorrowList.map((debt) => {
-              const paidAmount = Number(debt.totalAmount) - Number(debt.remainingAmount);
-              const progressPct = Number(debt.totalAmount) > 0 ? Math.round((paidAmount / Number(debt.totalAmount)) * 100) : 0;
-              const initials = debt.partyName.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase();
-              const isPending = debt.status === 'PENDING';
+            {paginatedBorrowList.map((party) => {
+              const key = party.partyName.trim().toLowerCase()
+              const paidAmount = Number(party.totalAmount) - Number(party.remainingAmount)
+              const progressPct = Number(party.totalAmount) > 0 ? Math.round((paidAmount / Number(party.totalAmount)) * 100) : 0
+              const initials = party.partyName.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()
               
               return (
-                <div key={debt.id} className="bg-card rounded-xl p-4 sm:p-6 shadow-sm border border-border/80 hover:border-danger/50 transition-colors group text-left relative font-sans">
-                  <div className="absolute top-4 right-4 sm:top-6 sm:right-6 z-20">
-                    <DropdownMenu
-                      trigger={
-                        <button className="p-1.5 rounded-full hover:bg-black/5 text-secondary cursor-pointer outline-none border-none bg-transparent flex items-center justify-center">
-                          <MoreVertical className="size-4" />
-                        </button>
-                      }
-                      items={[
-                        {
-                          label: "Edit Debt",
-                          icon: <Edit2 className="size-3.5" />,
-                          onClick: () => handleOpenEdit(debt),
-                        },
-                        {
-                          label: "Record Repayment",
-                          icon: <DollarSign className="size-3.5" />,
-                          onClick: () => handleOpenRepayments(debt),
-                        },
-                        {
-                          label: "Delete",
-                          icon: <Trash2 className="size-3.5" />,
-                          onClick: () => handleOpenDelete(debt),
-                          isDestructive: true,
-                        },
-                      ]}
-                    />
-                  </div>
-
-                  <div className="flex justify-between items-start mb-4 pr-8 font-sans">
+                <div 
+                  key={key} 
+                  onClick={() => {
+                    setSelectedPartyName(party.partyName)
+                    setSelectedPartyType("BORROW")
+                    setIsPartyHistoryOpen(true)
+                  }}
+                  className="bg-card rounded-xl p-4 sm:p-6 shadow-sm border border-border/80 hover:border-danger/55 transition-all text-left relative font-sans cursor-pointer hover:shadow-md"
+                >
+                  {/* Top Header representing the Person/Contact */}
+                  <div className="flex justify-between items-start select-none">
                     <div className="flex items-center gap-3">
                       <div className="w-12 h-12 rounded-full bg-[#a43a3a]/10 flex items-center justify-center font-bold text-[#a43a3a] text-[15px]">
                         {initials}
                       </div>
                       <div>
-                        <h4 className="font-bold text-[17px] text-foreground leading-snug">{debt.partyName}</h4>
-                        <p className="text-[12px] text-secondary leading-tight mt-0.5">
-                          Borrowed on: {debt.debtDate ? format(new Date(debt.debtDate), "dd MMM yyyy") : format(new Date(), "dd MMM yyyy")}
+                        <h4 className="font-bold text-[17px] text-foreground leading-snug">{party.partyName}</h4>
+                        <p className="text-[12px] text-secondary leading-tight mt-0.5 flex items-center gap-1.5">
+                          <Icons.Layers className="size-3 text-[#a43a3a]/75" />
+                          <span>{party.debts.length} {party.debts.length === 1 ? "loan" : "loans"}</span>
+                          {party.phoneNumber && (
+                            <>
+                              <span className="text-border">•</span>
+                              <span className="truncate max-w-[120px]">{party.phoneNumber}</span>
+                            </>
+                          )}
                         </p>
-                        {parseDebtNote(debt.note).cleanNote && (
-                          <p className="text-[12px] text-[#a43a3a]/80 leading-tight mt-1 flex items-center gap-1 truncate max-w-[200px]">
-                            <Info className="size-3 flex-shrink-0" />
-                            {parseDebtNote(debt.note).cleanNote}
-                          </p>
-                        )}
                       </div>
                     </div>
-                    <div className="text-right">
-                      <p className="text-[20px] font-bold text-[#a43a3a] leading-snug">
-                        {formatMoney(Math.max(0, Number(debt.remainingAmount)))}
-                      </p>
-                      <p className="text-[12px] text-secondary mt-0.5 font-sans font-medium">Total: {formatMoney(debt.totalAmount)}</p>
+                    <div className="flex items-center gap-3">
+                      <div className="text-right">
+                        <p className="text-[20px] font-bold text-[#a43a3a] leading-snug">
+                          {formatMoney(Math.max(0, Number(party.remainingAmount)))}
+                        </p>
+                        <p className="text-[12px] text-secondary mt-0.5 font-sans font-medium">Total: {formatMoney(party.totalAmount)}</p>
+                      </div>
                     </div>
                   </div>
 
-                  <div className="space-y-2 font-sans font-sans">
+                  {/* Summary Progress Bar for the party */}
+                  <div className="mt-4 space-y-2 font-sans">
                     <div className="flex justify-between text-[12px] font-medium text-secondary">
                       <span>Amount Paid Off</span>
                       <span className="text-[#a43a3a] font-bold">{progressPct}%</span>
@@ -855,40 +838,15 @@ export default function DebtsPage() {
                       <div className="h-full bg-[#a43a3a] transition-all" style={{ width: `${progressPct}%` }}></div>
                     </div>
                   </div>
-
-                  <div className="mt-4 flex justify-between items-center pt-4 border-t border-border/30">
-                    <div className="flex gap-4">
-                      {debt.dueDate && (
-                        <div className="flex items-center gap-1 text-secondary text-[12px]">
-                          <Calendar className="size-3.5" />
-                          <span>Due: {format(new Date(debt.dueDate), "dd MMM yyyy")}</span>
-                        </div>
-                      )}
-                      <div className="flex items-center gap-1 text-secondary text-[12px] font-sans font-sans">
-                        <Icons.Percent className="size-3.5" />
-                        <span>8.5% APR</span>
-                      </div>
-                    </div>
-                    {(debt.status === "COMPLETED" || Number(debt.remainingAmount) <= 0) ? (
-                      <Badge variant="success">Settled</Badge>
-                    ) : (
-                      <button 
-                        onClick={() => handleOpenRepayments(debt)}
-                        className="bg-[#0b1c30] text-white px-4 py-1.5 rounded-lg font-bold text-[13px] hover:bg-black transition-colors cursor-pointer border-none font-sans font-sans font-sans"
-                      >
-                        Pay Now
-                      </button>
-                    )}
-                  </div>
                 </div>
-              );
+              )
             })}
 
             {/* Pagination for Borrow list */}
             {totalBorrowPages > 1 && (
               <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-2 bg-card border border-border rounded-xl p-4 font-sans select-none">
                 <span className="text-[13px] text-secondary font-medium">
-                  Showing {Math.min(borrowList.length, (clampedBorrowPage - 1) * DEBTS_PER_PAGE + 1)}–{Math.min(borrowList.length, clampedBorrowPage * DEBTS_PER_PAGE)} of {borrowList.length}
+                  Showing {Math.min(groupedBorrowList.length, (clampedBorrowPage - 1) * DEBTS_PER_PAGE + 1)}–{Math.min(groupedBorrowList.length, clampedBorrowPage * DEBTS_PER_PAGE)} of {groupedBorrowList.length}
                 </span>
                 <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-start">
                   <button
@@ -989,6 +947,162 @@ export default function DebtsPage() {
 
         </div>
       </section>
+
+      {/* Contact Loan History Popup Dialog */}
+      <CustomDialog
+        isOpen={isPartyHistoryOpen}
+        onClose={() => setIsPartyHistoryOpen(false)}
+        title={activeGroupedParty ? `${selectedPartyType === "LENT" ? "Lent History" : "Borrow History"} - ${activeGroupedParty.partyName}` : "History"}
+        description={activeGroupedParty ? `Total outstanding balance: ${formatMoney(activeGroupedParty.remainingAmount)}` : ""}
+      >
+        {activeGroupedParty && (
+          <div className="flex flex-col gap-4 font-sans text-xs">
+            <div className="flex justify-between items-center bg-muted/20 p-3 rounded-xl border border-border/40">
+              <div>
+                <p className="text-[13px] font-bold text-foreground">{activeGroupedParty.partyName}</p>
+                {activeGroupedParty.phoneNumber && (
+                  <p className="text-[11px] text-secondary mt-0.5">{activeGroupedParty.phoneNumber}</p>
+                )}
+              </div>
+              <button
+                onClick={() => {
+                  setIsPartyHistoryOpen(false)
+                  setActiveTab(selectedPartyType!)
+                  handleOpenCreateForParty(activeGroupedParty.partyName, activeGroupedParty.phoneNumber)
+                }}
+                className={`text-[12px] font-bold flex items-center gap-1 cursor-pointer border-none bg-transparent ${
+                  selectedPartyType === "LENT" ? "text-primary hover:text-primary/80" : "text-[#a43a3a] hover:text-[#a43a3a]/80"
+                }`}
+              >
+                <Icons.PlusCircle className="size-4" />
+                <span>{selectedPartyType === "LENT" ? "Add Lent" : "Add Borrow"}</span>
+              </button>
+            </div>
+
+            <div className="max-h-[350px] overflow-y-auto space-y-3 pr-1">
+              {activeGroupedParty.debts.map((debt: any) => {
+                const dPaid = Number(debt.totalAmount) - Number(debt.remainingAmount)
+                const dProgress = Number(debt.totalAmount) > 0 ? Math.round((dPaid / Number(debt.totalAmount)) * 100) : 0
+                const { cleanNote } = parseDebtNote(debt.note)
+                
+                return (
+                  <div key={debt.id} className="relative bg-muted/40 hover:bg-muted/60 transition-colors rounded-xl p-3 sm:p-4 border border-border/45 text-left">
+                    <div className="absolute top-3.5 right-3.5 z-20">
+                      <DropdownMenu
+                        trigger={
+                          <button className="p-1 rounded-full hover:bg-black/5 text-secondary cursor-pointer outline-none border-none bg-transparent flex items-center justify-center">
+                            <MoreVertical className="size-4" />
+                          </button>
+                        }
+                        items={[
+                          {
+                            label: "Edit Debt",
+                            icon: <Edit2 className="size-3.5" />,
+                            onClick: () => handleOpenEdit(debt),
+                          },
+                          {
+                            label: selectedPartyType === "LENT" ? "Add Repayment" : "Record Repayment",
+                            icon: <DollarSign className="size-3.5" />,
+                            onClick: () => handleOpenRepayments(debt),
+                          },
+                          {
+                            label: "Delete",
+                            icon: <Trash2 className="size-3.5" />,
+                            onClick: () => handleOpenDelete(debt),
+                            isDestructive: true,
+                          },
+                        ]}
+                      />
+                    </div>
+
+                    <div className="pr-6 space-y-2">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <p className="text-[13px] font-bold text-foreground">
+                            {debt.debtDate ? format(new Date(debt.debtDate), "dd MMM yyyy") : format(new Date(), "dd MMM yyyy")}
+                          </p>
+                          {cleanNote && (
+                            <p className="text-[12px] text-secondary leading-tight mt-1 flex items-center gap-1 font-medium">
+                              <Info className="size-3 flex-shrink-0" />
+                              {cleanNote}
+                            </p>
+                          )}
+                          {debt.dueDate && (
+                            <p className="text-[11px] text-[#a43a3a] font-bold mt-1.5 flex items-center gap-1">
+                              <Calendar className="size-3" />
+                              <span>Due: {format(new Date(debt.dueDate), "dd MMM yyyy")}</span>
+                            </p>
+                          )}
+                        </div>
+                        <div className="text-right">
+                          <span className={`text-[15px] font-bold ${selectedPartyType === "LENT" ? "text-primary" : "text-[#a43a3a]"}`}>
+                            {formatMoney(Math.max(0, Number(debt.remainingAmount)))}
+                          </span>
+                          <span className="block text-[11px] text-secondary">of {formatMoney(debt.totalAmount)}</span>
+                        </div>
+                      </div>
+
+                      {/* Progress bar for this specific debt */}
+                      <div className="space-y-1">
+                        <div className="flex justify-between text-[11px] font-medium text-secondary">
+                          <span>Repayment Progress</span>
+                          <span className={`font-bold ${selectedPartyType === "LENT" ? "text-primary" : "text-[#a43a3a]"}`}>{dProgress}%</span>
+                        </div>
+                        <div className="w-full h-1.5 bg-border/40 rounded-full overflow-hidden">
+                          <div 
+                            className={`h-full transition-all ${selectedPartyType === "LENT" ? "bg-primary" : "bg-[#a43a3a]"}`} 
+                            style={{ width: `${dProgress}%` }}
+                          ></div>
+                        </div>
+                      </div>
+
+                      {/* Action buttons per individual entry */}
+                      <div className="flex justify-end items-center gap-3 pt-1">
+                        {(debt.status === "COMPLETED" || Number(debt.remainingAmount) <= 0) ? (
+                          <Badge variant="success">Settled</Badge>
+                        ) : (
+                          <>
+                            {debt.phoneNumber && selectedPartyType === "LENT" && (
+                              <button 
+                                onClick={() => {
+                                  const msg = generateDebtReminderMessage({
+                                    partyName: debt.partyName,
+                                    type: debt.type,
+                                    amount: Number(debt.totalAmount),
+                                    remainingAmount: Number(debt.remainingAmount),
+                                    dueDate: debt.dueDate,
+                                    senderName: user?.name,
+                                  })
+                                  const url = generateWhatsAppLink({
+                                    phone: debt.phoneNumber || "",
+                                    message: msg,
+                                  })
+                                  openWhatsApp(url)
+                                }}
+                                className="text-primary font-bold text-[12px] hover:underline cursor-pointer border-none bg-transparent"
+                              >
+                                Remind
+                              </button>
+                            )}
+                            <button 
+                              onClick={() => handleOpenRepayments(debt)}
+                              className={`font-bold text-[12px] hover:underline cursor-pointer border-none bg-transparent ${
+                                selectedPartyType === "LENT" ? "text-primary" : "text-[#0b1c30]"
+                              }`}
+                            >
+                              {selectedPartyType === "LENT" ? "Settle Up" : "Pay Now"}
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
+      </CustomDialog>
 
       {/* Add Debt Dialog */}
       <CustomDialog
